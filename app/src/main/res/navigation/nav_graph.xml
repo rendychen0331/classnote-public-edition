@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/scheduleFragment">
+
+    <!-- ── 課表 ── -->
+    <fragment
+        android:id="@+id/scheduleFragment"
+        android:name="com.rendy.classnote.ui.schedule.ScheduleFragment"
+        android:label="@string/nav_schedule"
+        tools:layout="@layout/fragment_schedule">
+        <action
+            android:id="@+id/actionWeekViewFragmentToCourseEditFragment"
+            app:destination="@id/courseEditFragment" />
+    </fragment>
+
+    <!--
+        WeekViewFragment 與 CalendarViewFragment 存在於 ViewPager2 中，
+        不是 NavController 的直接目的地，但 WeekViewFragment 仍可呼叫
+        findNavController() 取得上層的 NavController 並使用全域 action。
+    -->
+    <fragment
+        android:id="@+id/weekViewFragment"
+        android:name="com.rendy.classnote.ui.schedule.WeekViewFragment"
+        android:label="@string/tab_week_view"
+        tools:layout="@layout/fragment_week_view" />
+
+    <fragment
+        android:id="@+id/calendarViewFragment"
+        android:name="com.rendy.classnote.ui.schedule.CalendarViewFragment"
+        android:label="@string/tab_calendar_view"
+        tools:layout="@layout/fragment_calendar_view" />
+
+    <fragment
+        android:id="@+id/courseEditFragment"
+        android:name="com.rendy.classnote.ui.schedule.CourseEditFragment"
+        android:label="@string/add_course"
+        tools:layout="@layout/fragment_course_edit">
+        <argument
+            android:name="courseId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="dayOfWeek"
+            app:argType="integer"
+            android:defaultValue="1" />
+        <argument
+            android:name="period"
+            app:argType="integer"
+            android:defaultValue="1" />
+    </fragment>
+
+    <!-- ── 提醒 ── -->
+    <fragment
+        android:id="@+id/reminderListFragment"
+        android:name="com.rendy.classnote.ui.reminder.ReminderListFragment"
+        android:label="@string/nav_reminders"
+        tools:layout="@layout/fragment_reminder_list">
+        <action
+            android:id="@+id/actionReminderListFragmentToReminderEditFragment"
+            app:destination="@id/reminderEditFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/reminderEditFragment"
+        android:name="com.rendy.classnote.ui.reminder.ReminderEditFragment"
+        android:label="@string/add_reminder"
+        tools:layout="@layout/fragment_reminder_edit">
+        <argument
+            android:name="reminderId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+
+</navigation>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 水平 + 垂直可捲動的課表格子 -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Header row: 空白 + 週一〜週五 -->
+                <LinearLayout
+                    android:id="@+id/rowHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:orientation="horizontal"
+                    android:background="?attr/colorPrimaryContainer">
+
+                    <!-- 節次欄寬佔位 -->
+                    <TextView
+                        android:layout_width="56dp"
+                        android:layout_height="match_parent"
+                        android:text=""
+                        android:background="?attr/colorPrimaryContainer" />
+
+                    <TextView android:id="@+id/headerMon"
+                        style="@style/WeekHeader"
+                        android:text="週一" />
+                    <TextView android:id="@+id/headerTue"
+                        style="@style/WeekHeader"
+                        android:text="週二" />
+                    <TextView android:id="@+id/headerWed"
+                        style="@style/WeekHeader"
+                        android:text="週三" />
+                    <TextView android:id="@+id/headerThu"
+                        style="@style/WeekHeader"
+                        android:text="週四" />
+                    <TextView android:id="@+id/headerFri"
+                        style="@style/WeekHeader"
+                        android:text="週五" />
+                </LinearLayout>
+
+                <!-- 7 × 5 課表格 (由 WeekViewFragment 動態填充) -->
+                <LinearLayout
+                    android:id="@+id/gridContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddCourse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/add_course"
+        app:srcCompat="@android:drawable/ic_input_add" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

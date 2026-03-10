@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/scheduleFragment"
+        android:icon="@drawable/ic_schedule"
+        android:title="@string/nav_schedule" />
+    <item
+        android:id="@+id/reminderListFragment"
+        android:icon="@drawable/ic_reminder"
+        android:title="@string/nav_reminders" />
+</menu>

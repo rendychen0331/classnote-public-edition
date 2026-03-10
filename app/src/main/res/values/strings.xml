@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ClassNote</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_schedule">課表</string>
+    <string name="nav_reminders">提醒</string>
+
+    <!-- Schedule Tabs -->
+    <string name="tab_week_view">週課表</string>
+    <string name="tab_calendar_view">日曆</string>
+
+    <!-- Schedule / Course -->
+    <string name="add_course">新增課程</string>
+    <string name="edit_course">編輯課程</string>
+    <string name="delete_course">刪除課程</string>
+    <string name="course_name">課程名稱</string>
+    <string name="teacher">教師</string>
+    <string name="room">教室</string>
+    <string name="day_of_week">星期</string>
+    <string name="period">節次</string>
+    <string name="semester">學期</string>
+    <string name="switch_semester">切換學期</string>
+    <string name="override_type_cancel">取消課程</string>
+    <string name="override_type_replace">臨時換課</string>
+    <string name="override_date">修改日期</string>
+    <string name="add_override">新增臨時修改</string>
+    <string name="cancelled_label">（取消）</string>
+    <string name="temp_label">（臨時）</string>
+    <string name="no_class_today">今日無課</string>
+    <string name="weekend">週末</string>
+
+    <!-- Day names -->
+    <string-array name="days_of_week">
+        <item>週一</item>
+        <item>週二</item>
+        <item>週三</item>
+        <item>週四</item>
+        <item>週五</item>
+    </string-array>
+
+    <!-- Period names -->
+    <string name="period_format">第 %d 節</string>
+
+    <!-- Reminders -->
+    <string name="add_reminder">新增提醒</string>
+    <string name="edit_reminder">編輯提醒</string>
+    <string name="delete_reminder">刪除提醒</string>
+    <string name="reminder_title">提醒標題</string>
+    <string name="reminder_note">備註（選填）</string>
+    <string name="due_date">截止日期</string>
+    <string name="pick_date">選擇日期</string>
+    <string name="add_notification">新增通知時間</string>
+    <string name="no_reminders">目前沒有提醒事項</string>
+    <string name="no_notifications_set">尚未設定通知時間</string>
+    <string name="notification_times_label">通知時間：</string>
+    <string name="mark_complete">標記完成</string>
+    <string name="associated_course">關聯課程</string>
+    <string name="independent_reminder">獨立提醒</string>
+
+    <!-- Common -->
+    <string name="save">儲存</string>
+    <string name="cancel">取消</string>
+    <string name="delete">刪除</string>
+    <string name="edit">編輯</string>
+    <string name="confirm_delete">確認刪除</string>
+    <string name="confirm_delete_message">確定要刪除此項目嗎？</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">提醒事項通知</string>
+    <string name="notification_channel_description">ClassNote 提醒事項推播通知</string>
+    <string name="notification_tap_hint">點擊查看提醒詳情</string>
+</resources>
