@@ -42,7 +42,7 @@ abstract class ClassNoteDatabase : RoomDatabase() {
                     "classnote_database"
                 )
                     .addCallback(DatabaseCallback())
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigrationFrom(1)
                     .build()
                 INSTANCE = instance
                 instance

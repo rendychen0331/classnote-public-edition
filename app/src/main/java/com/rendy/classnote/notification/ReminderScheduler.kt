@@ -17,7 +17,7 @@ object ReminderScheduler {
         val intent = buildIntent(context, notification)
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            (notification.id and 0x7FFFFFFF).toInt(),
+            notification.id.toInt(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -40,7 +40,7 @@ object ReminderScheduler {
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            (notificationId and 0x7FFFFFFF).toInt(),
+            notificationId.toInt(),
             intent,
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
         ) ?: return

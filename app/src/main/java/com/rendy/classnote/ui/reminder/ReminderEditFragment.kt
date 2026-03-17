@@ -15,6 +15,7 @@ import androidx.navigation.fragment.navArgs
 import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.data.local.entity.ReminderEntity
 import com.rendy.classnote.databinding.FragmentReminderEditBinding
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -45,6 +46,8 @@ class ReminderEditFragment : Fragment() {
     // 編輯時保留原始欄位，避免儲存時遺失
     private var originalCourseId: Long? = null
     private var originalCreatedAt: Long? = null
+    // 追蹤非同步載入 job，儲存前先等待完成
+    private var loadJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -68,7 +71,7 @@ class ReminderEditFragment : Fragment() {
     }
 
     private fun loadReminder(reminderId: Long) {
-        viewLifecycleOwner.lifecycleScope.launch {
+        loadJob = viewLifecycleOwner.lifecycleScope.launch {
             val app = requireActivity().application as ClassNoteApplication
             val reminder = app.reminderRepository.getReminderById(reminderId) ?: return@launch
             originalCourseId = reminder.courseId
@@ -113,7 +116,7 @@ class ReminderEditFragment : Fragment() {
                         val dt = LocalDateTime.of(year, month + 1, day, hour, minute)
                         val millis = dt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                         when {
-                            millis <= System.currentTimeMillis() ->
+                            millis < System.currentTimeMillis() ->
                                 Toast.makeText(requireContext(), "請選擇未來的時間", Toast.LENGTH_SHORT).show()
                             millis in notificationTimes ->
                                 Toast.makeText(requireContext(), "此時間已加入", Toast.LENGTH_SHORT).show()
@@ -161,9 +164,11 @@ class ReminderEditFragment : Fragment() {
         )
 
         // NonCancellable 確保 DB 寫入不因 lifecycle 取消而中斷
-        // 先複製一份，避免 coroutine suspend 期間 list 被其他 coroutine 修改
-        val times = notificationTimes.toList()
         viewLifecycleOwner.lifecycleScope.launch {
+            // 等待資料載入完成，避免競態條件覆蓋使用者加入的通知時間
+            loadJob?.join()
+            // 載入完成後再複製，確保包含 DB 已有的通知時間
+            val times = notificationTimes.toList()
             if (args.reminderId > 0) {
                 viewModel.updateReminderAndWait(reminder, times)
             } else {

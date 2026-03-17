@@ -50,7 +50,7 @@ class ReminderRepository(
     suspend fun insertNotification(notification: ReminderNotificationEntity): Long =
         notificationDao.insertNotification(notification)
 
-    suspend fun insertNotifications(notifications: List<ReminderNotificationEntity>) =
+    suspend fun insertNotifications(notifications: List<ReminderNotificationEntity>): List<Long> =
         notificationDao.insertAll(notifications)
 
     suspend fun markNotificationFired(id: Long) =

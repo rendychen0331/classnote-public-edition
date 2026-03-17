@@ -23,7 +23,7 @@ interface ReminderNotificationDao {
     suspend fun insertNotification(notification: ReminderNotificationEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(notifications: List<ReminderNotificationEntity>)
+    suspend fun insertAll(notifications: List<ReminderNotificationEntity>): List<Long>
 
     @Query("UPDATE reminder_notifications SET isFired = 1 WHERE id = :id")
     suspend fun markFired(id: Long)

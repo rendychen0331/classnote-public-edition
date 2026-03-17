@@ -68,13 +68,16 @@ class ReminderViewModel(
     }
 
     private suspend fun scheduleNotifications(reminderId: Long, triggerTimes: List<Long>) {
-        val notifications = triggerTimes.map { time ->
-            ReminderNotificationEntity(reminderId = reminderId, triggerAt = time)
+        val now = System.currentTimeMillis()
+        val notifications = triggerTimes
+            .filter { it > now }
+            .map { time -> ReminderNotificationEntity(reminderId = reminderId, triggerAt = time) }
+        if (notifications.isEmpty()) return
+        // insertAll 回傳自動產生的 id，直接用於排程，不需重查
+        val insertedIds = repository.insertNotifications(notifications)
+        insertedIds.zip(notifications).forEach { (id, entity) ->
+            ReminderScheduler.scheduleNotification(appContext, entity.copy(id = id))
         }
-        repository.insertNotifications(notifications)
-        // 重新查詢以取得自動產生的 id，僅排程未觸發的
-        val saved = repository.getNotificationsOnce(reminderId).filter { !it.isFired }
-        saved.forEach { ReminderScheduler.scheduleNotification(appContext, it) }
     }
 
     private suspend fun cancelPendingNotifications(reminderId: Long) {

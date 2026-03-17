@@ -36,7 +36,7 @@ class ReminderAdapter(
                 binding.tvDueDate.text = due
             }
 
-            binding.checkboxDone.isChecked = false
+            binding.checkboxDone.isChecked = item.isCompleted
             binding.checkboxDone.setOnClickListener { onComplete(item) }
             binding.btnEdit.setOnClickListener { onEdit(item) }
             binding.btnDelete.setOnClickListener { onDelete(item) }
