@@ -13,11 +13,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class ScheduleViewModel(private val repository: CourseRepository) : ViewModel() {
 
-    // 目前學期（預設格式 "YYYY-S"，例如 "2024-1"）
-    val currentSemesterId = MutableStateFlow("2024-1")
+    // 目前學期（格式 "YYYY-S"）：依現實時間動態計算，8月以後為第2學期
+    val currentSemesterId = MutableStateFlow(run {
+        val cal = Calendar.getInstance()
+        val year = cal.get(Calendar.YEAR)
+        val month = cal.get(Calendar.MONTH) + 1 // 1-based
+        val semester = if (month >= 8) 2 else 1
+        "$year-$semester"
+    })
 
     val courses: StateFlow<List<CourseEntity>> = currentSemesterId
         .flatMapLatest { repository.getCoursesBySemester(it) }
