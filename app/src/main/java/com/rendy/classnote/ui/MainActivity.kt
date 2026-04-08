@@ -8,10 +8,12 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.R
 import com.rendy.classnote.databinding.ActivityMainBinding
 
@@ -75,5 +77,50 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+
+        // USE_FULL_SCREEN_INTENT (Android 14+) — 顯示全螢幕鬧鐘介面所需
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val nm = NotificationManagerCompat.from(this)
+            if (!nm.canUseFullScreenIntent()) {
+                showFullScreenIntentDialog()
+            }
+        }
+
+        // SYSTEM_ALERT_WINDOW — 顯示在其他 App 上方（鬧鐘效果增強）
+        if (!Settings.canDrawOverlays(this)) {
+            showOverlayPermissionDialog()
+        }
+    }
+
+    private fun showFullScreenIntentDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("開啟全螢幕提醒")
+            .setMessage("允許 ClassNote 在鎖屏或使用其他 App 時，以全螢幕方式顯示提醒（類似鬧鐘）。")
+            .setPositiveButton("前往設定") { _, _ ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    startActivity(
+                        Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
+                            data = Uri.fromParts("package", packageName, null)
+                        }
+                    )
+                }
+            }
+            .setNegativeButton("略過", null)
+            .show()
+    }
+
+    private fun showOverlayPermissionDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("顯示在其他 App 上方")
+            .setMessage("允許 ClassNote 在使用其他 App 時也能顯示提醒視窗（類似鬧鐘）。\n\n前往設定 → 允許「顯示在其他應用程式上方」。")
+            .setPositiveButton("前往設定") { _, _ ->
+                startActivity(
+                    Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
+                        data = Uri.fromParts("package", packageName, null)
+                    }
+                )
+            }
+            .setNegativeButton("略過", null)
+            .show()
     }
 }
