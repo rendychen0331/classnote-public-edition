@@ -1,6 +1,7 @@
 package com.rendy.classnote
 
 import android.app.Application
+import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.local.ClassNoteDatabase
 import com.rendy.classnote.data.repository.CourseRepository
 import com.rendy.classnote.data.repository.ReminderRepository
@@ -24,6 +25,8 @@ class ClassNoteApplication : Application() {
             notificationDao = database.reminderNotificationDao()
         )
     }
+
+    val appPreferences by lazy { AppPreferences(this) }
 
     override fun onCreate() {
         super.onCreate()

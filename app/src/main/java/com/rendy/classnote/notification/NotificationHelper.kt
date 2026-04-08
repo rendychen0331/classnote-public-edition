@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
+import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.R
 import com.rendy.classnote.ui.MainActivity
 import com.rendy.classnote.ui.ReminderAlarmActivity
@@ -62,7 +63,10 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val fullScreenEnabled = (context.applicationContext as? ClassNoteApplication)
+            ?.appPreferences?.fullScreenAlarmEnabled ?: true
+
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(body.ifBlank { "點擊查看提醒詳情" })
@@ -70,8 +74,12 @@ object NotificationHelper {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
             .setContentIntent(tapPendingIntent)
-            .setFullScreenIntent(fullScreenPendingIntent, /* highPriority */ true)
-            .build()
+
+        if (fullScreenEnabled) {
+            builder.setFullScreenIntent(fullScreenPendingIntent, true)
+        }
+
+        val notification = builder.build()
 
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.notify(notificationId, notification)

@@ -78,4 +78,11 @@
             android:defaultValue="-1L" />
     </fragment>
 
+    <!-- ── 設定 ── -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.rendy.classnote.ui.settings.SettingsFragment"
+        android:label="@string/nav_settings"
+        tools:layout="@layout/fragment_settings" />
+
 </navigation>

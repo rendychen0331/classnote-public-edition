@@ -81,4 +81,24 @@
     <string name="notification_channel_name">提醒事項通知</string>
     <string name="notification_channel_description">ClassNote 提醒事項推播通知</string>
     <string name="notification_tap_hint">點擊查看提醒詳情</string>
+
+    <!-- Settings -->
+    <string name="nav_settings">設定</string>
+    <string name="settings_section_alarm">鬧鐘提醒</string>
+    <string name="settings_full_screen_alarm_title">全頁提醒</string>
+    <string name="settings_full_screen_alarm_desc">提醒觸發時以全螢幕介面顯示，並自動亮螢幕（類似鬧鐘）</string>
+    <string name="settings_snooze_title">延後時間</string>
+    <string name="settings_section_permissions">權限設定</string>
+    <string name="settings_perm_fullscreen_title">全螢幕通知（Android 14+）</string>
+    <string name="settings_perm_fullscreen_desc">允許 ClassNote 以全螢幕方式顯示提醒</string>
+    <string name="settings_perm_overlay_title">顯示在其他 App 上方</string>
+    <string name="settings_perm_overlay_desc">在使用其他 App 時也能彈出提醒視窗</string>
+    <string name="settings_perm_xiaomi_title">小米鎖屏顯示（HyperOS/MIUI）</string>
+    <string name="settings_perm_xiaomi_desc">其他權限 → 在鎖定螢幕上顯示</string>
+    <string name="settings_perm_granted">已授權</string>
+    <string name="settings_perm_not_granted">未授權，點此設定</string>
+    <string name="snooze_10min">10 分鐘</string>
+    <string name="snooze_5min">5 分鐘</string>
+    <string name="snooze_15min">15 分鐘</string>
+    <string name="snooze_30min">30 分鐘</string>
 </resources>

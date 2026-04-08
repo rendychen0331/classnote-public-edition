@@ -8,4 +8,8 @@
         android:id="@+id/reminderListFragment"
         android:icon="@drawable/ic_reminder"
         android:title="@string/nav_reminders" />
+    <item
+        android:id="@+id/settingsFragment"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/nav_settings" />
 </menu>
