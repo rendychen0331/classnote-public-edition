@@ -12,7 +12,7 @@
         android:layout_height="34dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="#1A103A"
+        android:background="#111111"
         android:padding="3dp">
 
         <TextView
@@ -43,10 +43,10 @@
             android:layout_height="26dp"
             android:gravity="center"
             android:text="+"
-            android:textColor="#FFFFFF"
+            android:textColor="#AAAAAA"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:background="#CC2272"
+            android:background="#2A2A2A"
             android:layout_marginStart="6dp" />
 
     </LinearLayout>
