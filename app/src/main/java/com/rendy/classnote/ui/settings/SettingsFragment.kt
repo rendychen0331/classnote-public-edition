@@ -28,8 +28,6 @@ class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
 
-    /** 記錄是否剛從小米權限設定頁返回，用於 onResume 彈確認 dialog */
-    private var xiaomiSettingsOpened = false
 
     private lateinit var prefs: com.rendy.classnote.data.AppPreferences
 
@@ -65,10 +63,6 @@ class SettingsFragment : Fragment() {
         super.onResume()
         // 重新進頁面時更新權限狀態（使用者可能剛從設定頁回來）
         updatePermissionStatuses()
-        if (xiaomiSettingsOpened) {
-            xiaomiSettingsOpened = false
-            showXiaomiGrantedConfirmDialog()
-        }
     }
 
     // ── 鬧鐘提醒 ─────────────────────────────────────────────────────────────
@@ -151,7 +145,6 @@ class SettingsFragment : Fragment() {
         if (isXiaomiDevice()) {
             binding.cardPermXiaomi.visibility = View.VISIBLE
             binding.btnXiaomiPermSettings.setOnClickListener {
-                xiaomiSettingsOpened = true
                 openXiaomiAppPermissions()
             }
         } else {
@@ -179,30 +172,36 @@ class SettingsFragment : Fragment() {
         binding.tvPermOverlayStatus.text = if (overlayOk) granted else notGranted
         binding.tvPermOverlayStatus.setTextColor(if (overlayOk) grantedColor else notGrantedColor)
 
-        // 小米鎖屏（依儲存紀錄顯示）
+        // 小米鎖屏（MIUI AppOps OP_SHOW_WHEN_LOCKED = 10020）
         if (isXiaomiDevice()) {
-            val xiaomiOk = prefs.xiaomiLockScreenGranted
+            val xiaomiOk = isXiaomiLockScreenGranted(requireContext())
             binding.tvPermXiaomiStatus.text = if (xiaomiOk) granted else notGranted
             binding.tvPermXiaomiStatus.setTextColor(if (xiaomiOk) grantedColor else notGrantedColor)
         }
     }
 
-    private fun showXiaomiGrantedConfirmDialog() {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(getString(R.string.settings_perm_xiaomi_confirm_title))
-            .setMessage(getString(R.string.settings_perm_xiaomi_confirm_msg))
-            .setPositiveButton(getString(R.string.settings_perm_xiaomi_yes)) { _, _ ->
-                prefs.xiaomiLockScreenGranted = true
-                updatePermissionStatuses()
-            }
-            .setNegativeButton(getString(R.string.settings_perm_xiaomi_no)) { _, _ ->
-                prefs.xiaomiLockScreenGranted = false
-                updatePermissionStatuses()
-            }
-            .show()
-    }
+    // ── Xiaomi 偵測與權限查詢 ─────────────────────────────────────────────────
 
-    // ── Xiaomi 偵測（與 MainActivity 相同邏輯）────────────────────────────────
+    /**
+     * 透過反射查詢 MIUI 私有 AppOps OP_SHOW_WHEN_LOCKED (10020)。
+     * 無法取得時回傳 false（安全降級，不影響非小米裝置）。
+     */
+    private fun isXiaomiLockScreenGranted(context: Context): Boolean = try {
+        val manager = context.getSystemService(Context.APP_OPS_SERVICE) as android.app.AppOpsManager
+        val method = android.app.AppOpsManager::class.java.getDeclaredMethod(
+            "checkOpNoThrow",
+            Int::class.javaPrimitiveType,
+            Int::class.javaPrimitiveType,
+            String::class.java
+        )
+        val result = method.invoke(
+            manager,
+            10020,
+            android.os.Binder.getCallingUid(),
+            context.packageName
+        ) as Int
+        result == android.app.AppOpsManager.MODE_ALLOWED
+    } catch (_: Exception) { false }
 
     private fun isXiaomiDevice(): Boolean =
         android.os.Build.MANUFACTURER.equals("Xiaomi", ignoreCase = true) ||
