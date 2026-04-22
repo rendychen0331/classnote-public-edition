@@ -83,15 +83,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestRequiredPermissions() {
-        // POST_NOTIFICATIONS (Android 13+)
+        val prefs = getSharedPreferences("classnote_prefs", MODE_PRIVATE)
+
+        // POST_NOTIFICATIONS (Android 13+) — 系統自動處理已授予的狀況，不需額外記錄
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        // SCHEDULE_EXACT_ALARM (Android 12+) — 需引導使用者至系統設定
+        // SCHEDULE_EXACT_ALARM (Android 12+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(android.app.AlarmManager::class.java)
-            if (!alarmManager.canScheduleExactAlarms()) {
+            if (!alarmManager.canScheduleExactAlarms() &&
+                !prefs.getBoolean("exact_alarm_prompted", false)) {
+                prefs.edit().putBoolean("exact_alarm_prompted", true).apply()
                 startActivity(
                     Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
                         data = Uri.fromParts("package", packageName, null)
@@ -100,22 +104,24 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // USE_FULL_SCREEN_INTENT (Android 14+) — 顯示全螢幕鬧鐘介面所需
+        // USE_FULL_SCREEN_INTENT (Android 14+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val nm = NotificationManagerCompat.from(this)
-            if (!nm.canUseFullScreenIntent()) {
-                showFullScreenIntentDialog()
+            if (!nm.canUseFullScreenIntent() &&
+                !prefs.getBoolean("full_screen_intent_prompted", false)) {
+                showFullScreenIntentDialog(prefs)
             }
         }
 
-        // SYSTEM_ALERT_WINDOW — 顯示在其他 App 上方（鬧鐘效果增強）
-        if (!Settings.canDrawOverlays(this)) {
-            showOverlayPermissionDialog()
+        // SYSTEM_ALERT_WINDOW
+        if (!Settings.canDrawOverlays(this) &&
+            !prefs.getBoolean("overlay_prompted", false)) {
+            showOverlayPermissionDialog(prefs)
         }
-
     }
 
-    private fun showFullScreenIntentDialog() {
+    private fun showFullScreenIntentDialog(prefs: android.content.SharedPreferences) {
+        prefs.edit().putBoolean("full_screen_intent_prompted", true).apply()
         MaterialAlertDialogBuilder(this)
             .setTitle("開啟全螢幕提醒")
             .setMessage("允許 ClassNote 在鎖屏或使用其他 App 時，以全螢幕方式顯示提醒（類似鬧鐘）。")
@@ -132,7 +138,8 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showOverlayPermissionDialog() {
+    private fun showOverlayPermissionDialog(prefs: android.content.SharedPreferences) {
+        prefs.edit().putBoolean("overlay_prompted", true).apply()
         MaterialAlertDialogBuilder(this)
             .setTitle("顯示在其他 App 上方")
             .setMessage("允許 ClassNote 在使用其他 App 時也能顯示提醒視窗（類似鬧鐘）。\n\n前往設定 → 允許「顯示在其他應用程式上方」。")
