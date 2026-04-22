@@ -174,9 +174,20 @@ class SettingsFragment : Fragment() {
 
         // 小米鎖屏（MIUI AppOps OP_SHOW_WHEN_LOCKED = 10020）
         if (isXiaomiDevice()) {
-            val xiaomiOk = isXiaomiLockScreenGranted(requireContext())
-            binding.tvPermXiaomiStatus.text = if (xiaomiOk) granted else notGranted
-            binding.tvPermXiaomiStatus.setTextColor(if (xiaomiOk) grantedColor else notGrantedColor)
+            when (isXiaomiLockScreenGranted(requireContext())) {
+                true -> {
+                    binding.tvPermXiaomiStatus.text = granted
+                    binding.tvPermXiaomiStatus.setTextColor(grantedColor)
+                }
+                false -> {
+                    binding.tvPermXiaomiStatus.text = notGranted
+                    binding.tvPermXiaomiStatus.setTextColor(notGrantedColor)
+                }
+                null -> {
+                    binding.tvPermXiaomiStatus.text = getString(R.string.settings_perm_status_unknown)
+                    binding.tvPermXiaomiStatus.setTextColor(requireContext().getColor(android.R.color.darker_gray))
+                }
+            }
         }
     }
 
@@ -186,7 +197,8 @@ class SettingsFragment : Fragment() {
      * 透過反射查詢 MIUI 私有 AppOps OP_SHOW_WHEN_LOCKED (10020)。
      * 無法取得時回傳 false（安全降級，不影響非小米裝置）。
      */
-    private fun isXiaomiLockScreenGranted(context: Context): Boolean = try {
+    /** 回傳 true=已授權、false=未授權、null=無法查詢（反射失敗） */
+    private fun isXiaomiLockScreenGranted(context: Context): Boolean? = try {
         val manager = context.getSystemService(Context.APP_OPS_SERVICE) as android.app.AppOpsManager
         val method = android.app.AppOpsManager::class.java.getDeclaredMethod(
             "checkOpNoThrow",
@@ -201,7 +213,7 @@ class SettingsFragment : Fragment() {
             context.packageName
         ) as Int
         result == android.app.AppOpsManager.MODE_ALLOWED
-    } catch (_: Exception) { false }
+    } catch (_: Exception) { null }
 
     private fun isXiaomiDevice(): Boolean =
         android.os.Build.MANUFACTURER.equals("Xiaomi", ignoreCase = true) ||

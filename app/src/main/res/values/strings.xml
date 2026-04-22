@@ -101,6 +101,7 @@
     <string name="settings_perm_xiaomi_desc">其他權限 → 在鎖定螢幕上顯示</string>
     <string name="settings_perm_granted">已授權</string>
     <string name="settings_perm_not_granted">未授權，點此設定</string>
+    <string name="settings_perm_status_unknown">無法確認狀態</string>
     <string name="snooze_10min">10 分鐘</string>
     <string name="snooze_5min">5 分鐘</string>
     <string name="snooze_15min">15 分鐘</string>
