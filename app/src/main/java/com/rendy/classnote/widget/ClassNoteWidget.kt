@@ -79,7 +79,14 @@ class ClassNoteWidget : AppWidgetProvider() {
                 action = ACTION_NEXT_MONTH
                 putExtra(EXTRA_WIDGET_ID, widgetId)
             }
-            val openAppIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+            fun makeOpenIntent(navigateTo: String, reqCode: Int): android.app.PendingIntent {
+                val i = Intent(context, com.rendy.classnote.ui.MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    putExtra("navigate_to", navigateTo)
+                }
+                return android.app.PendingIntent.getActivity(context, widgetId * 10 + reqCode, i,
+                    android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE)
+            }
 
             views.setOnClickPendingIntent(R.id.tabOverview,
                 android.app.PendingIntent.getBroadcast(context, widgetId * 10, overviewIntent,
@@ -93,11 +100,11 @@ class ClassNoteWidget : AppWidgetProvider() {
             views.setOnClickPendingIntent(R.id.btnCalNext,
                 android.app.PendingIntent.getBroadcast(context, widgetId * 10 + 3, nextIntent,
                     android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE))
-            if (openAppIntent != null) {
-                views.setOnClickPendingIntent(R.id.btnAdd,
-                    android.app.PendingIntent.getActivity(context, widgetId * 10 + 4, openAppIntent,
-                        android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE))
-            }
+            // 點擊內容區跳轉 App 對應頁
+            views.setOnClickPendingIntent(R.id.containerOverview, makeOpenIntent("reminders", 4))
+            views.setOnClickPendingIntent(R.id.containerCalendar, makeOpenIntent("schedule", 6))
+            // + 號跳提醒清單
+            views.setOnClickPendingIntent(R.id.btnAdd, makeOpenIntent("reminders", 7))
 
             // ── Tab styling ────────────────────────────────────────────────
             if (showCalendar) {
