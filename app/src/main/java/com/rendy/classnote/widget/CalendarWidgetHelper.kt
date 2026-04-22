@@ -46,7 +46,13 @@ object CalendarWidgetHelper {
         val color: Int
     )
 
-    fun populate(context: Context, views: RemoteViews, yearMonth: YearMonth, reminders: List<ReminderEntity>) {
+    fun populate(
+        context: Context,
+        views: RemoteViews,
+        yearMonth: YearMonth,
+        reminders: List<ReminderEntity>,
+        notifDateMap: Map<Long, LocalDate> = emptyMap()
+    ) {
         val fmt = DateTimeFormatter.ISO_LOCAL_DATE
         val today = LocalDate.now()
         val isCurrentMonth = yearMonth == YearMonth.from(today)
@@ -58,6 +64,7 @@ object CalendarWidgetHelper {
             try {
                 val start = r.startDate?.let { LocalDate.parse(it, fmt) }
                     ?: r.dueDate?.let { LocalDate.parse(it, fmt) }
+                    ?: notifDateMap[r.id]  // 沒有截止日期時，用最早通知時間的日期
                     ?: return@mapNotNull null
                 val end = r.dueDate?.let { LocalDate.parse(it, fmt) } ?: start
                 val color = try {

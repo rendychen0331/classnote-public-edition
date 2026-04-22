@@ -127,7 +127,16 @@ class ClassNoteWidget : AppWidgetProvider() {
                             populateOverview(context, views, db, widgetId)
                         } else {
                             val reminders = db.reminderDao().getActiveRemindersOnce()
-                            CalendarWidgetHelper.populate(context, views, yearMonth, reminders)
+                            val now = System.currentTimeMillis()
+                            val notifications = db.reminderNotificationDao().getPendingNotifications(now)
+                            // reminderId → 最早未觸發通知的日期（給沒有截止日期的提醒用）
+                            val notifDateMap = notifications
+                                .groupBy { it.reminderId }
+                                .mapValues { (_, list) ->
+                                    java.time.Instant.ofEpochMilli(list.minOf { it.triggerAt })
+                                        .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                                }
+                            CalendarWidgetHelper.populate(context, views, yearMonth, reminders, notifDateMap)
                         }
                     }
                 }
