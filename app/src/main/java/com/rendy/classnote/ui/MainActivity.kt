@@ -45,6 +45,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 標準權限都已授予後，才引導小米鎖屏額外設定
+        if (areStandardPermissionsGranted()) {
+            requestXiaomiLockScreenPermission()
+        }
+    }
+
+    private fun areStandardPermissionsGranted(): Boolean {
+        val nm = NotificationManagerCompat.from(this)
+        if (!nm.areNotificationsEnabled()) return false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(android.app.AlarmManager::class.java)
+            if (!alarmManager.canScheduleExactAlarms()) return false
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            if (!nm.canUseFullScreenIntent()) return false
+        }
+        if (!Settings.canDrawOverlays(this)) return false
+        return true
+    }
+
     // app 已在後台時，通知點擊會觸發 onNewIntent 而非 onCreate
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -91,8 +113,6 @@ class MainActivity : AppCompatActivity() {
             showOverlayPermissionDialog()
         }
 
-        // Xiaomi HyperOS / MIUI — 鎖屏顯示需額外手動開啟
-        requestXiaomiLockScreenPermission()
     }
 
     private fun showFullScreenIntentDialog() {
