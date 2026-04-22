@@ -1,6 +1,8 @@
 package com.rendy.classnote.data
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
@@ -29,6 +31,23 @@ object DriveBackupManager {
         data class Error(val message: String) : Result()
     }
 
+    /**
+     * 依使用者設定檢查目前網路是否允許備份/還原。
+     * @param networkType AppPreferences.NETWORK_WIFI / NETWORK_MOBILE / NETWORK_ANY
+     */
+    fun isNetworkAllowed(context: Context, networkType: String): Boolean {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        val hasWifi = caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+        val hasMobile = caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+        return when (networkType) {
+            AppPreferences.NETWORK_WIFI -> hasWifi
+            AppPreferences.NETWORK_MOBILE -> hasMobile
+            else -> hasWifi || hasMobile
+        }
+    }
+
     private fun buildDriveService(context: Context, account: GoogleSignInAccount): Drive {
         val credential = GoogleAccountCredential.usingOAuth2(
             context, listOf(DriveScopes.DRIVE_APPDATA)
@@ -42,8 +61,10 @@ object DriveBackupManager {
      * 備份 Room DB 到 Google Drive AppData 資料夾。
      * 備份前先做 WAL checkpoint 確保 .db 檔案完整。
      */
-    suspend fun backup(context: Context, account: GoogleSignInAccount): Result =
+    suspend fun backup(context: Context, account: GoogleSignInAccount,
+                       networkType: String = AppPreferences.NETWORK_ANY): Result =
         withContext(Dispatchers.IO) {
+            if (!isNetworkAllowed(context, networkType)) return@withContext Result.Error("網路不符合備份設定")
             try {
                 // WAL checkpoint
                 val db = ClassNoteDatabase.getDatabase(context)
@@ -85,8 +106,10 @@ object DriveBackupManager {
      * 從 Google Drive AppData 還原 DB。
      * 還原後需重啟 App 才能讓 Room 重新載入。
      */
-    suspend fun restore(context: Context, account: GoogleSignInAccount): Result =
+    suspend fun restore(context: Context, account: GoogleSignInAccount,
+                        networkType: String = AppPreferences.NETWORK_ANY): Result =
         withContext(Dispatchers.IO) {
+            if (!isNetworkAllowed(context, networkType)) return@withContext Result.Error("網路不符合備份設定")
             try {
                 val drive = buildDriveService(context, account)
 

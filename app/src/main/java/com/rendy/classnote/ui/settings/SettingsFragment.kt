@@ -207,6 +207,10 @@ class SettingsFragment : Fragment() {
     // ── Google 帳號備份 ──────────────────────────────────────────────────────────
 
     private fun setupGoogleSection() {
+        // 備份網路
+        updateBackupNetworkSummary()
+        binding.cardBackupNetwork.setOnClickListener { showBackupNetworkDialog() }
+
         val account = GoogleAuthManager.getAccount(requireContext())
         if (account != null) {
             updateGoogleSection(account)
@@ -234,7 +238,7 @@ class SettingsFragment : Fragment() {
             val acc = GoogleAuthManager.getAccount(requireContext()) ?: return@setOnClickListener
             binding.btnGoogleBackup.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
-                val result = DriveBackupManager.backup(requireContext(), acc)
+                val result = DriveBackupManager.backup(requireContext(), acc, prefs.backupNetworkType)
                 binding.btnGoogleBackup.isEnabled = true
                 when (result) {
                     is DriveBackupManager.Result.Success -> {
@@ -255,7 +259,7 @@ class SettingsFragment : Fragment() {
                     val acc = GoogleAuthManager.getAccount(requireContext()) ?: return@setPositiveButton
                     binding.btnGoogleRestore.isEnabled = false
                     viewLifecycleOwner.lifecycleScope.launch {
-                        val result = DriveBackupManager.restore(requireContext(), acc)
+                        val result = DriveBackupManager.restore(requireContext(), acc, prefs.backupNetworkType)
                         binding.btnGoogleRestore.isEnabled = true
                         when (result) {
                             is DriveBackupManager.Result.Success ->
@@ -268,6 +272,35 @@ class SettingsFragment : Fragment() {
                 .setNegativeButton(getString(R.string.cancel), null)
                 .show()
         }
+    }
+
+    private fun updateBackupNetworkSummary() {
+        val label = when (prefs.backupNetworkType) {
+            AppPreferences.NETWORK_WIFI -> getString(R.string.backup_network_wifi)
+            AppPreferences.NETWORK_MOBILE -> getString(R.string.backup_network_mobile)
+            else -> getString(R.string.backup_network_any)
+        }
+        binding.tvBackupNetworkValue.text = label
+    }
+
+    private fun showBackupNetworkDialog() {
+        val options = arrayOf(
+            getString(R.string.backup_network_wifi),
+            getString(R.string.backup_network_mobile),
+            getString(R.string.backup_network_any)
+        )
+        val keys = arrayOf(AppPreferences.NETWORK_WIFI, AppPreferences.NETWORK_MOBILE, AppPreferences.NETWORK_ANY)
+        val current = keys.indexOfFirst { it == prefs.backupNetworkType }.coerceAtLeast(0)
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.backup_network_title))
+            .setSingleChoiceItems(options, current) { dialog, which ->
+                prefs.backupNetworkType = keys[which]
+                updateBackupNetworkSummary()
+                dialog.dismiss()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
     }
 
     private fun updateGoogleSection(account: GoogleSignInAccount) {

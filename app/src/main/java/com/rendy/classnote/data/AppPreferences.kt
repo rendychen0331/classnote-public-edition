@@ -20,9 +20,22 @@ class AppPreferences(context: Context) {
         get() = prefs.getInt(KEY_SNOOZE_MINUTES, 5)
         set(value) = prefs.edit { putInt(KEY_SNOOZE_MINUTES, value) }
 
+    /**
+     * 備份允許的網路類型。
+     * "wifi" = 僅 WiFi，"mobile" = 僅行動數據，"any" = 任何網路（預設）
+     */
+    var backupNetworkType: String
+        get() = prefs.getString(KEY_BACKUP_NETWORK, NETWORK_ANY) ?: NETWORK_ANY
+        set(value) = prefs.edit { putString(KEY_BACKUP_NETWORK, value) }
+
     companion object {
         private const val PREFS_NAME = "classnote_prefs"
         private const val KEY_FULL_SCREEN_ALARM = "full_screen_alarm_enabled"
         private const val KEY_SNOOZE_MINUTES = "snooze_minutes"
+        private const val KEY_BACKUP_NETWORK = "backup_network_type"
+
+        const val NETWORK_WIFI = "wifi"
+        const val NETWORK_MOBILE = "mobile"
+        const val NETWORK_ANY = "any"
     }
 }
