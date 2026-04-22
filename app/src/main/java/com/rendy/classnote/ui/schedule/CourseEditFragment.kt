@@ -1,5 +1,8 @@
 package com.rendy.classnote.ui.schedule
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Toast
@@ -17,6 +20,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.data.local.entity.CourseEntity
 import com.rendy.classnote.databinding.FragmentCourseEditBinding
+import com.rendy.classnote.widget.ClassNoteWidget
 import kotlinx.coroutines.launch
 
 /**
@@ -181,8 +185,19 @@ class CourseEditFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             if (args.courseId > 0) viewModel.updateCourse(course)
             else viewModel.addCourse(course)
+            refreshWidgets()
             findNavController().popBackStack()
         }
+    }
+
+    private fun refreshWidgets() {
+        val ctx = requireContext()
+        val manager = AppWidgetManager.getInstance(ctx)
+        val ids = manager.getAppWidgetIds(ComponentName(ctx, ClassNoteWidget::class.java))
+        val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).apply {
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+        }
+        ctx.sendBroadcast(intent)
     }
 
     override fun onDestroyView() {
