@@ -67,7 +67,7 @@ class ClassNoteNotificationListener : NotificationListenerService() {
 
         // 頻道白名單過濾（不透過 AI，直接用 title 比對）
         val channelWhitelist = prefs.getMonitoredChannels()[sbn.packageName]
-        if (channelWhitelist.isNullOrEmpty() || !channelWhitelist.contains(title)) return
+        if (!channelWhitelist.isNullOrEmpty() && !channelWhitelist.contains(title)) return
 
         val dedupeKey = "${sbn.packageName}|$title|${text.take(100)}"
         val isNew = synchronized(seenKeys) {
