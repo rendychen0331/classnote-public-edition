@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.rendy.classnote.R
+import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.WeatherPreferences
 import com.rendy.classnote.data.remote.WeatherApi
 import kotlinx.coroutines.CoroutineScope
@@ -33,10 +34,13 @@ class WeatherNotificationReceiver : BroadcastReceiver() {
         // 排程明天的通知
         WeatherNotificationScheduler.schedule(context)
 
+        val apiKey = AppPreferences(context).cwaApiKey
+        if (apiKey.isBlank()) return
+
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                WeatherApi.fetchForecast(location).onSuccess { forecasts ->
+                WeatherApi.fetchForecast(location, apiKey).onSuccess { forecasts ->
                     val first = forecasts.firstOrNull() ?: return@onSuccess
                     val text = "${first.description}，${first.tempMin}°C～${first.tempMax}°C，降雨 ${first.rainProb}%"
                     showNotification(context, location, text)

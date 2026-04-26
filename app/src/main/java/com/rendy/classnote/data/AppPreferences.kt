@@ -95,6 +95,11 @@ class AppPreferences(context: Context) {
         get() = prefs.getString(KEY_GEMINI_API_KEY, "") ?: ""
         set(value) = prefs.edit { putString(KEY_GEMINI_API_KEY, value) }
 
+    /** CWA API Key，用於天氣預報查詢。 */
+    var cwaApiKey: String
+        get() = prefs.getString(KEY_CWA_API_KEY, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_CWA_API_KEY, value) }
+
     /** 勿擾模式穿透：提醒通知在勿擾模式下仍顯示。預設關閉。需搭配 ACCESS_NOTIFICATION_POLICY 授權。 */
     var bypassDndEnabled: Boolean
         get() = prefs.getBoolean(KEY_BYPASS_DND, false)
@@ -189,6 +194,7 @@ class AppPreferences(context: Context) {
         private const val KEY_AUTO_BACKUP_ENABLED = "auto_backup_enabled"
         private const val KEY_AUTO_BACKUP_INTERVAL_HOURS = "auto_backup_interval_hours"
         private const val KEY_GEMINI_API_KEY = "gemini_api_key"
+        private const val KEY_CWA_API_KEY = "cwa_api_key"
         private const val KEY_NOTIF_LISTENER_AUTO_ADD = "notif_listener_auto_add"
         private const val KEY_BYPASS_DND = "bypass_dnd_enabled"
         private const val KEY_MONITORED_PACKAGES = "notif_monitored_packages"

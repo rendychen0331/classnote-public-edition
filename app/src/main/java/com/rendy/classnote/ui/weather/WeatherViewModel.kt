@@ -1,7 +1,9 @@
 package com.rendy.classnote.ui.weather
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.remote.ForecastItem
 import com.rendy.classnote.data.remote.WeatherApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,8 +16,9 @@ sealed class WeatherUiState {
     data class Error(val message: String) : WeatherUiState()
 }
 
-class WeatherViewModel : ViewModel() {
+class WeatherViewModel(app: Application) : AndroidViewModel(app) {
 
+    private val prefs = AppPreferences(app)
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Loading)
     val uiState: StateFlow<WeatherUiState> = _uiState
 
@@ -25,7 +28,7 @@ class WeatherViewModel : ViewModel() {
         currentLocation = locationName
         _uiState.value = WeatherUiState.Loading
         viewModelScope.launch {
-            val result = WeatherApi.fetchForecast(locationName)
+            val result = WeatherApi.fetchForecast(locationName, prefs.cwaApiKey)
             _uiState.value = result.fold(
                 onSuccess = { WeatherUiState.Success(it) },
                 onFailure = { WeatherUiState.Error(it.message ?: "載入失敗") }

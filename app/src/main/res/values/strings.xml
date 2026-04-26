@@ -219,6 +219,10 @@
 
     <!-- Weather Notification Settings -->
     <string name="settings_section_weather">天氣通知</string>
+    <string name="settings_weather_cwa_key_label">CWA API Key</string>
+    <string name="settings_weather_cwa_key_hint">CWA-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</string>
+    <string name="settings_weather_cwa_key_save">儲存</string>
+    <string name="settings_weather_cwa_key_saved">API Key 已儲存</string>
     <string name="settings_weather_notif_title">每日天氣推播</string>
     <string name="settings_weather_notif_desc">每天在指定時間推送選定地區的天氣預報</string>
     <string name="settings_weather_notif_time">通知時間</string>

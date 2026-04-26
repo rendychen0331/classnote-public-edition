@@ -29,7 +29,7 @@ data class ForecastItem(
 
 object WeatherApi {
 
-    private const val API_KEY = "CWA_API_KEY_REMOVED"
+    // API key 由呼叫端從 AppPreferences.cwaApiKey 傳入，不再硬寫於此
     private const val BASE_URL = "https://opendata.cwa.gov.tw/api/v1/rest/datastore"
 
     // ── 縣市對應 dataset ID（逐12小時，7天）────────────────────────────────────
@@ -137,13 +137,14 @@ object WeatherApi {
 
     // ── 查詢天氣 ──────────────────────────────────────────────────────────────
 
-    suspend fun fetchForecast(displayName: String): Result<List<ForecastItem>> {
+    suspend fun fetchForecast(displayName: String, apiKey: String): Result<List<ForecastItem>> {
+        if (apiKey.isBlank()) return Result.failure(Exception("請先在設定頁填入 CWA API Key"))
         val location = LOCATIONS.find { it.displayName == displayName }
             ?: return Result.failure(Exception("找不到「$displayName」的天氣資料"))
-        return fetchForecastForLocation(location)
+        return fetchForecastForLocation(location, apiKey)
     }
 
-    private suspend fun fetchForecastForLocation(location: WeatherLocation): Result<List<ForecastItem>> =
+    private suspend fun fetchForecastForLocation(location: WeatherLocation, apiKey: String): Result<List<ForecastItem>> =
         withContext(Dispatchers.IO) {
             try {
                 val elements = if (location.datasetId == "F-C0032-001")
@@ -152,7 +153,7 @@ object WeatherApi {
                     "天氣現象,最高溫度,最低溫度,12小時降雨機率"
                 val url = URL(
                     "$BASE_URL/${location.datasetId}" +
-                        "?Authorization=$API_KEY" +
+                        "?Authorization=$apiKey" +
                         "&elementName=${java.net.URLEncoder.encode(elements, "UTF-8")}"
                 )
                 val conn = (url.openConnection() as HttpURLConnection).apply {
