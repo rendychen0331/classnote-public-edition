@@ -101,6 +101,17 @@ class SettingsFragment : Fragment() {
         updateDriveSection()
     }
 
+    private val exportSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val account = GoogleAuthManager.handleSignInResult(result.data)
+            if (account != null) {
+                doExport(account)
+            } else {
+                Toast.makeText(requireContext(), "授權失敗", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -467,6 +478,32 @@ class SettingsFragment : Fragment() {
                 }
                 .setNegativeButton(getString(R.string.cancel), null)
                 .show()
+        }
+
+        binding.btnGoogleExport.setOnClickListener {
+            if (!GoogleAuthManager.hasDriveFileScope(requireContext())) {
+                exportSignInLauncher.launch(GoogleAuthManager.getSignInIntentForExport(requireContext()))
+            } else {
+                val acc = GoogleAuthManager.getAccount(requireContext()) ?: return@setOnClickListener
+                doExport(acc)
+            }
+        }
+    }
+
+    private fun doExport(account: com.google.android.gms.auth.api.signin.GoogleSignInAccount) {
+        binding.btnGoogleExport.isEnabled = false
+        Toast.makeText(requireContext(), getString(R.string.settings_google_export_in_progress), Toast.LENGTH_SHORT).show()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = DriveBackupManager.exportToVisibleDrive(requireContext(), account)
+            binding.btnGoogleExport.isEnabled = true
+            when (result) {
+                is DriveBackupManager.Result.Success ->
+                    Toast.makeText(requireContext(), getString(R.string.settings_google_export_success), Toast.LENGTH_LONG).show()
+                is DriveBackupManager.Result.AuthRequired ->
+                    reAuthLauncher.launch(result.intent)
+                is DriveBackupManager.Result.Error ->
+                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
+            }
         }
     }
 

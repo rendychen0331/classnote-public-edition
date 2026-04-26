@@ -134,6 +134,9 @@
     <string name="settings_google_sign_out">登出</string>
     <string name="settings_google_backup">備份到雲端</string>
     <string name="settings_google_restore">從雲端還原</string>
+    <string name="settings_google_export">匯出原始檔到 Drive</string>
+    <string name="settings_google_export_in_progress">匯出中...</string>
+    <string name="settings_google_export_success">已匯出到 Drive 的 ClassNote 資料夾</string>
     <string name="settings_google_last_backup">最後備份：%1$s</string>
     <string name="settings_google_no_backup">尚未備份</string>
     <string name="settings_google_not_signed_in">未登入</string>

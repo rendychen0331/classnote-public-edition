@@ -166,6 +166,72 @@ object DriveBackupManager {
             }
         }
 
+    private fun buildDriveFileService(context: Context, account: GoogleSignInAccount): Drive {
+        val credential = GoogleAccountCredential.usingOAuth2(
+            context, listOf(DriveScopes.DRIVE_FILE)
+        ).apply { selectedAccount = account.account }
+        return Drive.Builder(NetHttpTransport(), GsonFactory.getDefaultInstance(), credential)
+            .setApplicationName("ClassNote")
+            .build()
+    }
+
+    /**
+     * 匯出 DB 原始檔到 Drive 可見的 ClassNote/ 資料夾。
+     * 使用 DRIVE_FILE scope（需額外授權），檔名帶日期。
+     */
+    suspend fun exportToVisibleDrive(context: Context, account: GoogleSignInAccount): Result =
+        withContext(Dispatchers.IO) {
+            try {
+                val db = ClassNoteDatabase.getDatabase(context)
+                db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(TRUNCATE)").close()
+
+                val dbFile = context.getDatabasePath(DB_NAME)
+                if (!dbFile.exists()) return@withContext Result.Error("找不到資料庫檔案")
+
+                val drive = buildDriveFileService(context, account)
+
+                // 找或建立 ClassNote 資料夾
+                val folderName = "ClassNote"
+                val folderList = drive.files().list()
+                    .setQ("mimeType='application/vnd.google-apps.folder' and name='$folderName' and trashed=false")
+                    .setFields("files(id)")
+                    .execute()
+                    .files
+                val folderId = if (!folderList.isNullOrEmpty()) {
+                    folderList.first().id
+                } else {
+                    val folderMeta = File().apply {
+                        name = folderName
+                        mimeType = "application/vnd.google-apps.folder"
+                    }
+                    drive.files().create(folderMeta).setFields("id").execute().id
+                }
+
+                // 上傳帶日期的檔名
+                val dateStr = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
+                val exportName = "classnote_$dateStr.db"
+                val metadata = File().apply {
+                    name = exportName
+                    parents = listOf(folderId)
+                }
+                val mediaContent = FileContent("application/octet-stream", dbFile)
+                drive.files().create(metadata, mediaContent).setFields("id").execute()
+
+                Log.d(TAG, "Export successful: $exportName")
+                Result.Success
+            } catch (e: UserRecoverableAuthIOException) {
+                Log.w(TAG, "Export auth required", e)
+                Result.AuthRequired(e.intent)
+            } catch (e: GoogleJsonResponseException) {
+                val reason = e.details?.errors?.firstOrNull()?.reason ?: "unknown"
+                Log.e(TAG, "Export Drive API error: ${e.statusCode} reason=$reason", e)
+                Result.Error("匯出失敗 (${e.statusCode} $reason)")
+            } catch (e: Exception) {
+                Log.e(TAG, "Export failed", e)
+                Result.Error(e.message ?: "匯出失敗")
+            }
+        }
+
     /**
      * 取得最後備份時間（null 表示沒有備份）
      */

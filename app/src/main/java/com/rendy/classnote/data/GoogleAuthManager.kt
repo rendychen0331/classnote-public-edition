@@ -31,6 +31,22 @@ object GoogleAuthManager {
     fun getSignInIntentWithGmail(context: Context): Intent =
         GoogleSignIn.getClient(context, buildOptions(includeGmail = true)).signInIntent
 
+    /** 取得包含 DRIVE_FILE scope 的登入 Intent（用於匯出到可見 Drive 資料夾）。 */
+    fun getSignInIntentForExport(context: Context): Intent {
+        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestScopes(Scope(DriveScopes.DRIVE_APPDATA))
+            .requestScopes(Scope(DriveScopes.DRIVE_FILE))
+            .build()
+        return GoogleSignIn.getClient(context, options).signInIntent
+    }
+
+    /** 檢查帳號是否已有 DRIVE_FILE scope 授權。 */
+    fun hasDriveFileScope(context: Context): Boolean {
+        val account = getAccount(context) ?: return false
+        return GoogleSignIn.hasPermissions(account, Scope(DriveScopes.DRIVE_FILE))
+    }
+
     /** 取得 Classroom 專屬登入 Intent（獨立帳號，含 Classroom scopes）。 */
     fun getSignInIntentForClassroom(context: Context): Intent {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
