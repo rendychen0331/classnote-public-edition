@@ -1,6 +1,6 @@
 # ClassNote
 
-大學生專用的課堂筆記與提醒管理 Android App。
+學生專用的課堂筆記與提醒管理 Android App。
 
 ## 功能
 
