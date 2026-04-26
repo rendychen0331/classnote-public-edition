@@ -16,7 +16,85 @@ object NotificationHelper {
     const val CHANNEL_ID = "classnote_reminders"
     const val CHANNEL_NAME = "提醒事項通知"
 
-    fun createNotificationChannel(context: Context) {
+    private const val CHANNEL_AI_ID = "classnote_ai_status"
+    private const val AI_STATUS_NOTIF_ID = 9_001
+
+    fun createAiStatusChannel(context: Context) {
+        val channel = NotificationChannel(
+            CHANNEL_AI_ID,
+            "AI 辨識狀態",
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "ClassNote AI 通知辨識進度"
+            enableVibration(false)
+            setSound(null, null)
+        }
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(channel)
+    }
+
+    fun showAiProcessing(context: Context, count: Int) {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val n = NotificationCompat.Builder(context, CHANNEL_AI_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("AI 辨識中…")
+            .setContentText("已偵測到 $count 則通知，正在分析")
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .setProgress(0, 0, true)
+            .build()
+        manager.notify(AI_STATUS_NOTIF_ID, n)
+    }
+
+    fun showAiResult(context: Context, added: Int, titles: List<String>) {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val tapIntent = Intent(context, com.rendy.classnote.ui.MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("navigate_to", "reminders")
+        }
+        val tap = PendingIntent.getActivity(
+            context, AI_STATUS_NOTIF_ID, tapIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val body = titles.take(3).joinToString("、").let {
+            if (titles.size > 3) "$it 等" else it
+        }
+        val n = NotificationCompat.Builder(context, CHANNEL_AI_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("已新增 $added 個提醒")
+            .setContentText(body)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(tap)
+            .build()
+        manager.notify(AI_STATUS_NOTIF_ID, n)
+    }
+
+    fun showAiNoResult(context: Context, recognized: List<String>) {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val body = if (recognized.isEmpty()) {
+            "未偵測到提醒事項"
+        } else {
+            recognized.take(3).joinToString("、").let {
+                if (recognized.size > 3) "$it 等（已存在）" else "$it（已存在）"
+            }
+        }
+        val n = NotificationCompat.Builder(context, CHANNEL_AI_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("AI 辨識完成")
+            .setContentText(body)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setAutoCancel(true)
+            .build()
+        manager.notify(AI_STATUS_NOTIF_ID, n)
+    }
+
+    fun cancelAiStatus(context: Context) {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.cancel(AI_STATUS_NOTIF_ID)
+    }
+
+    fun createNotificationChannel(context: Context, bypassDnd: Boolean = false) {
         val channel = NotificationChannel(
             CHANNEL_ID,
             CHANNEL_NAME,
@@ -24,6 +102,7 @@ object NotificationHelper {
         ).apply {
             description = "ClassNote 提醒事項推播通知"
             enableVibration(true)
+            setBypassDnd(bypassDnd)
         }
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(channel)

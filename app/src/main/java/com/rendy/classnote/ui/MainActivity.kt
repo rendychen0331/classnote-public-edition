@@ -38,6 +38,14 @@ class MainActivity : AppCompatActivity() {
 
         binding.bottomNavigation.setupWithNavController(navController)
 
+        binding.toolbar.inflateMenu(R.menu.toolbar_menu)
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            if (item.itemId == R.id.action_settings) {
+                navController.navigate(R.id.settingsFragment)
+                true
+            } else false
+        }
+
         // 僅首次建立時請求權限（避免旋轉螢幕重複跳轉設定頁）
         if (savedInstanceState == null) {
             requestRequiredPermissions()

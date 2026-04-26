@@ -49,7 +49,13 @@ class ReminderListFragment : Fragment() {
                         .actionReminderListFragmentToReminderEditFragment(reminder.id)
                 )
             },
-            onDelete = { reminder -> viewModel.deleteReminder(reminder) }
+            onDelete = { reminder -> viewModel.deleteReminder(reminder) },
+            onItemClick = { reminder ->
+                findNavController().navigate(
+                    ReminderListFragmentDirections
+                        .actionReminderListFragmentToReminderDetailFragment(reminder.id)
+                )
+            }
         )
 
         binding.recyclerReminders.apply {

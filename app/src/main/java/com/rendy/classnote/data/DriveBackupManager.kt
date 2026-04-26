@@ -1,11 +1,14 @@
 package com.rendy.classnote.data
 
 import android.content.Context
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.FileContent
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
@@ -29,6 +32,7 @@ object DriveBackupManager {
     sealed class Result {
         object Success : Result()
         data class Error(val message: String) : Result()
+        data class AuthRequired(val intent: Intent) : Result()
     }
 
     /**
@@ -66,9 +70,9 @@ object DriveBackupManager {
         withContext(Dispatchers.IO) {
             if (!isNetworkAllowed(context, networkType)) return@withContext Result.Error("網路不符合備份設定")
             try {
-                // WAL checkpoint
+                // WAL checkpoint（wal_checkpoint 回傳結果列，需用 query 而非 execSQL）
                 val db = ClassNoteDatabase.getDatabase(context)
-                db.openHelper.writableDatabase.execSQL("PRAGMA wal_checkpoint(TRUNCATE)")
+                db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(TRUNCATE)").close()
 
                 val dbFile = context.getDatabasePath(DB_NAME)
                 if (!dbFile.exists()) return@withContext Result.Error("找不到資料庫檔案")
@@ -96,8 +100,15 @@ object DriveBackupManager {
 
                 Log.d(TAG, "Backup successful")
                 Result.Success
+            } catch (e: UserRecoverableAuthIOException) {
+                Log.w(TAG, "Backup auth required", e)
+                Result.AuthRequired(e.intent)
+            } catch (e: GoogleJsonResponseException) {
+                val reason = e.details?.errors?.firstOrNull()?.reason ?: "unknown"
+                Log.e(TAG, "Backup Drive API error: ${e.statusCode} reason=$reason", e)
+                Result.Error("備份失敗 (${e.statusCode} $reason)")
             } catch (e: Exception) {
-                Log.e(TAG, "Backup failed", e)
+                Log.e(TAG, "Backup failed: ${e.javaClass.simpleName}", e)
                 Result.Error(e.message ?: "備份失敗")
             }
         }
@@ -127,19 +138,28 @@ object DriveBackupManager {
 
                 // 下載到暫存檔，成功後再覆蓋
                 val tempFile = java.io.File(context.cacheDir, "classnote_restore.tmp")
-                drive.files().get(fileId).executeMediaAndDownloadTo(FileOutputStream(tempFile))
+                // C-1 fix: 用 use{} 確保 stream 一定關閉
+                FileOutputStream(tempFile).use { out ->
+                    drive.files().get(fileId).executeMediaAndDownloadTo(out)
+                }
 
-                // 關閉 DB 連線
+                // C-2 fix: 下載完整後才關閉 DB，並用 finally 確保 tempFile 刪除
                 ClassNoteDatabase.closeDatabase()
 
                 // 覆蓋 DB 檔案（同時刪除 WAL / SHM）
-                tempFile.copyTo(dbFile, overwrite = true)
-                java.io.File(dbFile.path + "-wal").delete()
-                java.io.File(dbFile.path + "-shm").delete()
-                tempFile.delete()
+                try {
+                    tempFile.copyTo(dbFile, overwrite = true)
+                    java.io.File(dbFile.path + "-wal").delete()
+                    java.io.File(dbFile.path + "-shm").delete()
+                } finally {
+                    tempFile.delete()
+                }
 
                 Log.d(TAG, "Restore successful")
                 Result.Success
+            } catch (e: UserRecoverableAuthIOException) {
+                Log.w(TAG, "Restore auth required", e)
+                Result.AuthRequired(e.intent)
             } catch (e: Exception) {
                 Log.e(TAG, "Restore failed", e)
                 Result.Error(e.message ?: "還原失敗")

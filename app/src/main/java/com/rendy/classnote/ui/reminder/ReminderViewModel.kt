@@ -92,10 +92,10 @@ class ReminderViewModel(
             .filter { it > now }
             .map { time -> ReminderNotificationEntity(reminderId = reminderId, triggerAt = time) }
         if (notifications.isEmpty()) return
-        // insertAll 回傳自動產生的 id，直接用於排程，不需重查
-        val insertedIds = repository.insertNotifications(notifications)
-        insertedIds.zip(notifications).forEach { (id, entity) ->
-            ReminderScheduler.scheduleNotification(appContext, entity.copy(id = id))
+        // dedup 後插入，回傳含 id 與調整後 triggerAt 的 entity 清單
+        val insertedEntities = repository.insertNotificationsDeduped(notifications)
+        insertedEntities.forEach { entity ->
+            ReminderScheduler.scheduleNotification(appContext, entity)
         }
     }
 

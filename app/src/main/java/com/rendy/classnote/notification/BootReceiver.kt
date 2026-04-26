@@ -20,6 +20,9 @@ class BootReceiver : BroadcastReceiver() {
 
         val app = context.applicationContext as ClassNoteApplication
 
+        // 重排天氣通知
+        WeatherNotificationScheduler.schedule(context)
+
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {

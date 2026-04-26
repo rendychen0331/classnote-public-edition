@@ -9,7 +9,15 @@
         android:icon="@drawable/ic_reminder"
         android:title="@string/nav_reminders" />
     <item
-        android:id="@+id/settingsFragment"
-        android:icon="@drawable/ic_settings"
-        android:title="@string/nav_settings" />
+        android:id="@+id/formulaListFragment"
+        android:icon="@drawable/ic_formula"
+        android:title="@string/nav_formula" />
+    <item
+        android:id="@+id/weatherFragment"
+        android:icon="@drawable/ic_weather"
+        android:title="@string/nav_weather" />
+    <item
+        android:id="@+id/classRecordListFragment"
+        android:icon="@drawable/ic_class_record"
+        android:title="@string/nav_class_record" />
 </menu>

@@ -6,16 +6,19 @@ import android.content.Intent
 import android.provider.Settings
 import android.util.Log
 import com.rendy.classnote.ClassNoteApplication
+import com.rendy.classnote.data.local.entity.ReminderNotificationEntity
 import com.rendy.classnote.ui.ReminderAlarmActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class ReminderReceiver : BroadcastReceiver() {
 
     companion object {
         const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
         const val EXTRA_REMINDER_ID = "extra_reminder_id"
+        const val EXTRA_TRIGGER_AT = "extra_trigger_at"
         private const val TAG = "ReminderReceiver"
     }
 
@@ -29,11 +32,12 @@ class ReminderReceiver : BroadcastReceiver() {
             val note = intent.getStringExtra(ReminderAlarmActivity.EXTRA_NOTE) ?: ""
             val category = intent.getStringExtra(ReminderAlarmActivity.EXTRA_CATEGORY)
             val fullScreenAlarm = intent.getBooleanExtra("full_screen_alarm", true)
-            showAlarm(context, notificationId.toInt(), title, note, category, fullScreenAlarm = fullScreenAlarm)
+            showAlarm(context, (notificationId and 0x7FFFFFFF).toInt(), title, note, category, fullScreenAlarm = fullScreenAlarm)
             return
         }
 
         val reminderId = intent.getLongExtra(EXTRA_REMINDER_ID, -1L)
+        val triggerAt = intent.getLongExtra(EXTRA_TRIGGER_AT, -1L)
         if (notificationId < 0 || reminderId < 0) return
 
         val app = context.applicationContext as ClassNoteApplication
@@ -47,7 +51,7 @@ class ReminderReceiver : BroadcastReceiver() {
 
                 showAlarm(
                     context,
-                    notificationId.toInt(),
+                    (notificationId and 0x7FFFFFFF).toInt(), // H-1 fix: 避免 Long→Int 溢位
                     reminder.title,
                     reminder.note,
                     reminder.category,
@@ -56,10 +60,33 @@ class ReminderReceiver : BroadcastReceiver() {
                 )
 
                 reminderRepo.markNotificationFired(notificationId)
+
+                // 若設定重複，自動排下一次
+                if (reminder.repeatType != "NONE" && triggerAt > 0) {
+                    val nextTriggerAt = calcNextTrigger(reminder.repeatType, triggerAt)
+                    if (nextTriggerAt > System.currentTimeMillis()) {
+                        val newNotification = ReminderNotificationEntity(
+                            reminderId = reminderId,
+                            triggerAt = nextTriggerAt
+                        )
+                        val inserted = reminderRepo.insertNotificationDeduped(newNotification)
+                        ReminderScheduler.scheduleNotification(context, inserted)
+                    }
+                }
             } finally {
                 pendingResult.finish()
             }
         }
+    }
+
+    private fun calcNextTrigger(repeatType: String, triggerAt: Long): Long {
+        val cal = Calendar.getInstance().apply { timeInMillis = triggerAt }
+        when (repeatType) {
+            "DAILY" -> cal.add(Calendar.DAY_OF_MONTH, 1)
+            "WEEKLY" -> cal.add(Calendar.WEEK_OF_YEAR, 1)
+            "MONTHLY" -> cal.add(Calendar.MONTH, 1)
+        }
+        return cal.timeInMillis
     }
 
     /**

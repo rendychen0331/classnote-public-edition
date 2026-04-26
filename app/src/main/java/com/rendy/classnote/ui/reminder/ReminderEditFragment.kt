@@ -48,8 +48,13 @@ class ReminderEditFragment : Fragment() {
     // 編輯時保留原始欄位，避免儲存時遺失
     private var originalCourseId: Long? = null
     private var originalCreatedAt: Long? = null
+    private var originalSyncSource: String? = null
+    private var originalSourceName: String? = null
+    private var originalExternalId: String? = null
     private var selectedCategory: String? = null
     private var fullScreenAlarm: Boolean = true
+    private var selectedRepeatType: String = "NONE"
+    private var selectedDueTime: String? = null
     // 追蹤非同步載入 job，儲存前先等待完成
     private var loadJob: Job? = null
 
@@ -69,6 +74,12 @@ class ReminderEditFragment : Fragment() {
         }
 
         binding.btnPickDueDate.setOnClickListener { pickDate() }
+        binding.btnPickDueTime.setOnClickListener { pickDueTime() }
+        binding.btnClearDueTime.setOnClickListener {
+            selectedDueTime = null
+            binding.tvDueTime.text = ""
+            binding.btnClearDueTime.visibility = View.GONE
+        }
         binding.btnAddNotification.setOnClickListener { pickNotificationTime() }
         binding.btnSave.setOnClickListener { saveReminder() }
         binding.btnCancel.setOnClickListener { findNavController().popBackStack() }
@@ -89,6 +100,16 @@ class ReminderEditFragment : Fragment() {
                 else -> null
             }
         }
+
+        // Repeat chip selection
+        binding.chipGroupRepeat.setOnCheckedStateChangeListener { _, checkedIds ->
+            selectedRepeatType = when {
+                checkedIds.contains(binding.chipRepeatDaily.id) -> "DAILY"
+                checkedIds.contains(binding.chipRepeatWeekly.id) -> "WEEKLY"
+                checkedIds.contains(binding.chipRepeatMonthly.id) -> "MONTHLY"
+                else -> "NONE"
+            }
+        }
     }
 
     private fun loadReminder(reminderId: Long) {
@@ -97,12 +118,29 @@ class ReminderEditFragment : Fragment() {
             val reminder = app.reminderRepository.getReminderById(reminderId) ?: return@launch
             originalCourseId = reminder.courseId
             originalCreatedAt = reminder.createdAt
+            originalSyncSource = reminder.syncSource
+            originalSourceName = reminder.sourceName
+            originalExternalId = reminder.externalId
             binding.etTitle.setText(reminder.title)
             binding.etNote.setText(reminder.note)
+            if (reminder.syncSource == "notify" && reminder.note.isNotBlank()) {
+                binding.cardOriginalNotification.visibility = View.VISIBLE
+                binding.tvOriginalNotification.text = reminder.note
+            }
             binding.tvDueDate.text = reminder.dueDate ?: ""
+            selectedDueTime = reminder.dueTime
+            binding.tvDueTime.text = reminder.dueTime ?: ""
+            binding.btnClearDueTime.visibility = if (reminder.dueTime != null) View.VISIBLE else View.GONE
             selectedCategory = reminder.category
             fullScreenAlarm = reminder.fullScreenAlarm
             binding.switchFullScreenAlarm.isChecked = fullScreenAlarm
+            selectedRepeatType = reminder.repeatType
+            when (reminder.repeatType) {
+                "DAILY" -> binding.chipRepeatDaily.isChecked = true
+                "WEEKLY" -> binding.chipRepeatWeekly.isChecked = true
+                "MONTHLY" -> binding.chipRepeatMonthly.isChecked = true
+                else -> binding.chipRepeatNone.isChecked = true
+            }
             when (reminder.category) {
                 ReminderCategory.WORK.name -> binding.chipWork.isChecked = true
                 ReminderCategory.HOMEWORK.name -> binding.chipHomework.isChecked = true
@@ -132,6 +170,21 @@ class ReminderEditFragment : Fragment() {
             cal.get(Calendar.YEAR),
             cal.get(Calendar.MONTH),
             cal.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
+    private fun pickDueTime() {
+        val cal = Calendar.getInstance()
+        TimePickerDialog(
+            requireContext(),
+            { _, hour, minute ->
+                selectedDueTime = String.format("%02d:%02d", hour, minute)
+                binding.tvDueTime.text = selectedDueTime
+                binding.btnClearDueTime.visibility = View.VISIBLE
+            },
+            cal.get(Calendar.HOUR_OF_DAY),
+            cal.get(Calendar.MINUTE),
+            true
         ).show()
     }
 
@@ -203,10 +256,15 @@ class ReminderEditFragment : Fragment() {
             title = title,
             note = binding.etNote.text.toString().trim(),
             dueDate = binding.tvDueDate.text.toString().ifEmpty { null },
+            dueTime = selectedDueTime,
             courseId = originalCourseId,
             createdAt = originalCreatedAt ?: System.currentTimeMillis(),
             category = selectedCategory,
-            fullScreenAlarm = fullScreenAlarm
+            fullScreenAlarm = fullScreenAlarm,
+            repeatType = selectedRepeatType,
+            syncSource = originalSyncSource,
+            sourceName = originalSourceName,
+            externalId = originalExternalId
         )
 
         // NonCancellable 確保 DB 寫入不因 lifecycle 取消而中斷

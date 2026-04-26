@@ -56,6 +56,33 @@ class ReminderRepository(
     suspend fun insertNotifications(notifications: List<ReminderNotificationEntity>): List<Long> =
         notificationDao.insertAll(notifications)
 
+    /** 插入單筆通知，若 triggerAt 與現有待觸發通知衝突，自動往後延 1 分鐘直到空位。回傳含 id 與調整後時間的 entity。 */
+    suspend fun insertNotificationDeduped(notification: ReminderNotificationEntity): ReminderNotificationEntity {
+        val occupiedTimes = notificationDao.getAllPendingNotifications().map { it.triggerAt }.toMutableSet()
+        var adjustedTime = notification.triggerAt
+        while (occupiedTimes.contains(adjustedTime)) {
+            adjustedTime += 60_000L
+        }
+        val adjusted = notification.copy(triggerAt = adjustedTime)
+        val id = notificationDao.insertNotification(adjusted)
+        return adjusted.copy(id = id)
+    }
+
+    /** 批次插入通知，每筆都做衝突避讓（同批內也互相避讓）。回傳含 id 與調整後時間的 entity 清單。 */
+    suspend fun insertNotificationsDeduped(notifications: List<ReminderNotificationEntity>): List<ReminderNotificationEntity> {
+        val occupiedTimes = notificationDao.getAllPendingNotifications().map { it.triggerAt }.toMutableSet()
+        return notifications.map { notification ->
+            var adjustedTime = notification.triggerAt
+            while (occupiedTimes.contains(adjustedTime)) {
+                adjustedTime += 60_000L
+            }
+            occupiedTimes.add(adjustedTime)
+            val adjusted = notification.copy(triggerAt = adjustedTime)
+            val id = notificationDao.insertNotification(adjusted)
+            adjusted.copy(id = id)
+        }
+    }
+
     suspend fun markNotificationFired(id: Long) =
         notificationDao.markFired(id)
 

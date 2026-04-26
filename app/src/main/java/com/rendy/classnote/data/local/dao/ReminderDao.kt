@@ -33,4 +33,13 @@ interface ReminderDao {
 
     @Query("SELECT * FROM reminders WHERE isCompleted = 0 ORDER BY dueDate ASC, createdAt DESC")
     suspend fun getActiveRemindersOnce(): List<ReminderEntity>
+
+    @Query("SELECT * FROM reminders WHERE externalId = :externalId LIMIT 1")
+    suspend fun findByExternalId(externalId: String): ReminderEntity?
+
+    @Query("SELECT * FROM reminders WHERE title = :title AND dueDate = :dueDate LIMIT 1")
+    suspend fun findByTitleAndDueDate(title: String, dueDate: String): ReminderEntity?
+
+    @Query("SELECT * FROM reminders WHERE title = :title AND dueDate IS NULL LIMIT 1")
+    suspend fun findByTitleWithNullDueDate(title: String): ReminderEntity?
 }

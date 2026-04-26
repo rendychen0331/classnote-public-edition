@@ -15,7 +15,8 @@ import com.rendy.classnote.databinding.ItemReminderBinding
 class ReminderAdapter(
     private val onComplete: (ReminderEntity) -> Unit,
     private val onEdit: (ReminderEntity) -> Unit,
-    private val onDelete: (ReminderEntity) -> Unit
+    private val onDelete: (ReminderEntity) -> Unit,
+    private val onItemClick: (ReminderEntity) -> Unit
 ) : ListAdapter<ReminderEntity, ReminderAdapter.ViewHolder>(DiffCallback) {
 
     inner class ViewHolder(private val binding: ItemReminderBinding) :
@@ -29,6 +30,7 @@ class ReminderAdapter(
             } else {
                 binding.tvNote.visibility = View.VISIBLE
                 binding.tvNote.text = item.note
+                binding.tvNote.isSelected = true  // 觸發 marquee 動畫
             }
 
             val due = item.dueDate
@@ -36,7 +38,26 @@ class ReminderAdapter(
                 binding.tvDueDate.visibility = View.GONE
             } else {
                 binding.tvDueDate.visibility = View.VISIBLE
-                binding.tvDueDate.text = due
+                binding.tvDueDate.text = if (!item.dueTime.isNullOrBlank()) "$due ${item.dueTime}" else due
+            }
+
+            val sourceIcon = when (item.syncSource) {
+                "gmail" -> com.rendy.classnote.R.drawable.ic_gmail
+                "classroom" -> com.rendy.classnote.R.drawable.ic_classroom_logo
+                "notify" -> com.rendy.classnote.R.drawable.ic_notify_source
+                else -> null
+            }
+            if (sourceIcon != null) {
+                binding.layoutSource.visibility = View.VISIBLE
+                binding.ivSource.setImageResource(sourceIcon)
+                if (!item.sourceName.isNullOrBlank()) {
+                    binding.tvSourceName.visibility = View.VISIBLE
+                    binding.tvSourceName.text = item.sourceName
+                } else {
+                    binding.tvSourceName.visibility = View.GONE
+                }
+            } else {
+                binding.layoutSource.visibility = View.GONE
             }
 
             // Accent bar + category chip
@@ -58,6 +79,7 @@ class ReminderAdapter(
             binding.checkboxDone.setOnClickListener { onComplete(item) }
             binding.btnEdit.setOnClickListener { onEdit(item) }
             binding.btnDelete.setOnClickListener { onDelete(item) }
+            binding.root.setOnClickListener { onItemClick(item) }
         }
     }
 

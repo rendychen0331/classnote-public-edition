@@ -51,6 +51,9 @@
     <color name="chip_exam_color">#EF5350</color>
     <color name="chip_reminder_color">#4ECCA3</color>
 
+    <!-- Weather -->
+    <color name="forecast_rain">#42A5F5</color>
+
     <!-- Course cell colors -->
     <color name="course_color_1">#4CAF50</color>
     <color name="course_color_2">#2196F3</color>

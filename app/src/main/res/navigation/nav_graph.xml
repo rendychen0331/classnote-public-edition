@@ -65,6 +65,23 @@
         <action
             android:id="@+id/actionReminderListFragmentToReminderEditFragment"
             app:destination="@id/reminderEditFragment" />
+        <action
+            android:id="@+id/actionReminderListFragmentToReminderDetailFragment"
+            app:destination="@id/reminderDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/reminderDetailFragment"
+        android:name="com.rendy.classnote.ui.reminder.ReminderDetailFragment"
+        android:label="@string/nav_reminders"
+        tools:layout="@layout/fragment_reminder_detail">
+        <argument
+            android:name="reminderId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <action
+            android:id="@+id/actionReminderDetailFragmentToReminderEditFragment"
+            app:destination="@id/reminderEditFragment" />
     </fragment>
 
     <fragment
@@ -78,11 +95,62 @@
             android:defaultValue="-1L" />
     </fragment>
 
+    <!-- ── 天氣 ── -->
+    <fragment
+        android:id="@+id/weatherFragment"
+        android:name="com.rendy.classnote.ui.weather.WeatherFragment"
+        android:label="@string/nav_weather"
+        tools:layout="@layout/fragment_weather" />
+
     <!-- ── 設定 ── -->
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.rendy.classnote.ui.settings.SettingsFragment"
         android:label="@string/nav_settings"
         tools:layout="@layout/fragment_settings" />
+
+    <!-- ── 上課紀錄 ── -->
+    <fragment
+        android:id="@+id/classRecordListFragment"
+        android:name="com.rendy.classnote.ui.classrecord.ClassRecordListFragment"
+        android:label="@string/nav_class_record"
+        tools:layout="@layout/fragment_class_record_list">
+        <action
+            android:id="@+id/actionClassRecordListFragmentToClassRecordEditFragment"
+            app:destination="@id/classRecordEditFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/classRecordEditFragment"
+        android:name="com.rendy.classnote.ui.classrecord.ClassRecordEditFragment"
+        android:label="@string/class_record_add"
+        tools:layout="@layout/fragment_class_record_edit">
+        <argument
+            android:name="recordId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+
+    <!-- ── 公式本 ── -->
+    <fragment
+        android:id="@+id/formulaListFragment"
+        android:name="com.rendy.classnote.ui.formula.FormulaListFragment"
+        android:label="@string/nav_formula"
+        tools:layout="@layout/fragment_formula_list">
+        <action
+            android:id="@+id/actionFormulaListFragmentToFormulaEditFragment"
+            app:destination="@id/formulaEditFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/formulaEditFragment"
+        android:name="com.rendy.classnote.ui.formula.FormulaEditFragment"
+        android:label="@string/formula_edit"
+        tools:layout="@layout/fragment_formula_edit">
+        <argument
+            android:name="formulaId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
 
 </navigation>

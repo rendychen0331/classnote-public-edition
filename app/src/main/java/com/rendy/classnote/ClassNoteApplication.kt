@@ -2,8 +2,11 @@ package com.rendy.classnote
 
 import android.app.Application
 import com.rendy.classnote.data.AppPreferences
+import com.rendy.classnote.data.WeatherPreferences
 import com.rendy.classnote.data.local.ClassNoteDatabase
+import com.rendy.classnote.data.repository.ClassRecordRepository
 import com.rendy.classnote.data.repository.CourseRepository
+import com.rendy.classnote.data.repository.FormulaRepository
 import com.rendy.classnote.data.repository.ReminderRepository
 import com.rendy.classnote.notification.NotificationHelper
 
@@ -26,10 +29,22 @@ class ClassNoteApplication : Application() {
         )
     }
 
+    val formulaRepository by lazy { FormulaRepository(database.formulaDao()) }
+
+    val classRecordRepository by lazy {
+        ClassRecordRepository(
+            classRecordDao = database.classRecordDao(),
+            classRecordMediaDao = database.classRecordMediaDao()
+        )
+    }
+
     val appPreferences by lazy { AppPreferences(this) }
+    val weatherPreferences by lazy { WeatherPreferences(this) }
 
     override fun onCreate() {
         super.onCreate()
-        NotificationHelper.createNotificationChannel(this)
+        val nm = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
+        val bypassDnd = appPreferences.bypassDndEnabled && nm.isNotificationPolicyAccessGranted
+        NotificationHelper.createNotificationChannel(this, bypassDnd)
     }
 }

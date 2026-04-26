@@ -18,9 +18,12 @@ import kotlinx.coroutines.launch
         CourseOverrideEntity::class,
         PeriodTimeEntity::class,
         ReminderEntity::class,
-        ReminderNotificationEntity::class
+        ReminderNotificationEntity::class,
+        com.rendy.classnote.data.local.entity.FormulaEntity::class,
+        com.rendy.classnote.data.local.entity.ClassRecordEntity::class,
+        com.rendy.classnote.data.local.entity.ClassRecordMediaEntity::class
     ],
-    version = 4,
+    version = 10,
     exportSchema = false
 )
 abstract class ClassNoteDatabase : RoomDatabase() {
@@ -30,6 +33,9 @@ abstract class ClassNoteDatabase : RoomDatabase() {
     abstract fun periodTimeDao(): PeriodTimeDao
     abstract fun reminderDao(): ReminderDao
     abstract fun reminderNotificationDao(): ReminderNotificationDao
+    abstract fun formulaDao(): com.rendy.classnote.data.local.dao.FormulaDao
+    abstract fun classRecordDao(): com.rendy.classnote.data.local.dao.ClassRecordDao
+    abstract fun classRecordMediaDao(): com.rendy.classnote.data.local.dao.ClassRecordMediaDao
 
     companion object {
         @Volatile
@@ -55,6 +61,71 @@ abstract class ClassNoteDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE reminders ADD COLUMN externalId TEXT")
+                db.execSQL("ALTER TABLE reminders ADD COLUMN syncSource TEXT")
+            }
+        }
+
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE reminders ADD COLUMN repeatType TEXT NOT NULL DEFAULT 'NONE'")
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS formulas (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        title TEXT NOT NULL,
+                        latex TEXT NOT NULL,
+                        explanation TEXT NOT NULL DEFAULT '',
+                        subject TEXT NOT NULL DEFAULT '',
+                        createdAt INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE reminders ADD COLUMN dueTime TEXT")
+            }
+        }
+
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE reminders ADD COLUMN sourceName TEXT")
+            }
+        }
+
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS class_records (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        date TEXT NOT NULL,
+                        timeLabel TEXT NOT NULL DEFAULT '',
+                        textNote TEXT NOT NULL DEFAULT '',
+                        aiSummary TEXT NOT NULL DEFAULT '',
+                        createdAt INTEGER NOT NULL
+                    )
+                """.trimIndent())
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS class_record_media (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        recordId INTEGER NOT NULL,
+                        type TEXT NOT NULL,
+                        filePath TEXT NOT NULL,
+                        isUploaded INTEGER NOT NULL DEFAULT 0,
+                        durationMs INTEGER NOT NULL DEFAULT 0
+                    )
+                """.trimIndent())
+            }
+        }
+
         fun closeDatabase() {
             INSTANCE?.close()
             INSTANCE = null
@@ -68,7 +139,7 @@ abstract class ClassNoteDatabase : RoomDatabase() {
                     "classnote_database"
                 )
                     .addCallback(DatabaseCallback())
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
                     .build()
                 INSTANCE = instance
                 instance

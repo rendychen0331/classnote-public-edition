@@ -50,9 +50,12 @@
     <string name="reminder_note">備註（選填）</string>
     <string name="due_date">截止日期</string>
     <string name="pick_date">選擇日期</string>
+    <string name="pick_time">選擇時間</string>
+    <string name="clear_time">清除</string>
     <string name="add_notification">新增通知時間</string>
     <string name="no_reminders">目前沒有提醒事項</string>
     <string name="no_notifications_set">尚未設定通知時間</string>
+    <string name="original_notification_label">原始通知訊息</string>
     <string name="notification_times_label">通知時間：</string>
     <string name="mark_complete">標記完成</string>
     <string name="associated_course">關聯課程</string>
@@ -77,6 +80,13 @@
     <string name="category_reminder">提醒</string>
     <string name="reminder_category_label">分類</string>
 
+    <!-- Repeat -->
+    <string name="repeat_label">重複</string>
+    <string name="repeat_none">不重複</string>
+    <string name="repeat_daily">每天</string>
+    <string name="repeat_weekly">每週</string>
+    <string name="repeat_monthly">每月</string>
+
     <!-- Notifications -->
     <string name="notification_channel_name">提醒事項通知</string>
     <string name="notification_channel_description">ClassNote 提醒事項推播通知</string>
@@ -97,16 +107,28 @@
     <string name="settings_perm_fullscreen_desc">允許 ClassNote 以全螢幕方式顯示提醒</string>
     <string name="settings_perm_overlay_title">顯示在其他 App 上方</string>
     <string name="settings_perm_overlay_desc">在使用其他 App 時也能彈出提醒視窗</string>
+    <string name="settings_perm_dnd_title">勿擾模式仍顯示提醒</string>
+    <string name="settings_perm_dnd_desc">在勿擾模式下也能收到提醒通知（需授予勿擾模式存取權）</string>
+    <string name="settings_perm_dnd_access_granted">勿擾模式存取：已授權</string>
+    <string name="settings_perm_dnd_access_denied">勿擾模式存取：未授權，點此前往設定</string>
     <string name="settings_perm_xiaomi_title">小米鎖屏顯示（HyperOS/MIUI）</string>
     <string name="settings_perm_xiaomi_desc">其他權限 → 在鎖定螢幕上顯示</string>
     <string name="settings_perm_granted">已授權</string>
     <string name="settings_perm_not_granted">未授權，點此設定</string>
     <string name="settings_perm_status_unknown">無法確認狀態</string>
+    <string name="settings_quiet_hours_title">安靜時段</string>
+    <string name="settings_quiet_hours_desc">匯入提醒的通知不會在此時段內觸發</string>
+    <string name="settings_quiet_hours_start">開始</string>
+    <string name="settings_quiet_hours_end">結束</string>
+    <string name="settings_quiet_hours_policy_before">提前通知</string>
+    <string name="settings_quiet_hours_policy_after">延後通知</string>
     <string name="snooze_10min">10 分鐘</string>
     <string name="snooze_5min">5 分鐘</string>
     <string name="snooze_15min">15 分鐘</string>
     <string name="snooze_30min">30 分鐘</string>
     <string name="settings_section_google">Google 帳號備份</string>
+    <string name="settings_drive_backup_title">備份到 Google Drive</string>
+    <string name="settings_drive_backup_desc">將資料備份至個人 Google Drive，可跨裝置還原</string>
     <string name="settings_google_sign_in">登入 Google</string>
     <string name="settings_google_sign_out">登出</string>
     <string name="settings_google_backup">備份到雲端</string>
@@ -114,7 +136,16 @@
     <string name="settings_google_last_backup">最後備份：%1$s</string>
     <string name="settings_google_no_backup">尚未備份</string>
     <string name="settings_google_not_signed_in">未登入</string>
+    <string name="settings_google_backup_in_progress">備份中...</string>
+    <string name="settings_auto_backup_title">自動備份</string>
+    <string name="settings_auto_backup_desc">定時自動備份到 Google Drive</string>
+    <string name="settings_auto_backup_interval">備份頻率</string>
+    <string name="settings_auto_backup_interval_6h">每 6 小時</string>
+    <string name="settings_auto_backup_interval_12h">每 12 小時</string>
+    <string name="settings_auto_backup_interval_24h">每天</string>
+    <string name="settings_auto_backup_interval_72h">每 3 天</string>
     <string name="settings_google_backup_success">備份成功</string>
+    <string name="settings_google_reauth_ok">授權完成，請再試一次</string>
     <string name="settings_google_restore_success">還原成功，請重新開啟 App</string>
     <string name="settings_google_restore_confirm_title">確認還原？</string>
     <string name="settings_google_restore_confirm_msg">目前資料將被雲端備份覆蓋，此操作無法復原。</string>
@@ -122,4 +153,125 @@
     <string name="backup_network_wifi">僅 WiFi</string>
     <string name="backup_network_mobile">僅行動數據</string>
     <string name="backup_network_any">WiFi 或行動數據</string>
+    <string name="settings_section_gmail">Gmail 作業同步</string>
+    <string name="settings_gmail_sync_title">從 Gmail 匯入作業</string>
+    <string name="settings_gmail_sync_desc">自動讀取 Google Classroom 作業通知郵件並新增為提醒</string>
+    <string name="settings_gmail_not_signed_in">未登入 Gmail</string>
+    <string name="settings_gmail_sign_in">登入 Gmail</string>
+    <string name="settings_gmail_sign_out">登出</string>
+    <string name="settings_gmail_forward_title">讀取轉寄的 Classroom 信件</string>
+    <string name="settings_gmail_forward_desc">（測試）同步由其他帳號轉寄的作業通知</string>
+    <string name="settings_gmail_use_drive_account">使用 Drive 備份帳號</string>
+    <string name="settings_gmail_use_this_account">使用此帳號</string>
+    <string name="settings_drive_use_gmail_account">使用 Gmail 同步帳號</string>
+    <string name="settings_gmail_no_permission">需要 Gmail 授權</string>
+    <string name="settings_gmail_permission_denied">Gmail 授權被拒，無法同步</string>
+    <string name="settings_gmail_sync_now">立即同步</string>
+    <string name="settings_gmail_no_sync">尚未同步</string>
+    <string name="settings_gmail_sync_result">已匯入 %1$d 筆，略過 %2$d 筆</string>
+    <string name="settings_auto_gmail_sync_title">自動同步</string>
+    <string name="settings_auto_gmail_sync_interval">每 %1$d 小時同步一次</string>
+    <string name="settings_auto_classroom_sync_title">自動同步</string>
+    <string name="settings_auto_classroom_sync_interval">每 %1$d 小時同步一次</string>
+
+    <!-- Biometric -->
+    <string name="biometric_title_monitor">驗證身份以繼續</string>
+    <string name="biometric_subtitle_monitor">存取 AI 通知監控設定</string>
+    <string name="biometric_subtitle_apikey">存取 Gemini API Key</string>
+
+    <!-- Reminder Detail -->
+    <string name="detail_start_date">開始日期</string>
+    <string name="detail_source_gmail">Gmail 同步</string>
+    <string name="detail_source_classroom">Classroom 同步</string>
+    <string name="detail_source_notify">通知解析</string>
+    <string name="detail_fullscreen_on">開啟</string>
+    <string name="detail_fullscreen_off">關閉</string>
+    <string name="detail_no_notification">無通知</string>
+    <string name="confirm_delete_reminder_title">刪除提醒？</string>
+    <string name="confirm_delete_reminder_msg">刪除後無法復原，相關通知將一併取消。</string>
+
+    <!-- Formula (公式本) -->
+    <string name="nav_formula">公式</string>
+    <string name="formula_add">新增公式</string>
+    <string name="formula_edit">編輯公式</string>
+    <string name="formula_title">公式名稱</string>
+    <string name="formula_title_required">請輸入公式名稱</string>
+    <string name="formula_subject">科目（選填）</string>
+    <string name="formula_latex_hint">LaTeX 公式（如 E=mc^2 或 \\frac{a}{b}）</string>
+    <string name="formula_latex_required">請輸入公式</string>
+    <string name="formula_explanation">說明（選填）</string>
+    <string name="formula_preview_label">預覽</string>
+    <string name="formula_search_hint">搜尋公式、科目或說明</string>
+    <string name="formula_empty">尚未記錄任何公式</string>
+
+    <!-- Weather（天氣） -->
+    <string name="nav_weather">天氣</string>
+    <string name="weather_rain_prob">降雨機率：</string>
+    <string name="weather_forecast">未來預報</string>
+    <string name="weather_no_locations">點擊右上方「+」新增天氣地區</string>
+    <string name="weather_add_location">新增地區</string>
+    <string name="weather_all_added">已新增所有縣市</string>
+    <string name="weather_location_search_hint">搜尋縣市</string>
+
+    <!-- Weather Notification Settings -->
+    <string name="settings_section_weather">天氣通知</string>
+    <string name="settings_weather_notif_title">每日天氣推播</string>
+    <string name="settings_weather_notif_desc">每天在指定時間推送選定地區的天氣預報</string>
+    <string name="settings_weather_notif_time">通知時間</string>
+    <string name="settings_weather_notif_location">通知地區</string>
+    <string name="settings_weather_no_location">未設定地區</string>
+
+    <!-- 上課紀錄 -->
+    <string name="nav_class_record">上課紀錄</string>
+    <string name="class_record_add">新增上課紀錄</string>
+    <string name="class_record_no_records">尚未有上課紀錄</string>
+    <string name="class_record_time_label">時間標籤（選填，例如：第一節）</string>
+    <string name="class_record_text_note">上課備註（選填）</string>
+    <string name="class_record_take_photo">拍照</string>
+    <string name="class_record_record_audio">錄音</string>
+    <string name="class_record_stop_audio">停止錄音</string>
+    <string name="class_record_ai_summary">AI 總結錄音</string>
+    <string name="class_record_summarizing">總結中...</string>
+    <string name="class_record_ai_summary_label">AI 課堂總結</string>
+
+    <!-- Classroom 同步 -->
+    <string name="settings_section_classroom">Classroom 作業同步</string>
+    <string name="settings_classroom_sync_title">Google Classroom</string>
+    <string name="settings_classroom_sync_desc">直接從 Classroom 匯入作業截止日期，比 Gmail 更完整</string>
+    <string name="settings_classroom_not_authorized">尚未登入</string>
+    <string name="settings_classroom_authorize">登入</string>
+    <string name="settings_classroom_sign_out">登出</string>
+    <string name="settings_classroom_sync_now">立即同步</string>
+    <string name="settings_classroom_no_sync">尚未同步</string>
+    <string name="settings_classroom_sync_result">已匯入 %1$d 筆，略過 %2$d 筆</string>
+    <string name="settings_classroom_permission_denied">Classroom 授權被拒，無法同步</string>
+
+    <!-- AI 通知解析 -->
+    <string name="settings_section_ai_notify">AI 通知解析</string>
+    <string name="settings_ai_notify_title">自動解析通知</string>
+    <string name="settings_ai_notify_desc">收到通知時，自動用 Gemini AI 判斷是否為作業或活動並加入提醒</string>
+    <string name="settings_ai_notify_access_title">通知存取權限</string>
+    <string name="settings_ai_notify_access_granted">已授權</string>
+    <string name="settings_ai_notify_access_denied">未授權，點此前往設定</string>
+    <string name="settings_ai_notify_access_btn">前往設定</string>
+    <string name="settings_ai_gemini_key_label">Gemini API Key</string>
+    <string name="settings_ai_gemini_key_hint">AIzaSy…</string>
+    <string name="settings_ai_gemini_key_save">儲存</string>
+    <string name="settings_ai_gemini_key_saved">API Key 已儲存</string>
+    <string name="settings_ai_monitored_apps_title">監控的 App</string>
+    <string name="settings_ai_monitored_apps_all">所有 App</string>
+    <string name="settings_ai_monitored_apps_count">%1$d 個 App</string>
+    <string name="settings_ai_monitored_apps_btn">選擇</string>
+    <string name="settings_ai_monitored_apps_dialog_title">選擇要監控的 App</string>
+    <string name="settings_ai_app_search_hint">搜尋 App 名稱</string>
+
+    <!-- 頻道白名單 -->
+    <string name="settings_ai_channel_filter_title">頻道白名單</string>
+    <string name="settings_ai_channel_filter_desc">指定各 App 哪些頻道（群組）的通知才送給 AI 判斷，其餘直接忽略</string>
+    <string name="settings_ai_channel_filter_btn">設定</string>
+    <string name="settings_ai_channel_filter_all">所有頻道</string>
+    <string name="settings_ai_channel_filter_count">已設 %1$d 個 App</string>
+    <string name="settings_ai_channel_select_app">選擇 App</string>
+    <string name="settings_ai_channel_no_seen">尚未收到任何通知，無法設定頻道</string>
+    <string name="settings_ai_channel_clear_btn">清除（監控全部）</string>
 </resources>
