@@ -19,3 +19,6 @@ groups/
 .gemini/
 .mcp.json
 CLAUDE.md
+
+# Google 服務設定（含 OAuth client，需自行申請）
+google-services.json
