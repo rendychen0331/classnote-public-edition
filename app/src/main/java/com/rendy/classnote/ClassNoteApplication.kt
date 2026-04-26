@@ -33,8 +33,8 @@ class ClassNoteApplication : Application() {
 
     val classRecordRepository by lazy {
         ClassRecordRepository(
-            classRecordDao = database.classRecordDao(),
-            classRecordMediaDao = database.classRecordMediaDao()
+            recordDao = database.classRecordDao(),
+            mediaDao = database.classRecordMediaDao()
         )
     }
 

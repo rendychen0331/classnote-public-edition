@@ -1005,6 +1005,15 @@ class SettingsFragment : Fragment() {
             )
         }
 
+        // CWA API Key
+        val savedCwaKey = prefs.cwaApiKey
+        if (savedCwaKey.isNotBlank()) binding.etCwaApiKey.setText(savedCwaKey)
+        binding.btnSaveCwaApiKey.setOnClickListener {
+            val key = binding.etCwaApiKey.text?.toString()?.trim() ?: ""
+            prefs.cwaApiKey = key
+            Toast.makeText(requireContext(), getString(R.string.settings_weather_cwa_key_saved), Toast.LENGTH_SHORT).show()
+        }
+
         binding.btnPickMonitoredApps.setOnClickListener {
             BiometricHelper.authenticate(
                 fragment = this,

@@ -21,6 +21,7 @@ object WeatherNotificationScheduler {
 
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val pi = buildPendingIntent(context, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            ?: return
 
         val cal = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, prefs.weatherNotifHour)
