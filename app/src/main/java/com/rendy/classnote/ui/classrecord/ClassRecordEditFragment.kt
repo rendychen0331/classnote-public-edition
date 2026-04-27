@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
@@ -150,6 +151,7 @@ class ClassRecordEditFragment : Fragment() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupNoteEditor() {
         noteEditorBridge = NoteEditorBridge()
+        binding.webViewNote.setBackgroundColor(Color.TRANSPARENT)
         binding.webViewNote.settings.javaScriptEnabled = true
         binding.webViewNote.addJavascriptInterface(noteEditorBridge, "AndroidBridge")
         binding.webViewNote.webViewClient = object : WebViewClient() {

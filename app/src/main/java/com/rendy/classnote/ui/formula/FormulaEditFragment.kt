@@ -139,6 +139,7 @@ class FormulaEditFragment : Fragment() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupEditor() {
         val wv = binding.webViewEditor
+        wv.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         wv.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
