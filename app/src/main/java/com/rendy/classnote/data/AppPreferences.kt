@@ -120,6 +120,11 @@ class AppPreferences(context: Context) {
         get() = prefs.getString(KEY_PREFERRED_CHAT_PROVIDER, "gemini") ?: "gemini"
         set(value) = prefs.edit { putString(KEY_PREFERRED_CHAT_PROVIDER, value) }
 
+    /** AI 功能總開關（AI 摘要、對話、通知辨識）。預設開啟。 */
+    var aiEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AI_ENABLED, true)
+        set(value) = prefs.edit { putBoolean(KEY_AI_ENABLED, value) }
+
     /** 勿擾模式穿透：提醒通知在勿擾模式下仍顯示。預設關閉。需搭配 ACCESS_NOTIFICATION_POLICY 授權。 */
     var bypassDndEnabled: Boolean
         get() = prefs.getBoolean(KEY_BYPASS_DND, false)
@@ -229,6 +234,7 @@ class AppPreferences(context: Context) {
         private const val KEY_CLAUDE_API_KEY = "claude_api_key"
         private const val KEY_OPENAI_API_KEY = "openai_api_key"
         private const val KEY_PREFERRED_CHAT_PROVIDER = "preferred_chat_provider"
+        private const val KEY_AI_ENABLED = "ai_enabled"
         private const val KEY_NOTIF_LISTENER_AUTO_ADD = "notif_listener_auto_add"
         private const val KEY_BYPASS_DND = "bypass_dnd_enabled"
         private const val KEY_MONITORED_PACKAGES = "notif_monitored_packages"

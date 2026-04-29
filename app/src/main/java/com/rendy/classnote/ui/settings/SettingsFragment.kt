@@ -133,6 +133,7 @@ class SettingsFragment : Fragment() {
         setupGmailSection()
         setupClassroomSection()
         setupWeatherNotificationSection()
+        setupAiSection()
         setupNotificationListenerSection()
         setupApiLogSection()
     }
@@ -886,6 +887,99 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    // ── AI 設定 ──────────────────────────────────────────────────────────────
+
+    private fun setupAiSection() {
+        binding.switchAiEnabled.isChecked = prefs.aiEnabled
+        updateAiKeysVisibility()
+
+        binding.switchAiEnabled.setOnCheckedChangeListener { _, checked ->
+            prefs.aiEnabled = checked
+            updateAiKeysVisibility()
+        }
+
+        fun setupKeyField(
+            getKey: () -> String,
+            saveKey: (String) -> Unit,
+            til: com.google.android.material.textfield.TextInputLayout,
+            et: com.google.android.material.textfield.TextInputEditText,
+            btn: com.google.android.material.button.MaterialButton,
+            savedMsg: String
+        ) {
+            val saved = getKey()
+            if (saved.isNotBlank()) et.setText(saved)
+            var visible = false
+            til.setEndIconOnClickListener {
+                if (visible) {
+                    visible = false
+                    et.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                    til.setEndIconDrawable(R.drawable.ic_visibility_off)
+                    et.setSelection(et.text?.length ?: 0)
+                } else {
+                    BiometricHelper.authenticate(
+                        fragment = this,
+                        title = getString(R.string.biometric_title_monitor),
+                        subtitle = getString(R.string.biometric_subtitle_apikey),
+                        onSuccess = {
+                            visible = true
+                            et.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                            til.setEndIconDrawable(R.drawable.ic_visibility)
+                            et.setSelection(et.text?.length ?: 0)
+                        }
+                    )
+                }
+            }
+            btn.setOnClickListener {
+                BiometricHelper.authenticate(
+                    fragment = this,
+                    title = getString(R.string.biometric_title_monitor),
+                    subtitle = getString(R.string.biometric_subtitle_apikey),
+                    onSuccess = {
+                        saveKey(et.text?.toString()?.trim() ?: "")
+                        Toast.makeText(requireContext(), savedMsg, Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
+        }
+
+        setupKeyField(
+            getKey = { prefs.geminiApiKey },
+            saveKey = { prefs.geminiApiKey = it },
+            til = binding.tilGeminiApiKey,
+            et = binding.etGeminiApiKey,
+            btn = binding.btnSaveGeminiKey,
+            savedMsg = getString(R.string.settings_ai_gemini_key_saved)
+        )
+        setupKeyField(
+            getKey = { prefs.mimoApiKey },
+            saveKey = { prefs.mimoApiKey = it },
+            til = binding.tilMimoApiKey,
+            et = binding.etMimoApiKey,
+            btn = binding.btnSaveMimoKey,
+            savedMsg = "MiMo API Key 已儲存"
+        )
+        setupKeyField(
+            getKey = { prefs.claudeApiKey },
+            saveKey = { prefs.claudeApiKey = it },
+            til = binding.tilClaudeApiKey,
+            et = binding.etClaudeApiKey,
+            btn = binding.btnSaveClaudeKey,
+            savedMsg = "Claude API Key 已儲存"
+        )
+        setupKeyField(
+            getKey = { prefs.openaiApiKey },
+            saveKey = { prefs.openaiApiKey = it },
+            til = binding.tilOpenaiApiKey,
+            et = binding.etOpenaiApiKey,
+            btn = binding.btnSaveOpenaiKey,
+            savedMsg = "OpenAI API Key 已儲存"
+        )
+    }
+
+    private fun updateAiKeysVisibility() {
+        binding.cardAiKeys.visibility = if (prefs.aiEnabled) View.VISIBLE else View.GONE
+    }
+
     // ── 天氣通知 ─────────────────────────────────────────────────────────────
 
     private fun setupWeatherNotificationSection() {
@@ -989,51 +1083,6 @@ class SettingsFragment : Fragment() {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
 
-        // 載入已存 key（預設遮蔽，需生物辨識才能顯示）
-        val savedKey = prefs.geminiApiKey
-        if (savedKey.isNotBlank()) {
-            binding.etGeminiApiKey.setText(savedKey)
-        }
-
-        // 顯示/隱藏 API key 也需要生物辨識
-        var apiKeyVisible = false
-        binding.tilGeminiApiKey.setEndIconOnClickListener {
-            if (apiKeyVisible) {
-                // 隱藏不需要驗證
-                apiKeyVisible = false
-                binding.etGeminiApiKey.inputType =
-                    android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-                binding.tilGeminiApiKey.setEndIconDrawable(R.drawable.ic_visibility_off)
-                binding.etGeminiApiKey.setSelection(binding.etGeminiApiKey.text?.length ?: 0)
-            } else {
-                BiometricHelper.authenticate(
-                    fragment = this,
-                    title = getString(R.string.biometric_title_monitor),
-                    subtitle = getString(R.string.biometric_subtitle_apikey),
-                    onSuccess = {
-                        apiKeyVisible = true
-                        binding.etGeminiApiKey.inputType =
-                            android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                        binding.tilGeminiApiKey.setEndIconDrawable(R.drawable.ic_visibility)
-                        binding.etGeminiApiKey.setSelection(binding.etGeminiApiKey.text?.length ?: 0)
-                    }
-                )
-            }
-        }
-
-        binding.btnSaveGeminiKey.setOnClickListener {
-            BiometricHelper.authenticate(
-                fragment = this,
-                title = getString(R.string.biometric_title_monitor),
-                subtitle = getString(R.string.biometric_subtitle_apikey),
-                onSuccess = {
-                    val key = binding.etGeminiApiKey.text?.toString()?.trim() ?: ""
-                    prefs.geminiApiKey = key
-                    Toast.makeText(requireContext(), getString(R.string.settings_ai_gemini_key_saved), Toast.LENGTH_SHORT).show()
-                }
-            )
-        }
-
         // CWA API Key（預設遮蔽，需生物辨識才能顯示）
         val savedCwaKey = prefs.cwaApiKey
         if (savedCwaKey.isNotBlank()) binding.etCwaApiKey.setText(savedCwaKey)
@@ -1069,121 +1118,6 @@ class SettingsFragment : Fragment() {
                     val key = binding.etCwaApiKey.text?.toString()?.trim() ?: ""
                     prefs.cwaApiKey = key
                     Toast.makeText(requireContext(), getString(R.string.settings_weather_cwa_key_saved), Toast.LENGTH_SHORT).show()
-                }
-            )
-        }
-
-        // MiMo API Key（預設遮蔽，需生物辨識才能顯示）
-        val savedMimoKey = prefs.mimoApiKey
-        if (savedMimoKey.isNotBlank()) binding.etMimoApiKey.setText(savedMimoKey)
-        var mimoKeyVisible = false
-        binding.tilMimoApiKey.setEndIconOnClickListener {
-            if (mimoKeyVisible) {
-                mimoKeyVisible = false
-                binding.etMimoApiKey.inputType =
-                    android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-                binding.tilMimoApiKey.setEndIconDrawable(R.drawable.ic_visibility_off)
-                binding.etMimoApiKey.setSelection(binding.etMimoApiKey.text?.length ?: 0)
-            } else {
-                BiometricHelper.authenticate(
-                    fragment = this,
-                    title = getString(R.string.biometric_title_monitor),
-                    subtitle = getString(R.string.biometric_subtitle_apikey),
-                    onSuccess = {
-                        mimoKeyVisible = true
-                        binding.etMimoApiKey.inputType =
-                            android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                        binding.tilMimoApiKey.setEndIconDrawable(R.drawable.ic_visibility)
-                        binding.etMimoApiKey.setSelection(binding.etMimoApiKey.text?.length ?: 0)
-                    }
-                )
-            }
-        }
-        binding.btnSaveMimoKey.setOnClickListener {
-            BiometricHelper.authenticate(
-                fragment = this,
-                title = getString(R.string.biometric_title_monitor),
-                subtitle = getString(R.string.biometric_subtitle_apikey),
-                onSuccess = {
-                    val key = binding.etMimoApiKey.text?.toString()?.trim() ?: ""
-                    prefs.mimoApiKey = key
-                    Toast.makeText(requireContext(), "MiMo API Key 已儲存", Toast.LENGTH_SHORT).show()
-                }
-            )
-        }
-
-        // Claude API Key
-        val savedClaudeKey = prefs.claudeApiKey
-        if (savedClaudeKey.isNotBlank()) binding.etClaudeApiKey.setText(savedClaudeKey)
-        var claudeKeyVisible = false
-        binding.tilClaudeApiKey.setEndIconOnClickListener {
-            if (claudeKeyVisible) {
-                claudeKeyVisible = false
-                binding.etClaudeApiKey.inputType =
-                    android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-                binding.tilClaudeApiKey.setEndIconDrawable(R.drawable.ic_visibility_off)
-                binding.etClaudeApiKey.setSelection(binding.etClaudeApiKey.text?.length ?: 0)
-            } else {
-                BiometricHelper.authenticate(
-                    fragment = this,
-                    title = getString(R.string.biometric_title_monitor),
-                    subtitle = getString(R.string.biometric_subtitle_apikey),
-                    onSuccess = {
-                        claudeKeyVisible = true
-                        binding.etClaudeApiKey.inputType =
-                            android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                        binding.tilClaudeApiKey.setEndIconDrawable(R.drawable.ic_visibility)
-                        binding.etClaudeApiKey.setSelection(binding.etClaudeApiKey.text?.length ?: 0)
-                    }
-                )
-            }
-        }
-        binding.btnSaveClaudeKey.setOnClickListener {
-            BiometricHelper.authenticate(
-                fragment = this,
-                title = getString(R.string.biometric_title_monitor),
-                subtitle = getString(R.string.biometric_subtitle_apikey),
-                onSuccess = {
-                    prefs.claudeApiKey = binding.etClaudeApiKey.text?.toString()?.trim() ?: ""
-                    Toast.makeText(requireContext(), "Claude API Key 已儲存", Toast.LENGTH_SHORT).show()
-                }
-            )
-        }
-
-        // OpenAI API Key
-        val savedOpenaiKey = prefs.openaiApiKey
-        if (savedOpenaiKey.isNotBlank()) binding.etOpenaiApiKey.setText(savedOpenaiKey)
-        var openaiKeyVisible = false
-        binding.tilOpenaiApiKey.setEndIconOnClickListener {
-            if (openaiKeyVisible) {
-                openaiKeyVisible = false
-                binding.etOpenaiApiKey.inputType =
-                    android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-                binding.tilOpenaiApiKey.setEndIconDrawable(R.drawable.ic_visibility_off)
-                binding.etOpenaiApiKey.setSelection(binding.etOpenaiApiKey.text?.length ?: 0)
-            } else {
-                BiometricHelper.authenticate(
-                    fragment = this,
-                    title = getString(R.string.biometric_title_monitor),
-                    subtitle = getString(R.string.biometric_subtitle_apikey),
-                    onSuccess = {
-                        openaiKeyVisible = true
-                        binding.etOpenaiApiKey.inputType =
-                            android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                        binding.tilOpenaiApiKey.setEndIconDrawable(R.drawable.ic_visibility)
-                        binding.etOpenaiApiKey.setSelection(binding.etOpenaiApiKey.text?.length ?: 0)
-                    }
-                )
-            }
-        }
-        binding.btnSaveOpenaiKey.setOnClickListener {
-            BiometricHelper.authenticate(
-                fragment = this,
-                title = getString(R.string.biometric_title_monitor),
-                subtitle = getString(R.string.biometric_subtitle_apikey),
-                onSuccess = {
-                    prefs.openaiApiKey = binding.etOpenaiApiKey.text?.toString()?.trim() ?: ""
-                    Toast.makeText(requireContext(), "OpenAI API Key 已儲存", Toast.LENGTH_SHORT).show()
                 }
             )
         }
