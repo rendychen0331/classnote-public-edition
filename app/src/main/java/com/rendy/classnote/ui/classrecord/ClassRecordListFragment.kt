@@ -112,13 +112,16 @@ class ClassRecordListFragment : Fragment() {
         }
     }
 
-    private fun buildListItems(records: List<ClassRecordEntity>): List<ClassRecordListItem> {
+    private suspend fun buildListItems(records: List<ClassRecordEntity>): List<ClassRecordListItem> {
+        val photoMap = if (records.isNotEmpty())
+            viewModel.getFirstPhotoPathsForRecords(records.map { it.id })
+        else emptyMap()
         val grouped = records.groupBy { "${it.date}||${it.timeLabel}" }
         return buildList {
             for ((key, group) in grouped) {
                 val (date, timeLabel) = key.split("||", limit = 2)
                 add(ClassRecordListItem.Header(date, timeLabel, group.size))
-                group.forEach { add(ClassRecordListItem.Record(it)) }
+                group.forEach { add(ClassRecordListItem.Record(it, photoMap[it.id])) }
             }
         }
     }

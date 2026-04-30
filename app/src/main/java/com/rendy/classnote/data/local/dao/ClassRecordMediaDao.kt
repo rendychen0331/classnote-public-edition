@@ -23,4 +23,7 @@ interface ClassRecordMediaDao {
 
     @Query("UPDATE class_record_media SET aiSummary = :summary WHERE id = :id")
     suspend fun updateAiSummary(id: Long, summary: String)
+
+    @Query("SELECT * FROM class_record_media WHERE recordId IN (:recordIds) AND type IN ('photo', 'drawing') ORDER BY id ASC")
+    suspend fun getPhotosForRecords(recordIds: List<Long>): List<ClassRecordMediaEntity>
 }

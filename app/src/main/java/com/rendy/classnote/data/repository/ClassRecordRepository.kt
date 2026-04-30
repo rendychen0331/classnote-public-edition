@@ -33,4 +33,9 @@ class ClassRecordRepository(
     suspend fun deleteAllMediaForRecord(recordId: Long) = mediaDao.deleteAllForRecord(recordId)
 
     suspend fun updateMediaAiSummary(id: Long, summary: String) = mediaDao.updateAiSummary(id, summary)
+
+    suspend fun getFirstPhotoPathsForRecords(recordIds: List<Long>): Map<Long, String> =
+        mediaDao.getPhotosForRecords(recordIds)
+            .groupBy { it.recordId }
+            .mapValues { (_, list) -> list.first().filePath }
 }

@@ -1,14 +1,21 @@
 package com.rendy.classnote.ui.classrecord
 
+import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.rendy.classnote.data.local.entity.ClassRecordEntity
 import com.rendy.classnote.databinding.ItemClassRecordBinding
 import com.rendy.classnote.databinding.ItemClassRecordHeaderBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -16,7 +23,7 @@ import java.util.Locale
 
 sealed class ClassRecordListItem {
     data class Header(val date: String, val timeLabel: String, val count: Int) : ClassRecordListItem()
-    data class Record(val entity: ClassRecordEntity) : ClassRecordListItem()
+    data class Record(val entity: ClassRecordEntity, val firstPhotoPath: String? = null) : ClassRecordListItem()
 }
 
 class ClassRecordAdapter(
@@ -40,7 +47,9 @@ class ClassRecordAdapter(
     inner class RecordViewHolder(private val binding: ItemClassRecordBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ClassRecordEntity) {
+        private var thumbJob: Job? = null
+
+        fun bind(item: ClassRecordEntity, firstPhotoPath: String?) {
             binding.tvRecordDate.visibility = View.GONE
 
             binding.tvRecordTitle.text = item.title
@@ -53,6 +62,21 @@ class ClassRecordAdapter(
             }
             binding.tvRecordNote.text = preview
             binding.tvRecordNote.visibility = if (preview.isNotEmpty()) View.VISIBLE else View.GONE
+
+            thumbJob?.cancel()
+            if (firstPhotoPath != null) {
+                binding.ivThumbnail.visibility = View.VISIBLE
+                binding.ivThumbnail.setImageBitmap(null)
+                thumbJob = itemView.findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+                    val opts = BitmapFactory.Options().apply { inSampleSize = 4 }
+                    val bmp = withContext(Dispatchers.IO) {
+                        BitmapFactory.decodeFile(firstPhotoPath, opts)
+                    }
+                    binding.ivThumbnail.setImageBitmap(bmp)
+                }
+            } else {
+                binding.ivThumbnail.visibility = View.GONE
+            }
 
             binding.root.setOnClickListener { onClick(item) }
         }
@@ -73,7 +97,7 @@ class ClassRecordAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = getItem(position)) {
             is ClassRecordListItem.Header -> (holder as HeaderViewHolder).bind(item)
-            is ClassRecordListItem.Record -> (holder as RecordViewHolder).bind(item.entity)
+            is ClassRecordListItem.Record -> (holder as RecordViewHolder).bind(item.entity, item.firstPhotoPath)
         }
     }
 

@@ -35,6 +35,9 @@ class ClassRecordViewModel(
 
     suspend fun getMediaOnce(recordId: Long) = repository.getMediaForRecordOnce(recordId)
 
+    suspend fun getFirstPhotoPathsForRecords(recordIds: List<Long>): Map<Long, String> =
+        repository.getFirstPhotoPathsForRecords(recordIds)
+
     suspend fun updateMediaAiSummary(id: Long, summary: String) = repository.updateMediaAiSummary(id, summary)
 
     fun deleteRecord(id: Long) {

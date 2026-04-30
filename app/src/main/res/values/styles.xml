@@ -19,4 +19,9 @@
         <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
         <item name="android:paddingHorizontal">4dp</item>
     </style>
+
+    <style name="ShapeAppearance.Thumbnail" parent="ShapeAppearance.Material3.Corner.None">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">6dp</item>
+    </style>
 </resources>
