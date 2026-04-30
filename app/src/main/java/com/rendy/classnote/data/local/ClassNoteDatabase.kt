@@ -22,9 +22,10 @@ import kotlinx.coroutines.launch
         com.rendy.classnote.data.local.entity.FormulaEntity::class,
         com.rendy.classnote.data.local.entity.ClassRecordEntity::class,
         com.rendy.classnote.data.local.entity.ClassRecordMediaEntity::class,
-        com.rendy.classnote.data.local.entity.ApiLogEntity::class
+        com.rendy.classnote.data.local.entity.ApiLogEntity::class,
+        com.rendy.classnote.data.local.entity.ClassSessionSummaryEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 abstract class ClassNoteDatabase : RoomDatabase() {
@@ -38,6 +39,7 @@ abstract class ClassNoteDatabase : RoomDatabase() {
     abstract fun classRecordDao(): com.rendy.classnote.data.local.dao.ClassRecordDao
     abstract fun classRecordMediaDao(): com.rendy.classnote.data.local.dao.ClassRecordMediaDao
     abstract fun apiLogDao(): com.rendy.classnote.data.local.dao.ApiLogDao
+    abstract fun classSessionSummaryDao(): com.rendy.classnote.data.local.dao.ClassSessionSummaryDao
 
     companion object {
         @Volatile
@@ -151,6 +153,18 @@ abstract class ClassNoteDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS class_session_summaries (
+                        sessionLabel TEXT NOT NULL PRIMARY KEY,
+                        summary TEXT NOT NULL,
+                        generatedAt INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+
         fun closeDatabase() {
             INSTANCE?.close()
             INSTANCE = null
@@ -164,7 +178,7 @@ abstract class ClassNoteDatabase : RoomDatabase() {
                     "classnote_database"
                 )
                     .addCallback(DatabaseCallback())
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
                     .build()
                 INSTANCE = instance
                 instance

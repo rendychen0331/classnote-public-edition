@@ -155,7 +155,12 @@
             app:argType="string" />
         <argument
             android:name="summary"
-            app:argType="string" />
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="recordIds"
+            app:argType="string"
+            android:defaultValue="" />
     </fragment>
 
     <fragment

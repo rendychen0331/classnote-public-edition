@@ -38,6 +38,12 @@ class ClassRecordViewModel(
     suspend fun getFirstPhotoPathsForRecords(recordIds: List<Long>): Map<Long, String> =
         repository.getFirstPhotoPathsForRecords(recordIds)
 
+    suspend fun getSessionSummary(sessionLabel: String): String? =
+        repository.getSessionSummary(sessionLabel)
+
+    suspend fun saveSessionSummary(sessionLabel: String, summary: String) =
+        repository.saveSessionSummary(sessionLabel, summary)
+
     suspend fun updateMediaAiSummary(id: Long, summary: String) = repository.updateMediaAiSummary(id, summary)
 
     fun deleteRecord(id: Long) {

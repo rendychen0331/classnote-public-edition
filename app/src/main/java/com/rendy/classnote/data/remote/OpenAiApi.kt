@@ -106,7 +106,7 @@ object OpenAiApi {
                     put("model", MODEL)
                     put("messages", messages)
                     put("temperature", 0.5)
-                    put("max_tokens", 1000)
+                    put("max_tokens", 2000)
                 }.toString()
 
                 OutputStreamWriter(conn.outputStream, Charsets.UTF_8).use { it.write(body) }

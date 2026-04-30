@@ -90,6 +90,7 @@ dependencies {
     implementation(libs.google.http.client.gson)
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.biometric)
+    implementation(libs.markwon.core)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

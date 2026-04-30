@@ -14,9 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.ui.SwipeActionsCallback
 import com.rendy.classnote.ClassNoteApplication
-import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.local.entity.ClassRecordEntity
-import com.rendy.classnote.data.remote.GeminiApi
 import com.rendy.classnote.databinding.FragmentClassRecordListBinding
 import kotlinx.coroutines.launch
 
@@ -181,75 +179,15 @@ class ClassRecordListFragment : Fragment() {
     }
 
     private fun runAiSessionSummary(sessionLabel: String, records: List<ClassRecordEntity>) {
-        val app = requireActivity().application as ClassNoteApplication
-        val apiKey = AppPreferences(requireContext()).geminiApiKey
-        if (apiKey.isBlank()) {
-            Toast.makeText(requireContext(), "請先在設定頁輸入 Gemini API Key", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val loadingDialog = MaterialAlertDialogBuilder(requireContext())
-            .setMessage("AI 總結中...")
-            .setCancelable(false)
-            .show()
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            val contentParts = mutableListOf<String>()
-            for (record in records) {
-                if (record.textNote.isNotBlank()) {
-                    contentParts.add("【文字筆記】\n${record.textNote}")
-                }
-                val mediaList = viewModel.getMediaOnce(record.id)
-                val audioMedia = mediaList.filter { it.type == "audio" }
-                for (audio in audioMedia) {
-                    if (record.aiSummary.isNotBlank()) {
-                        contentParts.add("【錄音摘要】\n${record.aiSummary}")
-                    } else {
-                        val audioSummary = GeminiApi.summarizeAudio(apiKey, audio.filePath)
-                        if (!audioSummary.isNullOrBlank()) {
-                            contentParts.add("【錄音摘要】\n$audioSummary")
-                        }
-                    }
-                }
-                val photoMedia = mediaList.filter { it.type == "photo" || it.type == "drawing" }
-                for (photo in photoMedia) {
-                    val label = if (photo.type == "drawing") "手繪內容" else "照片內容"
-                    if (photo.aiSummary.isNotBlank()) {
-                        contentParts.add("【$label】\n${photo.aiSummary}")
-                    } else {
-                        val photoSummary = GeminiApi.summarizePhoto(apiKey, photo.filePath)
-                        if (!photoSummary.isNullOrBlank()) {
-                            viewModel.updateMediaAiSummary(photo.id, photoSummary)
-                            contentParts.add("【$label】\n$photoSummary")
-                        }
-                    }
-                }
-            }
-            loadingDialog.dismiss()
-
-            if (contentParts.isEmpty()) {
-                Toast.makeText(requireContext(), "這堂課沒有可總結的內容", Toast.LENGTH_SHORT).show()
-                return@launch
-            }
-
-            val combined = contentParts.joinToString("\n\n")
-            val loadingDialog2 = MaterialAlertDialogBuilder(requireContext())
-                .setMessage("整合總結中...")
-                .setCancelable(false)
-                .show()
-            val summary = GeminiApi.summarizeSession(apiKey, combined)
-            loadingDialog2.dismiss()
-
-            if (summary.isNullOrBlank()) {
-                Toast.makeText(requireContext(), "總結失敗，請稍後再試", Toast.LENGTH_SHORT).show()
-                return@launch
-            }
-
-            findNavController().navigate(
-                ClassRecordListFragmentDirections
-                    .actionClassRecordListFragmentToClassRecordSummaryFragment(sessionLabel, summary)
-            )
-        }
+        val recordIds = records.joinToString(",") { it.id.toString() }
+        findNavController().navigate(
+            ClassRecordListFragmentDirections
+                .actionClassRecordListFragmentToClassRecordSummaryFragment(
+                    sessionLabel = sessionLabel,
+                    summary = "",
+                    recordIds = recordIds
+                )
+        )
     }
 
     override fun onDestroyView() {

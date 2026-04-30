@@ -2,13 +2,16 @@ package com.rendy.classnote.data.repository
 
 import com.rendy.classnote.data.local.dao.ClassRecordDao
 import com.rendy.classnote.data.local.dao.ClassRecordMediaDao
+import com.rendy.classnote.data.local.dao.ClassSessionSummaryDao
 import com.rendy.classnote.data.local.entity.ClassRecordEntity
 import com.rendy.classnote.data.local.entity.ClassRecordMediaEntity
+import com.rendy.classnote.data.local.entity.ClassSessionSummaryEntity
 import kotlinx.coroutines.flow.Flow
 
 class ClassRecordRepository(
     private val recordDao: ClassRecordDao,
-    private val mediaDao: ClassRecordMediaDao
+    private val mediaDao: ClassRecordMediaDao,
+    private val sessionSummaryDao: ClassSessionSummaryDao
 ) {
     fun getAllRecords(): Flow<List<ClassRecordEntity>> = recordDao.getAllRecords()
 
@@ -38,4 +41,10 @@ class ClassRecordRepository(
         mediaDao.getPhotosForRecords(recordIds)
             .groupBy { it.recordId }
             .mapValues { (_, list) -> list.first().filePath }
+
+    suspend fun getSessionSummary(sessionLabel: String): String? =
+        sessionSummaryDao.get(sessionLabel)?.summary
+
+    suspend fun saveSessionSummary(sessionLabel: String, summary: String) =
+        sessionSummaryDao.upsert(ClassSessionSummaryEntity(sessionLabel, summary))
 }

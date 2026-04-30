@@ -455,7 +455,7 @@ category 值：HOMEWORK（作業）、EXAM（考試）、PAYMENT（繳費）、E
                     put("contents", contentsArray)
                     put("generationConfig", JSONObject().apply {
                         put("temperature", 0.5)
-                        put("maxOutputTokens", 1000)
+                        put("maxOutputTokens", 2000)
                     })
                 }.toString()
 

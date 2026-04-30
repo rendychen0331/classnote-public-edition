@@ -10,6 +10,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DiffUtil
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.R as MatR
+import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.R
 import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.remote.ClaudeApi
@@ -25,6 +27,7 @@ import com.rendy.classnote.data.remote.MimoApi
 import com.rendy.classnote.data.remote.OpenAiApi
 import com.rendy.classnote.databinding.FragmentClassRecordSummaryBinding
 import com.rendy.classnote.databinding.ItemChatBubbleBinding
+import io.noties.markwon.Markwon
 import kotlinx.coroutines.launch
 
 data class ChatMessage(val text: String, val isUser: Boolean)
@@ -37,6 +40,12 @@ class ClassRecordSummaryFragment : Fragment() {
     private val args: ClassRecordSummaryFragmentArgs by navArgs()
     private val messages = mutableListOf<ChatMessage>()
     private lateinit var chatAdapter: ChatAdapter
+    private lateinit var markwon: Markwon
+
+    private val viewModel: ClassRecordViewModel by viewModels {
+        val app = requireActivity().application as ClassNoteApplication
+        ClassRecordViewModel.Factory(app.classRecordRepository)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -48,6 +57,7 @@ class ClassRecordSummaryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        markwon = Markwon.create(requireContext())
         binding.tvSummarySession.text = args.sessionLabel
 
         chatAdapter = ChatAdapter()
@@ -56,14 +66,91 @@ class ClassRecordSummaryFragment : Fragment() {
         }
         binding.rvChat.adapter = chatAdapter
 
-        // Summary as first AI message
-        addMessage(ChatMessage(args.summary, isUser = false))
-
         setupProviderChips()
 
         binding.btnSend.setOnClickListener { sendMessage() }
         binding.etChatInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) { sendMessage(); true } else false
+        }
+
+        when {
+            args.summary.isNotBlank() -> addMessage(ChatMessage(args.summary, isUser = false))
+            args.recordIds.isNotBlank() -> loadOrGenerateSummary()
+        }
+    }
+
+    private fun loadOrGenerateSummary() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val cached = viewModel.getSessionSummary(args.sessionLabel)
+            if (!cached.isNullOrBlank()) {
+                addMessage(ChatMessage(cached, isUser = false))
+                return@launch
+            }
+            generateSummary()
+        }
+    }
+
+    private fun generateSummary() {
+        val prefs = AppPreferences(requireContext())
+        val apiKey = prefs.geminiApiKey
+        if (apiKey.isBlank()) {
+            addMessage(ChatMessage("請先在設定頁輸入 Gemini API Key", isUser = false))
+            return
+        }
+
+        val recordIds = args.recordIds.split(",").mapNotNull { it.trim().toLongOrNull() }
+        if (recordIds.isEmpty()) return
+
+        binding.progressChat.visibility = View.VISIBLE
+        binding.btnSend.isEnabled = false
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val contentParts = mutableListOf<String>()
+            for (id in recordIds) {
+                val record = viewModel.getById(id) ?: continue
+                if (record.textNote.isNotBlank()) {
+                    contentParts.add("【文字筆記】\n${record.textNote}")
+                }
+                val mediaList = viewModel.getMediaOnce(id)
+                for (audio in mediaList.filter { it.type == "audio" }) {
+                    if (record.aiSummary.isNotBlank()) {
+                        contentParts.add("【錄音摘要】\n${record.aiSummary}")
+                    } else {
+                        GeminiApi.summarizeAudio(apiKey, audio.filePath)?.takeIf { it.isNotBlank() }
+                            ?.let { contentParts.add("【錄音摘要】\n$it") }
+                    }
+                }
+                for (photo in mediaList.filter { it.type == "photo" || it.type == "drawing" }) {
+                    val label = if (photo.type == "drawing") "手繪內容" else "照片內容"
+                    if (photo.aiSummary.isNotBlank()) {
+                        contentParts.add("【$label】\n${photo.aiSummary}")
+                    } else {
+                        GeminiApi.summarizePhoto(apiKey, photo.filePath)?.takeIf { it.isNotBlank() }
+                            ?.let {
+                                viewModel.updateMediaAiSummary(photo.id, it)
+                                contentParts.add("【$label】\n$it")
+                            }
+                    }
+                }
+            }
+
+            if (contentParts.isEmpty()) {
+                binding.progressChat.visibility = View.GONE
+                binding.btnSend.isEnabled = true
+                addMessage(ChatMessage("這堂課沒有可總結的內容（文字、錄音、照片）", isUser = false))
+                return@launch
+            }
+
+            val summary = GeminiApi.summarizeSession(apiKey, contentParts.joinToString("\n\n"))
+            binding.progressChat.visibility = View.GONE
+            binding.btnSend.isEnabled = true
+
+            if (summary.isNullOrBlank()) {
+                addMessage(ChatMessage("總結失敗，請稍後再試", isUser = false))
+            } else {
+                viewModel.saveSessionSummary(args.sessionLabel, summary)
+                addMessage(ChatMessage(summary, isUser = false))
+            }
         }
     }
 
@@ -105,6 +192,9 @@ class ClassRecordSummaryFragment : Fragment() {
         }
     }
 
+    private fun currentSummaryContext(): String =
+        messages.firstOrNull { !it.isUser }?.text ?: args.summary
+
     private fun sendMessage() {
         val text = binding.etChatInput.text?.toString()?.trim() ?: return
         if (text.isBlank()) return
@@ -127,14 +217,15 @@ class ClassRecordSummaryFragment : Fragment() {
         binding.progressChat.visibility = View.VISIBLE
         binding.btnSend.isEnabled = false
 
+        val noteContext = currentSummaryContext()
         val history = messages.dropLast(1).drop(1).map { it.text to it.isUser }
 
         viewLifecycleOwner.lifecycleScope.launch {
             val reply = when (provider) {
-                "mimo"   -> MimoApi.chatWithContext(apiKey, args.summary, history, text)
-                "claude" -> ClaudeApi.chatWithContext(apiKey, args.summary, history, text)
-                "openai" -> OpenAiApi.chatWithContext(apiKey, args.summary, history, text)
-                else     -> GeminiApi.chatWithContext(apiKey, args.summary, history, text)
+                "mimo"   -> MimoApi.chatWithContext(apiKey, noteContext, history, text)
+                "claude" -> ClaudeApi.chatWithContext(apiKey, noteContext, history, text)
+                "openai" -> OpenAiApi.chatWithContext(apiKey, noteContext, history, text)
+                else     -> GeminiApi.chatWithContext(apiKey, noteContext, history, text)
             }
             binding.progressChat.visibility = View.GONE
             binding.btnSend.isEnabled = true
@@ -166,7 +257,11 @@ class ClassRecordSummaryFragment : Fragment() {
             RecyclerView.ViewHolder(binding.root) {
 
             fun bind(msg: ChatMessage) {
-                binding.tvBubbleText.text = msg.text
+                if (msg.isUser) {
+                    binding.tvBubbleText.text = msg.text
+                } else {
+                    markwon.setMarkdown(binding.tvBubbleText, msg.text)
+                }
                 val density = resources.displayMetrics.density
                 val margin48 = (48 * density).toInt()
                 val flp = binding.cardBubble.layoutParams as FrameLayout.LayoutParams

@@ -101,7 +101,7 @@ object ClaudeApi {
 
                 val body = JSONObject().apply {
                     put("model", MODEL)
-                    put("max_tokens", 1000)
+                    put("max_tokens", 2000)
                     put("system", "你是一個課堂筆記助理，以繁體中文回答問題。以下是本堂課的課堂筆記總結，作為對話背景參考：\n\n$noteContext")
                     put("messages", messages)
                 }.toString()

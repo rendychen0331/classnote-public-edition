@@ -25,6 +25,7 @@ googleHttpClientGson = "1.43.3"
 googleServicesPlugin = "4.4.2"
 swipeRefreshLayout = "1.1.0"
 biometric = "1.1.0"
+markwon = "4.6.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,6 +55,7 @@ google-api-services-classroom = { group = "com.google.apis", name = "google-api-
 google-http-client-gson = { group = "com.google.http-client", name = "google-http-client-gson", version.ref = "googleHttpClientGson" }
 androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swipeRefreshLayout" }
 androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
+markwon-core = { group = "io.noties.markwon", name = "core", version.ref = "markwon" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
