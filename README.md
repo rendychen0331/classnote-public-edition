@@ -14,7 +14,7 @@
 Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 
 ## 正在實作
-<kbd>NONE</kbd>
+**DEBUG**
 
 ## AI功能支援模型(API key)
 - Xiaomi MiMo
