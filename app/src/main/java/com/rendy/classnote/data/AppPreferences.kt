@@ -90,6 +90,66 @@ class AppPreferences(context: Context) {
         get() = prefs.getInt(KEY_AUTO_CLASSROOM_SYNC_INTERVAL_HOURS, 6)
         set(value) = prefs.edit { putInt(KEY_AUTO_CLASSROOM_SYNC_INTERVAL_HOURS, value) }
 
+    /** Google 日曆同步開關。預設關閉。 */
+    var calendarSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_CALENDAR_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_CALENDAR_SYNC_ENABLED, value) }
+
+    /** 上次 Google 日曆同步的結果摘要，供 UI 顯示。 */
+    var lastCalendarSyncSummary: String
+        get() = prefs.getString(KEY_CALENDAR_SYNC_SUMMARY, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_CALENDAR_SYNC_SUMMARY, value) }
+
+    /** 自動 Google 日曆同步開關。預設關閉。 */
+    var autoCalendarSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_CALENDAR_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_AUTO_CALENDAR_SYNC_ENABLED, value) }
+
+    /** 自動 Google 日曆同步間隔（小時）。預設 6 小時。 */
+    var autoCalendarSyncIntervalHours: Int
+        get() = prefs.getInt(KEY_AUTO_CALENDAR_SYNC_INTERVAL_HOURS, 6)
+        set(value) = prefs.edit { putInt(KEY_AUTO_CALENDAR_SYNC_INTERVAL_HOURS, value) }
+
+    /** Google Tasks 同步開關。預設關閉。 */
+    var tasksSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_TASKS_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_TASKS_SYNC_ENABLED, value) }
+
+    /** 上次 Google Tasks 同步的結果摘要，供 UI 顯示。 */
+    var lastTasksSyncSummary: String
+        get() = prefs.getString(KEY_TASKS_SYNC_SUMMARY, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_TASKS_SYNC_SUMMARY, value) }
+
+    /** 自動 Google Tasks 同步開關。預設關閉。 */
+    var autoTasksSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_TASKS_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_AUTO_TASKS_SYNC_ENABLED, value) }
+
+    /** 自動 Google Tasks 同步間隔（小時）。預設 6 小時。 */
+    var autoTasksSyncIntervalHours: Int
+        get() = prefs.getInt(KEY_AUTO_TASKS_SYNC_INTERVAL_HOURS, 6)
+        set(value) = prefs.edit { putInt(KEY_AUTO_TASKS_SYNC_INTERVAL_HOURS, value) }
+
+    /** OneDrive 備份開關。預設關閉。 */
+    var oneDriveBackupEnabled: Boolean
+        get() = prefs.getBoolean(KEY_ONEDRIVE_BACKUP_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_ONEDRIVE_BACKUP_ENABLED, value) }
+
+    /** 上次 OneDrive 備份/還原的結果摘要，供 UI 顯示。 */
+    var lastOneDriveSyncSummary: String
+        get() = prefs.getString(KEY_ONEDRIVE_SYNC_SUMMARY, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_ONEDRIVE_SYNC_SUMMARY, value) }
+
+    /** 自動 OneDrive 備份開關。預設關閉。 */
+    var autoOneDriveBackupEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_ONEDRIVE_BACKUP_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_AUTO_ONEDRIVE_BACKUP_ENABLED, value) }
+
+    /** 自動 OneDrive 備份間隔（小時）。預設 24 小時。 */
+    var autoOneDriveBackupIntervalHours: Int
+        get() = prefs.getInt(KEY_AUTO_ONEDRIVE_BACKUP_INTERVAL_HOURS, 24)
+        set(value) = prefs.edit { putInt(KEY_AUTO_ONEDRIVE_BACKUP_INTERVAL_HOURS, value) }
+
     /** Gemini API Key，用於 AI 通知解析。 */
     var geminiApiKey: String
         get() = prefs.getString(KEY_GEMINI_API_KEY, "") ?: ""
@@ -119,6 +179,11 @@ class AppPreferences(context: Context) {
     var preferredChatProvider: String
         get() = prefs.getString(KEY_PREFERRED_CHAT_PROVIDER, "gemini") ?: "gemini"
         set(value) = prefs.edit { putString(KEY_PREFERRED_CHAT_PROVIDER, value) }
+
+    /** 通知辨識優先使用的 provider："gemini" | "mimo" | "claude" | "openai"。 */
+    var preferredNotifProvider: String
+        get() = prefs.getString(KEY_PREFERRED_NOTIF_PROVIDER, "gemini") ?: "gemini"
+        set(value) = prefs.edit { putString(KEY_PREFERRED_NOTIF_PROVIDER, value) }
 
     /** AI 功能總開關（AI 摘要、對話、通知辨識）。預設開啟。 */
     var aiEnabled: Boolean
@@ -251,6 +316,7 @@ class AppPreferences(context: Context) {
         private const val KEY_CLAUDE_API_KEY = "claude_api_key"
         private const val KEY_OPENAI_API_KEY = "openai_api_key"
         private const val KEY_PREFERRED_CHAT_PROVIDER = "preferred_chat_provider"
+        private const val KEY_PREFERRED_NOTIF_PROVIDER = "preferred_notif_provider"
         private const val KEY_AI_ENABLED = "ai_enabled"
         private const val KEY_GEMINI_ENABLED = "gemini_enabled"
         private const val KEY_MIMO_ENABLED = "mimo_enabled"
@@ -268,8 +334,20 @@ class AppPreferences(context: Context) {
         private const val KEY_AUTO_GMAIL_SYNC_INTERVAL_HOURS = "auto_gmail_sync_interval_hours"
         private const val KEY_AUTO_CLASSROOM_SYNC_ENABLED = "auto_classroom_sync_enabled"
         private const val KEY_AUTO_CLASSROOM_SYNC_INTERVAL_HOURS = "auto_classroom_sync_interval_hours"
+        private const val KEY_CALENDAR_SYNC_ENABLED = "calendar_sync_enabled"
+        private const val KEY_CALENDAR_SYNC_SUMMARY = "calendar_sync_summary"
+        private const val KEY_AUTO_CALENDAR_SYNC_ENABLED = "auto_calendar_sync_enabled"
+        private const val KEY_AUTO_CALENDAR_SYNC_INTERVAL_HOURS = "auto_calendar_sync_interval_hours"
+        private const val KEY_TASKS_SYNC_ENABLED = "tasks_sync_enabled"
+        private const val KEY_TASKS_SYNC_SUMMARY = "tasks_sync_summary"
+        private const val KEY_AUTO_TASKS_SYNC_ENABLED = "auto_tasks_sync_enabled"
+        private const val KEY_AUTO_TASKS_SYNC_INTERVAL_HOURS = "auto_tasks_sync_interval_hours"
         private const val KEY_DEFAULT_REMIND_HOUR = "default_remind_hour"
         private const val KEY_DEFAULT_REMIND_MINUTE = "default_remind_minute"
+        private const val KEY_ONEDRIVE_BACKUP_ENABLED = "onedrive_backup_enabled"
+        private const val KEY_ONEDRIVE_SYNC_SUMMARY = "onedrive_sync_summary"
+        private const val KEY_AUTO_ONEDRIVE_BACKUP_ENABLED = "auto_onedrive_backup_enabled"
+        private const val KEY_AUTO_ONEDRIVE_BACKUP_INTERVAL_HOURS = "auto_onedrive_backup_interval_hours"
 
         const val NETWORK_WIFI = "wifi"
         const val NETWORK_MOBILE = "mobile"

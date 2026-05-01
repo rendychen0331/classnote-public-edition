@@ -12,6 +12,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -46,6 +47,24 @@ class MainActivity : AppCompatActivity() {
             }
             NavigationUI.onNavDestinationSelected(item, navController)
         }
+        // 重選同一 tab 時，若目前在設定子頁，強制導回該 tab
+        binding.bottomNavigation.setOnItemReselectedListener { item ->
+            if (navController.currentDestination?.id != item.itemId) {
+                NavigationUI.onNavDestinationSelected(item, navController)
+            }
+        }
+
+        val appBarConfig = AppBarConfiguration(
+            setOf(
+                R.id.scheduleFragment,
+                R.id.reminderListFragment,
+                R.id.formulaListFragment,
+                R.id.weatherFragment,
+                R.id.classRecordListFragment,
+                R.id.settingsFragment
+            )
+        )
+        binding.toolbar.setupWithNavController(navController, appBarConfig)
 
         binding.toolbar.inflateMenu(R.menu.toolbar_menu)
         binding.toolbar.setOnMenuItemClickListener { item ->

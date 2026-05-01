@@ -256,6 +256,54 @@
     <string name="settings_classroom_sync_result">已匯入 %1$d 筆，略過 %2$d 筆</string>
     <string name="settings_classroom_permission_denied">Classroom 授權被拒，無法同步</string>
 
+    <!-- Google 日曆同步 -->
+    <string name="settings_section_calendar">Google 日曆同步</string>
+    <string name="settings_calendar_sync_title">Google 日曆</string>
+    <string name="settings_calendar_sync_desc">匯入 Google 日曆未來 60 天的活動為提醒事項</string>
+    <string name="settings_calendar_sign_in">授權日曆存取</string>
+    <string name="settings_calendar_sign_out">登出</string>
+    <string name="settings_calendar_no_permission">需要 Google 日曆授權</string>
+    <string name="settings_calendar_permission_denied">日曆授權被拒，無法同步</string>
+    <string name="settings_calendar_sync_now">立即同步</string>
+    <string name="settings_calendar_no_sync">尚未同步</string>
+    <string name="settings_calendar_sync_result">已匯入 %1$d 筆，略過 %2$d 筆</string>
+    <string name="settings_auto_calendar_sync_title">自動同步</string>
+    <string name="settings_auto_calendar_sync_interval">每 %1$d 小時自動同步一次</string>
+
+    <!-- Google Tasks 同步 -->
+    <string name="settings_section_tasks">Google Tasks 同步</string>
+    <string name="settings_tasks_sync_title">Google Tasks</string>
+    <string name="settings_tasks_sync_desc">匯入 Google Tasks 的待辦事項為提醒事項（截止日期為日期，無時間）</string>
+    <string name="settings_tasks_sign_in">授權 Tasks 存取</string>
+    <string name="settings_tasks_sign_out">登出</string>
+    <string name="settings_tasks_no_permission">需要 Google Tasks 授權</string>
+    <string name="settings_tasks_permission_denied">Tasks 授權被拒，無法同步</string>
+    <string name="settings_tasks_sync_now">立即同步</string>
+    <string name="settings_tasks_no_sync">尚未同步</string>
+    <string name="settings_tasks_sync_result">已匯入 %1$d 筆，略過 %2$d 筆</string>
+    <string name="settings_auto_tasks_sync_title">自動同步</string>
+    <string name="settings_auto_tasks_sync_interval">每 %1$d 小時自動同步一次</string>
+
+    <!-- OneDrive 備份 -->
+    <string name="settings_section_onedrive">OneDrive 備份</string>
+    <string name="settings_onedrive_backup_title">Microsoft OneDrive</string>
+    <string name="settings_onedrive_backup_desc">將資料庫備份至 OneDrive App 專屬資料夾，支援跨裝置還原</string>
+    <string name="settings_onedrive_not_signed_in">尚未登入 Microsoft 帳號</string>
+    <string name="settings_onedrive_sign_in">登入</string>
+    <string name="settings_onedrive_sign_out">登出</string>
+    <string name="settings_onedrive_backup">立即備份</string>
+    <string name="settings_onedrive_restore">還原</string>
+    <string name="settings_onedrive_no_backup">尚未備份</string>
+    <string name="settings_onedrive_last_backup">上次備份：%1$s</string>
+    <string name="settings_onedrive_backup_in_progress">備份中...</string>
+    <string name="settings_onedrive_backup_success">備份成功</string>
+    <string name="settings_onedrive_restore_confirm_title">確認還原</string>
+    <string name="settings_onedrive_restore_confirm_msg">還原後目前資料將被覆蓋，App 需重新啟動才能生效，確定繼續嗎？</string>
+    <string name="settings_onedrive_restore_success">還原成功，請重新啟動 App</string>
+    <string name="settings_onedrive_auto_backup_title">自動備份</string>
+    <string name="settings_onedrive_auto_backup_desc">定期自動將資料備份至 OneDrive</string>
+    <string name="settings_onedrive_sign_in_failed">Microsoft 登入失敗</string>
+
     <!-- AI 通知解析 -->
     <string name="settings_section_ai_notify">AI 通知解析</string>
     <string name="settings_ai_notify_title">自動解析通知</string>
@@ -268,6 +316,10 @@
     <string name="settings_ai_gemini_key_hint">AIzaSy…</string>
     <string name="settings_ai_gemini_key_save">儲存</string>
     <string name="settings_ai_gemini_key_saved">API Key 已儲存</string>
+    <string name="settings_ai_chat_provider_title">筆記對話使用的 AI</string>
+    <string name="settings_ai_chat_provider_desc">選擇哪個 AI 模型用於課堂筆記對話</string>
+    <string name="settings_ai_notif_provider_title">通知辨識使用的 AI</string>
+    <string name="settings_ai_notif_provider_desc">選擇哪個 AI 模型用於解析通知內容</string>
     <string name="settings_ai_monitored_apps_title">監控的 App</string>
     <string name="settings_ai_monitored_apps_all">所有 App</string>
     <string name="settings_ai_monitored_apps_count">%1$d 個 App</string>

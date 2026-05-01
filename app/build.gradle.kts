@@ -16,8 +16,7 @@ android {
         minSdk = 35
         targetSdk = 35
         versionCode = (System.currentTimeMillis() / 60000).toInt()
-        versionName = "1.0-" + java.time.LocalDateTime.now()
-            .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmm"))
+        versionName = "1.0-debug"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -87,10 +86,13 @@ dependencies {
     implementation(libs.google.api.services.drive)
     implementation(libs.google.api.services.gmail)
     implementation(libs.google.api.services.classroom)
+    implementation(libs.google.api.services.calendar)
+    implementation(libs.google.api.services.tasks)
     implementation(libs.google.http.client.gson)
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.biometric)
     implementation(libs.markwon.core)
+    implementation(libs.msal)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -7,14 +7,18 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
+import com.google.api.services.calendar.CalendarScopes
 import com.google.api.services.classroom.ClassroomScopes
 import com.google.api.services.drive.DriveScopes
 import com.google.api.services.gmail.GmailScopes
+import com.google.api.services.tasks.TasksScopes
 
 object GoogleAuthManager {
 
     private const val PREFS_NAME = "classnote_prefs"
     private const val KEY_CLASSROOM_ACCOUNT_EMAIL = "classroom_account_email"
+    private const val KEY_CALENDAR_ACCOUNT_EMAIL = "calendar_account_email"
+    private const val KEY_TASKS_ACCOUNT_EMAIL = "tasks_account_email"
 
     private fun buildOptions(includeGmail: Boolean = false): GoogleSignInOptions {
         val builder = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -45,6 +49,68 @@ object GoogleAuthManager {
     fun hasDriveFileScope(context: Context): Boolean {
         val account = getAccount(context) ?: return false
         return GoogleSignIn.hasPermissions(account, Scope(DriveScopes.DRIVE_FILE))
+    }
+
+    /** 取得 Google 日曆專屬登入 Intent（獨立帳號，含 CALENDAR_READONLY scope）。 */
+    fun getSignInIntentForCalendar(context: Context): Intent {
+        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestScopes(Scope(CalendarScopes.CALENDAR_READONLY))
+            .build()
+        return GoogleSignIn.getClient(context, options).signInIntent
+    }
+
+    /** 取得 Google Tasks 專屬登入 Intent（獨立帳號，含 TASKS_READONLY scope）。 */
+    fun getSignInIntentForTasks(context: Context): Intent {
+        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestScopes(Scope(TasksScopes.TASKS_READONLY))
+            .build()
+        return GoogleSignIn.getClient(context, options).signInIntent
+    }
+
+    // ── Calendar 帳號獨立儲存 ───────────────────────────────────────────────
+
+    fun getCalendarAccountEmail(context: Context): String? =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_CALENDAR_ACCOUNT_EMAIL, null)
+
+    fun setCalendarAccountEmail(context: Context, email: String?) =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_CALENDAR_ACCOUNT_EMAIL, email).apply()
+
+    fun clearCalendarAccount(context: Context) = setCalendarAccountEmail(context, null)
+
+    fun signOutCalendar(context: Context, onDone: () -> Unit = {}) {
+        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestScopes(Scope(CalendarScopes.CALENDAR_READONLY))
+            .build()
+        GoogleSignIn.getClient(context.applicationContext, options)
+            .signOut()
+            .addOnCompleteListener { onDone() }
+    }
+
+    // ── Tasks 帳號獨立儲存 ──────────────────────────────────────────────────
+
+    fun getTasksAccountEmail(context: Context): String? =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_TASKS_ACCOUNT_EMAIL, null)
+
+    fun setTasksAccountEmail(context: Context, email: String?) =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_TASKS_ACCOUNT_EMAIL, email).apply()
+
+    fun clearTasksAccount(context: Context) = setTasksAccountEmail(context, null)
+
+    fun signOutTasks(context: Context, onDone: () -> Unit = {}) {
+        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestScopes(Scope(TasksScopes.TASKS_READONLY))
+            .build()
+        GoogleSignIn.getClient(context.applicationContext, options)
+            .signOut()
+            .addOnCompleteListener { onDone() }
     }
 
     /** 取得 Classroom 專屬登入 Intent（獨立帳號，含 Classroom scopes）。 */

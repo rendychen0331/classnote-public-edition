@@ -114,6 +114,21 @@
             </intent-filter>
         </service>
 
+        <!-- MSAL browser tab for Microsoft sign-in redirect -->
+        <activity
+            android:name="com.microsoft.identity.client.BrowserTabActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="com.rendy.classnote"
+                    android:path="/2jmj7l5rSw0yVb/vlWAYkK/YBwk="
+                    android:scheme="msauth" />
+            </intent-filter>
+        </activity>
+
         <!-- FileProvider for camera photos -->
         <provider
             android:name="androidx.core.content.FileProvider"

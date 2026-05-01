@@ -107,7 +107,113 @@
         android:id="@+id/settingsFragment"
         android:name="com.rendy.classnote.ui.settings.SettingsFragment"
         android:label="@string/nav_settings"
-        tools:layout="@layout/fragment_settings" />
+        tools:layout="@layout/fragment_settings">
+        <action
+            android:id="@+id/actionSettingsToAlarmPerm"
+            app:destination="@id/alarmPermFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/actionSettingsToBackupSync"
+            app:destination="@id/backupSyncFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/actionSettingsToWeatherNotif"
+            app:destination="@id/weatherNotifFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/actionSettingsToAiSettings"
+            app:destination="@id/aiSettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/actionSettingsToNotifListener"
+            app:destination="@id/notifListenerFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/actionSettingsToApiLog"
+            app:destination="@id/apiLogFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/alarmPermFragment"
+        android:name="com.rendy.classnote.ui.settings.AlarmPermSheet"
+        android:label="提醒與鬧鐘"
+        tools:layout="@layout/sheet_alarm_perm" />
+
+    <fragment
+        android:id="@+id/backupSyncFragment"
+        android:name="com.rendy.classnote.ui.settings.BackupSyncSheet"
+        android:label="備份與同步"
+        tools:layout="@layout/sheet_backup_sync">
+        <action
+            android:id="@+id/actionBackupSyncToGoogleSync"
+            app:destination="@id/googleSyncFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/actionBackupSyncToMicrosoftSync"
+            app:destination="@id/microsoftSyncFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/googleSyncFragment"
+        android:name="com.rendy.classnote.ui.settings.GoogleSyncSheet"
+        android:label="Google"
+        tools:layout="@layout/sheet_google_sync" />
+
+    <fragment
+        android:id="@+id/microsoftSyncFragment"
+        android:name="com.rendy.classnote.ui.settings.MicrosoftSyncSheet"
+        android:label="Microsoft"
+        tools:layout="@layout/sheet_microsoft_sync" />
+
+    <fragment
+        android:id="@+id/weatherNotifFragment"
+        android:name="com.rendy.classnote.ui.settings.WeatherNotifSheet"
+        android:label="天氣通知"
+        tools:layout="@layout/sheet_weather_notif" />
+
+    <fragment
+        android:id="@+id/aiSettingsFragment"
+        android:name="com.rendy.classnote.ui.settings.AiSettingsSheet"
+        android:label="AI 設定"
+        tools:layout="@layout/sheet_ai_settings" />
+
+    <fragment
+        android:id="@+id/notifListenerFragment"
+        android:name="com.rendy.classnote.ui.settings.NotifListenerSheet"
+        android:label="AI 通知辨識"
+        tools:layout="@layout/sheet_notif_listener" />
+
+    <fragment
+        android:id="@+id/apiLogFragment"
+        android:name="com.rendy.classnote.ui.settings.ApiLogSheet"
+        android:label="API 記錄"
+        tools:layout="@layout/sheet_api_log" />
 
     <!-- ── 上課紀錄 ── -->
     <fragment

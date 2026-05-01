@@ -118,7 +118,7 @@ class ClassNoteNotificationListener : NotificationListenerService() {
         scope.launch {
             try {
                 val prefs = AppPreferences(applicationContext)
-                val provider = prefs.preferredChatProvider
+                val provider = prefs.preferredNotifProvider
                 val results: List<GeminiApi.EventInfo?> = when {
                     provider == "mimo"   && prefs.mimoEnabled   && prefs.mimoApiKey.isNotBlank()   ->
                         MimoApi.analyzeNotifications(prefs.mimoApiKey, batch)

@@ -21,11 +21,14 @@ googleApiClientAndroid = "2.2.0"
 googleApiServicesDrive = "v3-rev20220815-2.0.0"
 googleApiServicesGmail = "v1-rev20220404-2.0.0"
 googleApiServicesClassroom = "v1-rev20260407-2.0.0"
+googleApiServicesCalendar = "v3-rev20220715-2.0.0"
+googleApiServicesTasks = "v1-rev20210709-2.0.0"
 googleHttpClientGson = "1.43.3"
 googleServicesPlugin = "4.4.2"
 swipeRefreshLayout = "1.1.0"
 biometric = "1.1.0"
 markwon = "4.6.2"
+msal = "5.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,10 +55,13 @@ google-api-client-android = { group = "com.google.api-client", name = "google-ap
 google-api-services-drive = { group = "com.google.apis", name = "google-api-services-drive", version.ref = "googleApiServicesDrive" }
 google-api-services-gmail = { group = "com.google.apis", name = "google-api-services-gmail", version.ref = "googleApiServicesGmail" }
 google-api-services-classroom = { group = "com.google.apis", name = "google-api-services-classroom", version.ref = "googleApiServicesClassroom" }
+google-api-services-calendar = { group = "com.google.apis", name = "google-api-services-calendar", version.ref = "googleApiServicesCalendar" }
+google-api-services-tasks = { group = "com.google.apis", name = "google-api-services-tasks", version.ref = "googleApiServicesTasks" }
 google-http-client-gson = { group = "com.google.http-client", name = "google-http-client-gson", version.ref = "googleHttpClientGson" }
 androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swipeRefreshLayout" }
 androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 markwon-core = { group = "io.noties.markwon", name = "core", version.ref = "markwon" }
+msal = { group = "com.microsoft.identity.client", name = "msal", version.ref = "msal" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

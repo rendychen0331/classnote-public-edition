@@ -37,6 +37,11 @@ class ClassRecordSummaryFragment : Fragment() {
     private var _binding: FragmentClassRecordSummaryBinding? = null
     private val binding get() = _binding!!
 
+    private val chatMessageDiffCallback = object : DiffUtil.ItemCallback<ChatMessage>() {
+        override fun areItemsTheSame(old: ChatMessage, new: ChatMessage) = old === new
+        override fun areContentsTheSame(old: ChatMessage, new: ChatMessage) = old == new
+    }
+
     private val args: ClassRecordSummaryFragmentArgs by navArgs()
     private val messages = mutableListOf<ChatMessage>()
     private lateinit var chatAdapter: ChatAdapter
@@ -251,7 +256,7 @@ class ClassRecordSummaryFragment : Fragment() {
 
     // ── Adapter ──────────────────────────────────────────────────────────────
 
-    inner class ChatAdapter : ListAdapter<ChatMessage, ChatAdapter.BubbleViewHolder>(DiffCallback) {
+    inner class ChatAdapter : ListAdapter<ChatMessage, ChatAdapter.BubbleViewHolder>(chatMessageDiffCallback) {
 
         inner class BubbleViewHolder(private val binding: ItemChatBubbleBinding) :
             RecyclerView.ViewHolder(binding.root) {
@@ -294,12 +299,5 @@ class ClassRecordSummaryFragment : Fragment() {
 
         override fun onBindViewHolder(holder: BubbleViewHolder, position: Int) =
             holder.bind(getItem(position))
-
-        companion object {
-            val DiffCallback = object : DiffUtil.ItemCallback<ChatMessage>() {
-                override fun areItemsTheSame(old: ChatMessage, new: ChatMessage) = old === new
-                override fun areContentsTheSame(old: ChatMessage, new: ChatMessage) = old == new
-            }
-        }
     }
 }
