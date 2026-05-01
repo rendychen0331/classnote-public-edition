@@ -26,3 +26,4 @@ google-services.json
 # 執行期產生的檔案
 .playwright-mcp/
 logs/
+app/src/main/res/raw/msal_config.json
