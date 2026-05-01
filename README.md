@@ -17,7 +17,7 @@ Microsoft Entra需要自行申請
 天氣僅支援CWA API
 
 ## 正在實作
-**DEBUG**
+*DEBUG*
 
 ## AI功能支援模型(API key)
 - Xiaomi MiMo
