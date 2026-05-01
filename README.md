@@ -14,7 +14,7 @@
 Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 
 ## 正在實作
-Microsoft Acount & Microsoft Onedrive 支援
+Microsoft To Do & Microsoft Outlook 支援
 
 ## AI功能支援模型(API key)
 - Xiaomi MiMo
@@ -71,8 +71,8 @@ Microsoft Acount & Microsoft Onedrive 支援
 - [ ] 加入 Microsoft To Do 支援
 - [ ] 加入 Microsoft Outlook 支援
 - [ ] 加入 Microsoft Teams 支援
-- [ ] ~~加入 Xiaomi Account 支援~~(無小米開發者帳號，暫時擱置)
-- [ ] ~~加入 Xiaomi 日曆 支援~~(無小米開發者帳號，暫時擱置)
+- [ ] ~~加入 Xiaomi Account 支援~~(個人不能申請小米開發者帳號，擱置)
+- [ ] ~~加入 Xiaomi 日曆 支援~~(個人不能申請小米開發者帳號，擱置)
 - [x] 加入 Microsoft Account 支援
 - [ ] 加入其他天氣 API 支援
 - [ ] 新增多 Google Account 支援
