@@ -7,14 +7,17 @@
 
 Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 
-## 注意
-目前使用前置較為繁瑣，Google 服務需要手動放入google-service.json再build
+>[!NOTE]
+>目前使用前置較為繁瑣，請詳閱[Wiki-Setup](https://github.com/rendychen0331/classnote-public-edition/wiki/Setup) 與[Wiki-API Keys](https://github.com/rendychen0331/classnote-public-edition/wiki/API-Keys)
 
-Microsoft Entra需要自行申請
-
-僅使用Xiaomi HyperOS 測試（沒其他手機）
-
-天氣僅支援CWA API
+>[!IMPORTANT]
+>Google 服務需要自行申請
+>
+>Microsoft Entra需要自行申請
+>
+>僅使用Xiaomi HyperOS 測試（沒其他手機）
+>
+>天氣僅支援CWA API
 
 ## 正在實作
 *DEBUG*
@@ -57,15 +60,8 @@ Microsoft Entra需要自行申請
 
 ## 建置
 
-1. 前往https://console.cloud.google.com建立專案
-2. 設定OAuth同意畫面
-3. 建立OAuth2.0憑證
-4. 啟用Google Drive、Google Classroom、Gmail API
-5. 前往https://console.firebase.google.com建立專案
-6. 選擇Google Cloud專案匯入
-7. 下載google-service.json放入"app/"目錄
-8. build apk
-9. 前往CWA開放資料平台官網申請API key
+請見[Wiki-Setup](https://github.com/rendychen0331/classnote-public-edition/wiki/Setup)與[Wiki-API Keys](https://github.com/rendychen0331/classnote-public-edition/wiki/API-Keys)
+
 
 ## 預計開發功能
 
