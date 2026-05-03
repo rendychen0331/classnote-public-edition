@@ -19,7 +19,7 @@ android {
         minSdk = 35
         targetSdk = 35
         versionCode = (System.currentTimeMillis() / 60000).toInt()
-        versionName = "1.0-" + java.text.SimpleDateFormat("yyyyMMdd-HHmm").format(java.util.Date())
+        versionName = "1.0-" + SimpleDateFormat("yyyyMMdd-HHmm").format(Date())
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
