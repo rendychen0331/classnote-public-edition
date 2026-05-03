@@ -53,9 +53,11 @@ Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 - Microsoft Entra / Graph API
 - Groq API (OpenAI API)
 
-## 建置
+## 建置與使用
+>[!NOTE]
+>若你想自行Build APK，請見[Wiki-Setup](https://github.com/rendychen0331/classnote-public-edition/wiki/Setup)
 
-請見[Wiki-Setup](https://github.com/rendychen0331/classnote-public-edition/wiki/Setup)與[Wiki-API Keys](https://github.com/rendychen0331/classnote-public-edition/wiki/API-Keys)
+[AI API Key取得](https://github.com/rendychen0331/classnote-public-edition/wiki/API-Keys)
 
 
 ## 預計開發功能
