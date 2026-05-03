@@ -7,13 +7,8 @@
 
 Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 
->[!NOTE]
->目前使用前置較為繁瑣，請詳閱[Wiki-Setup](https://github.com/rendychen0331/classnote-public-edition/wiki/Setup) 與[Wiki-API Keys](https://github.com/rendychen0331/classnote-public-edition/wiki/API-Keys)
-
 >[!IMPORTANT]
->Google 服務需要自行申請
->
->Microsoft Entra需要自行申請
+>API Key 需要自己申請
 >
 >僅使用Xiaomi HyperOS 測試（沒其他手機）
 >
