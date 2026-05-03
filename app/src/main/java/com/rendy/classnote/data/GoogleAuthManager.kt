@@ -2,6 +2,7 @@ package com.rendy.classnote.data
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -160,7 +161,8 @@ object GoogleAuthManager {
         val task = GoogleSignIn.getSignedInAccountFromIntent(data)
         return try {
             task.getResult(ApiException::class.java)
-        } catch (_: ApiException) {
+        } catch (e: ApiException) {
+            Log.e("GoogleAuth", "Sign-in failed, statusCode=${e.statusCode}, message=${e.message}")
             null
         }
     }
