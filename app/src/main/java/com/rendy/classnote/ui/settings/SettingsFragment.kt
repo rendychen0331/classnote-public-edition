@@ -5,10 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.BuildConfig
 import com.rendy.classnote.R
+import com.rendy.classnote.data.UpdateChecker
 import com.rendy.classnote.databinding.FragmentSettingsBinding
+import kotlinx.coroutines.launch
 
 class SettingsFragment : Fragment() {
 
@@ -27,6 +31,7 @@ class SettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupMenuRows()
         setupAboutSection()
+        autoCheckUpdate()
     }
 
     private fun setupMenuRows() {
@@ -70,6 +75,48 @@ class SettingsFragment : Fragment() {
         } else {
             binding.tvAboutBuildTime.text = "-"
         }
+
+        binding.btnCheckUpdate.setOnClickListener {
+            performUpdateCheck(force = true)
+        }
+    }
+
+    private fun autoCheckUpdate() {
+        lifecycleScope.launch {
+            val info = UpdateChecker.checkForUpdate(requireContext(), force = false) ?: return@launch
+            if (info.isNewer) showUpdateAvailable(info)
+        }
+    }
+
+    private fun performUpdateCheck(force: Boolean) {
+        binding.btnCheckUpdate.isEnabled = false
+        binding.tvUpdateStatus.text = "檢查中..."
+        lifecycleScope.launch {
+            val info = UpdateChecker.checkForUpdate(requireContext(), force = force)
+            if (_binding == null) return@launch
+            binding.btnCheckUpdate.isEnabled = true
+            when {
+                info == null -> binding.tvUpdateStatus.text = "檢查失敗"
+                info.isNewer -> {
+                    binding.tvUpdateStatus.text = "有新版本"
+                    showUpdateAvailable(info)
+                }
+                else -> binding.tvUpdateStatus.text = "已是最新"
+            }
+        }
+    }
+
+    private fun showUpdateAvailable(info: UpdateChecker.ReleaseInfo) {
+        if (!isAdded) return
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("發現新版本 ${info.tagName}")
+            .setMessage("目前版本：${BuildConfig.VERSION_NAME}\n\n是否立即下載並安裝？")
+            .setPositiveButton("下載安裝") { _, _ ->
+                binding.tvUpdateStatus.text = "下載中..."
+                UpdateChecker.downloadAndInstall(requireContext(), info.apkUrl, info.tagName)
+            }
+            .setNegativeButton("稍後", null)
+            .show()
     }
 
     override fun onDestroyView() {

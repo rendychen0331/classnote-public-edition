@@ -22,6 +22,9 @@ android {
         versionName = "1.0-" + SimpleDateFormat("yyyyMMdd-HHmm").format(Date())
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val releaseTag = System.getenv("GITHUB_REF_NAME") ?: "dev"
+        buildConfigField("String", "RELEASE_TAG", "\"$releaseTag\"")
     }
 
     signingConfigs {

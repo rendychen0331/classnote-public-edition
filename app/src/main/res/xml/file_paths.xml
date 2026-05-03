@@ -3,4 +3,7 @@
     <external-files-path
         name="class_record_photos"
         path="Pictures/ClassNote/" />
+    <cache-path
+        name="apk_download"
+        path="." />
 </paths>
