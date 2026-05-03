@@ -33,7 +33,9 @@ jobs:
           restore-keys: gradle-
 
       - name: Decode google-services.json
-        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > app/google-services.json
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > app/google-services.json
+          python3 -c "import json; d=json.load(open('app/google-services.json')); [print('cert_hash:', c) for client in d['client'] for c in client['client_info']['android_client_info'].get('certificate_hash',[])]"
 
       - name: Decode msal_config.json
         run: |
