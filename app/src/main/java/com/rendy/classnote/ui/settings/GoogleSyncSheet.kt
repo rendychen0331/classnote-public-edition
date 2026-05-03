@@ -56,6 +56,8 @@ class GoogleSyncSheet : Fragment() {
             } else {
                 Toast.makeText(requireContext(), "登入失敗", Toast.LENGTH_SHORT).show()
             }
+        } else {
+            GoogleAuthManager.handleSignInResult(result.data)
         }
         updateDriveSection()
     }
