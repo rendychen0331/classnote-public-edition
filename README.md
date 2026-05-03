@@ -2,6 +2,9 @@
 
 歡迎，這是一個高中**牲**用 愛 + AI 做的Android App
 
+>[!NOTE]
+>如果你有任何功能提議或BUG想反饋，歡迎建立 [New Issues](https://github.com/rendychen0331/classnote-public-edition/issues/new)
+
 ## 說明
 這是一個課堂筆記與提醒管理App
 
