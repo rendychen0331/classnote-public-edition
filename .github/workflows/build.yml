@@ -57,6 +57,11 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
+      - name: Show APK signing certificate SHA-1
+        run: |
+          APK=$(find app/build/outputs/apk/debug -name "*.apk" | head -1)
+          $ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | tail -1)/apksigner verify --print-certs "$APK" | grep -E "SHA-1|SHA1"
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
