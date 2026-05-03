@@ -132,8 +132,8 @@ class MicrosoftSyncSheet : Fragment() {
         }
 
         binding.switchOneDriveAutoBackup.isChecked = prefs.autoOneDriveBackupEnabled
-        binding.tvOneDriveAutoBackupInterval.text =
-            getString(R.string.settings_auto_backup_interval_24h)
+        binding.tvOneDriveAutoBackupInterval.text = oneDriveIntervalLabel(prefs.autoOneDriveBackupIntervalHours)
+        binding.tvOneDriveAutoBackupInterval.setOnClickListener { showOneDriveIntervalDialog(prefs) }
 
         binding.switchOneDriveAutoBackup.setOnCheckedChangeListener { _, checked ->
             prefs.autoOneDriveBackupEnabled = checked
@@ -175,6 +175,29 @@ class MicrosoftSyncSheet : Fragment() {
             else
                 getString(R.string.settings_onedrive_no_backup)
         }
+    }
+
+    private fun oneDriveIntervalLabel(hours: Int): String = when (hours) {
+        6 -> getString(R.string.settings_auto_backup_interval_6h)
+        12 -> getString(R.string.settings_auto_backup_interval_12h)
+        72 -> getString(R.string.settings_auto_backup_interval_72h)
+        else -> getString(R.string.settings_auto_backup_interval_24h)
+    }
+
+    private fun showOneDriveIntervalDialog(prefs: com.rendy.classnote.data.AppPreferences) {
+        val options = intArrayOf(6, 12, 24, 72)
+        val labels = options.map { oneDriveIntervalLabel(it) }.toTypedArray()
+        val current = options.indexOfFirst { it == prefs.autoOneDriveBackupIntervalHours }.takeIf { it >= 0 } ?: 2
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.settings_auto_backup_interval))
+            .setSingleChoiceItems(labels, current) { dialog, which ->
+                prefs.autoOneDriveBackupIntervalHours = options[which]
+                binding.tvOneDriveAutoBackupInterval.text = labels[which]
+                if (prefs.autoOneDriveBackupEnabled) scheduleOneDriveAutoBackup(prefs)
+                dialog.dismiss()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
     }
 
     private fun scheduleOneDriveAutoBackup(prefs: com.rendy.classnote.data.AppPreferences) {
