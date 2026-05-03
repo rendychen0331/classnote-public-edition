@@ -34,8 +34,8 @@ jobs:
 
       - name: Decode msal_config.json
         run: |
-          mkdir -p app/src/main/assets
-          echo "${{ secrets.MSAL_CONFIG_JSON }}" | base64 -d > app/src/main/assets/msal_config.json
+          mkdir -p app/src/main/res/raw
+          echo "${{ secrets.MSAL_CONFIG_JSON }}" | base64 -d > app/src/main/res/raw/msal_config.json
 
       - name: Decode msal_auth_config.xml
         run: echo "${{ secrets.MSAL_AUTH_CONFIG_XML }}" | base64 -d > app/src/main/res/values/msal_auth_config.xml
