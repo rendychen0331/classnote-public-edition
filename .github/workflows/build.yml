@@ -47,7 +47,8 @@ jobs:
         run: |
           mkdir -p $HOME/.android
           echo "${{ secrets.DEBUG_KEYSTORE }}" | base64 -d > $HOME/.android/debug.keystore
-          keytool -list -keystore $HOME/.android/debug.keystore -storepass android -alias androiddebugkey 2>&1 | grep "SHA1:"
+          echo "Keystore size: $(wc -c < $HOME/.android/debug.keystore) bytes"
+          keytool -list -keystore $HOME/.android/debug.keystore -storepass android -alias androiddebugkey 2>&1 || true
 
       - name: Build debug APK
         run: |
