@@ -61,7 +61,7 @@ Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 ## 預計開發功能
 
 - [x] 其他類型筆記的支援
-- [ ] 優化App清單讀取時間
+- [ ] ~~優化App清單讀取時間~~(無解)
 - [ ] 加入 Gmail 非 Google Classroom 郵件的AI辨識支援
 - [ ] 加入收到 Gmail 或 Google Classroom 通知後自動抓取詳細信息
 - [x] 加入 Google Tasks 支援
@@ -71,7 +71,7 @@ Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 - [ ] 加入 Microsoft OneNote 支援
 - [x] 加入 Microsoft To Do 支援
 - [x] 加入 Microsoft Outlook日曆 支援
-- [ ] 加入 Microsoft Teams 支援
+- [x] 加入 Microsoft Teams 支援
 - [ ] ~~加入 Xiaomi Account 支援~~(個人不能申請小米開發者帳號，擱置)
 - [ ] ~~加入 Xiaomi 日曆 支援~~(個人不能申請小米開發者帳號，擱置)
 - [x] 加入 Microsoft Account 支援
