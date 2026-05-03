@@ -57,9 +57,9 @@ class SettingsFragment : Fragment() {
 
     private fun setupAboutSection() {
         val versionName = BuildConfig.VERSION_NAME
+        binding.tvAboutVersion.text = versionName
         val dashIdx = versionName.indexOf('-')
         if (dashIdx >= 0) {
-            binding.tvAboutVersion.text = versionName.substring(0, dashIdx)
             val raw = versionName.substring(dashIdx + 1)
             binding.tvAboutBuildTime.text = runCatching {
                 val parts = raw.split("-")
@@ -68,7 +68,6 @@ class SettingsFragment : Fragment() {
                 "${d.substring(0, 4)}/${d.substring(4, 6)}/${d.substring(6, 8)}  ${t.substring(0, 2)}:${t.substring(2, 4)}"
             }.getOrDefault(raw)
         } else {
-            binding.tvAboutVersion.text = versionName
             binding.tvAboutBuildTime.text = "-"
         }
     }

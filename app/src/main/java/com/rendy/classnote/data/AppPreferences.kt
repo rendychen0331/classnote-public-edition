@@ -186,6 +186,11 @@ class AppPreferences(context: Context) {
         get() = prefs.getInt(KEY_AUTO_ONEDRIVE_BACKUP_INTERVAL_HOURS, 24)
         set(value) = prefs.edit { putInt(KEY_AUTO_ONEDRIVE_BACKUP_INTERVAL_HOURS, value) }
 
+    /** OneDrive 備份允許的網路類型。預設任何網路。 */
+    var oneDriveBackupNetworkType: String
+        get() = prefs.getString(KEY_ONEDRIVE_BACKUP_NETWORK, NETWORK_ANY) ?: NETWORK_ANY
+        set(value) = prefs.edit { putString(KEY_ONEDRIVE_BACKUP_NETWORK, value) }
+
     /** Gemini API Key，用於 AI 通知解析。 */
     var geminiApiKey: String
         get() = prefs.getString(KEY_GEMINI_API_KEY, "") ?: ""
@@ -417,6 +422,7 @@ class AppPreferences(context: Context) {
         private const val KEY_ONEDRIVE_SYNC_SUMMARY = "onedrive_sync_summary"
         private const val KEY_AUTO_ONEDRIVE_BACKUP_ENABLED = "auto_onedrive_backup_enabled"
         private const val KEY_AUTO_ONEDRIVE_BACKUP_INTERVAL_HOURS = "auto_onedrive_backup_interval_hours"
+        private const val KEY_ONEDRIVE_BACKUP_NETWORK = "onedrive_backup_network_type"
 
         const val NETWORK_WIFI = "wifi"
         const val NETWORK_MOBILE = "mobile"

@@ -131,12 +131,19 @@ class MicrosoftSyncSheet : Fragment() {
                 .show()
         }
 
+        binding.cardOneDriveNetwork.setOnClickListener { showOneDriveNetworkDialog(prefs) }
+    }
+
+    private fun setupOneDriveAutoBackupCard(prefs: com.rendy.classnote.data.AppPreferences) {
         binding.switchOneDriveAutoBackup.isChecked = prefs.autoOneDriveBackupEnabled
         binding.tvOneDriveAutoBackupInterval.text = oneDriveIntervalLabel(prefs.autoOneDriveBackupIntervalHours)
-        binding.tvOneDriveAutoBackupInterval.setOnClickListener { showOneDriveIntervalDialog(prefs) }
+        binding.rowOneDriveAutoBackupInterval.visibility =
+            if (prefs.autoOneDriveBackupEnabled) View.VISIBLE else View.GONE
+        binding.rowOneDriveAutoBackupInterval.setOnClickListener { showOneDriveIntervalDialog(prefs) }
 
         binding.switchOneDriveAutoBackup.setOnCheckedChangeListener { _, checked ->
             prefs.autoOneDriveBackupEnabled = checked
+            binding.rowOneDriveAutoBackupInterval.visibility = if (checked) View.VISIBLE else View.GONE
             if (checked) scheduleOneDriveAutoBackup(prefs) else cancelOneDriveAutoBackup()
         }
     }
@@ -145,6 +152,8 @@ class MicrosoftSyncSheet : Fragment() {
         val enabled = prefs.oneDriveBackupEnabled
         binding.cardOneDriveAccount.visibility = if (enabled) View.VISIBLE else View.GONE
         binding.cardOneDriveActions.visibility = View.GONE
+        binding.cardOneDriveNetwork.visibility = View.GONE
+        binding.cardOneDriveAutoBackup.visibility = View.GONE
         if (!enabled) return
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -158,13 +167,49 @@ class MicrosoftSyncSheet : Fragment() {
 
             if (email != null) {
                 binding.cardOneDriveActions.visibility = View.VISIBLE
+                binding.cardOneDriveNetwork.visibility = View.VISIBLE
+                binding.cardOneDriveAutoBackup.visibility = View.VISIBLE
                 binding.tvOneDriveLastBackup.visibility = View.VISIBLE
+                updateOneDriveNetworkLabel(prefs)
+                setupOneDriveAutoBackupCard(prefs)
                 val token = OneDriveAuthManager.acquireTokenSilent(requireContext())
                 if (token != null) loadOneDriveLastBackup(token)
             } else {
                 binding.tvOneDriveLastBackup.visibility = View.GONE
             }
         }
+    }
+
+    private fun updateOneDriveNetworkLabel(prefs: com.rendy.classnote.data.AppPreferences) {
+        binding.tvOneDriveNetworkValue.text = when (prefs.oneDriveBackupNetworkType) {
+            com.rendy.classnote.data.AppPreferences.NETWORK_WIFI -> getString(R.string.backup_network_wifi)
+            com.rendy.classnote.data.AppPreferences.NETWORK_MOBILE -> getString(R.string.backup_network_mobile)
+            else -> getString(R.string.backup_network_any)
+        }
+    }
+
+    private fun showOneDriveNetworkDialog(prefs: com.rendy.classnote.data.AppPreferences) {
+        val keys = listOf(
+            com.rendy.classnote.data.AppPreferences.NETWORK_ANY,
+            com.rendy.classnote.data.AppPreferences.NETWORK_WIFI,
+            com.rendy.classnote.data.AppPreferences.NETWORK_MOBILE
+        )
+        val labels = arrayOf(
+            getString(R.string.backup_network_any),
+            getString(R.string.backup_network_wifi),
+            getString(R.string.backup_network_mobile)
+        )
+        val current = keys.indexOfFirst { it == prefs.oneDriveBackupNetworkType }.coerceAtLeast(0)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.backup_network_title))
+            .setSingleChoiceItems(labels, current) { dialog, which ->
+                prefs.oneDriveBackupNetworkType = keys[which]
+                updateOneDriveNetworkLabel(prefs)
+                if (prefs.autoOneDriveBackupEnabled) scheduleOneDriveAutoBackup(prefs)
+                dialog.dismiss()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
     }
 
     private fun loadOneDriveLastBackup(token: String) {
@@ -201,10 +246,15 @@ class MicrosoftSyncSheet : Fragment() {
     }
 
     private fun scheduleOneDriveAutoBackup(prefs: com.rendy.classnote.data.AppPreferences) {
+        val networkType = when (prefs.oneDriveBackupNetworkType) {
+            com.rendy.classnote.data.AppPreferences.NETWORK_WIFI -> NetworkType.UNMETERED
+            com.rendy.classnote.data.AppPreferences.NETWORK_MOBILE -> NetworkType.METERED
+            else -> NetworkType.CONNECTED
+        }
         val request = PeriodicWorkRequestBuilder<OneDriveBackupWorker>(
             prefs.autoOneDriveBackupIntervalHours.toLong(), TimeUnit.HOURS
         ).setConstraints(
-            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+            Constraints.Builder().setRequiredNetworkType(networkType).build()
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
             "onedrive_auto_backup", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request

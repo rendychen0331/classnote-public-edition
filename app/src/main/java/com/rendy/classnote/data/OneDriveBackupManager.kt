@@ -102,38 +102,84 @@ object OneDriveBackupManager {
     }
 
     private fun buildPrefsJson(context: Context): String {
-        val appPrefs = AppPreferences(context)
-        val weatherPrefs = WeatherPreferences(context)
+        val p = AppPreferences(context)
+        val w = WeatherPreferences(context)
         return JSONObject().apply {
-            put("gemini_api_key", appPrefs.geminiApiKey)
-            put("cwa_api_key", appPrefs.cwaApiKey)
-            put("mimo_api_key", appPrefs.mimoApiKey)
-            put("claude_api_key", appPrefs.claudeApiKey)
-            put("openai_api_key", appPrefs.openaiApiKey)
-            put("groq_api_key", appPrefs.groqApiKey)
-            put("preferred_chat_provider", appPrefs.preferredChatProvider)
-            put("preferred_notif_provider", appPrefs.preferredNotifProvider)
-            put("weather_notif_location", weatherPrefs.weatherNotifLocation)
-            put("weather_saved_locations", org.json.JSONArray(weatherPrefs.savedLocations))
+            // API Keys
+            put("gemini_api_key", p.geminiApiKey)
+            put("cwa_api_key", p.cwaApiKey)
+            put("mimo_api_key", p.mimoApiKey)
+            put("claude_api_key", p.claudeApiKey)
+            put("openai_api_key", p.openaiApiKey)
+            put("groq_api_key", p.groqApiKey)
+            // AI settings
+            put("preferred_chat_provider", p.preferredChatProvider)
+            put("preferred_notif_provider", p.preferredNotifProvider)
+            put("ai_enabled", p.aiEnabled)
+            put("gemini_enabled", p.geminiEnabled)
+            put("mimo_enabled", p.mimoEnabled)
+            put("claude_enabled", p.claudeEnabled)
+            put("openai_enabled", p.openaiEnabled)
+            put("groq_enabled", p.groqEnabled)
+            // Reminder settings
+            put("full_screen_alarm_enabled", p.fullScreenAlarmEnabled)
+            put("snooze_duration_minutes", p.snoozeDurationMinutes)
+            put("default_remind_hour", p.defaultRemindHour)
+            put("default_remind_minute", p.defaultRemindMinute)
+            put("bypass_dnd_enabled", p.bypassDndEnabled)
+            put("quiet_hours_start", p.quietHoursStart)
+            put("quiet_hours_end", p.quietHoursEnd)
+            put("quiet_hours_policy_before", p.quietHoursPolicyBefore)
+            // Notification listener
+            put("notif_listener_auto_add", p.notificationListenerAutoAdd)
+            // Weather
+            put("weather_notif_location", w.weatherNotifLocation)
+            put("weather_saved_locations", org.json.JSONArray(w.savedLocations))
+            put("weather_notif_enabled", w.weatherNotifEnabled)
+            put("weather_notif_hour", w.weatherNotifHour)
+            put("weather_notif_minute", w.weatherNotifMinute)
         }.toString()
     }
 
     private fun restorePrefsJson(context: Context, json: String) {
         val obj = JSONObject(json)
-        val appPrefs = AppPreferences(context)
-        val weatherPrefs = WeatherPreferences(context)
-        obj.optString("gemini_api_key").takeIf { it.isNotEmpty() }?.let { appPrefs.geminiApiKey = it }
-        obj.optString("cwa_api_key").takeIf { it.isNotEmpty() }?.let { appPrefs.cwaApiKey = it }
-        obj.optString("mimo_api_key").takeIf { it.isNotEmpty() }?.let { appPrefs.mimoApiKey = it }
-        obj.optString("claude_api_key").takeIf { it.isNotEmpty() }?.let { appPrefs.claudeApiKey = it }
-        obj.optString("openai_api_key").takeIf { it.isNotEmpty() }?.let { appPrefs.openaiApiKey = it }
-        obj.optString("groq_api_key").takeIf { it.isNotEmpty() }?.let { appPrefs.groqApiKey = it }
-        obj.optString("preferred_chat_provider").takeIf { it.isNotEmpty() }?.let { appPrefs.preferredChatProvider = it }
-        obj.optString("preferred_notif_provider").takeIf { it.isNotEmpty() }?.let { appPrefs.preferredNotifProvider = it }
-        obj.optString("weather_notif_location").takeIf { it.isNotEmpty() }?.let { weatherPrefs.weatherNotifLocation = it }
+        val p = AppPreferences(context)
+        val w = WeatherPreferences(context)
+        // API Keys
+        obj.optString("gemini_api_key").takeIf { it.isNotEmpty() }?.let { p.geminiApiKey = it }
+        obj.optString("cwa_api_key").takeIf { it.isNotEmpty() }?.let { p.cwaApiKey = it }
+        obj.optString("mimo_api_key").takeIf { it.isNotEmpty() }?.let { p.mimoApiKey = it }
+        obj.optString("claude_api_key").takeIf { it.isNotEmpty() }?.let { p.claudeApiKey = it }
+        obj.optString("openai_api_key").takeIf { it.isNotEmpty() }?.let { p.openaiApiKey = it }
+        obj.optString("groq_api_key").takeIf { it.isNotEmpty() }?.let { p.groqApiKey = it }
+        // AI settings
+        obj.optString("preferred_chat_provider").takeIf { it.isNotEmpty() }?.let { p.preferredChatProvider = it }
+        obj.optString("preferred_notif_provider").takeIf { it.isNotEmpty() }?.let { p.preferredNotifProvider = it }
+        if (obj.has("ai_enabled")) p.aiEnabled = obj.getBoolean("ai_enabled")
+        if (obj.has("gemini_enabled")) p.geminiEnabled = obj.getBoolean("gemini_enabled")
+        if (obj.has("mimo_enabled")) p.mimoEnabled = obj.getBoolean("mimo_enabled")
+        if (obj.has("claude_enabled")) p.claudeEnabled = obj.getBoolean("claude_enabled")
+        if (obj.has("openai_enabled")) p.openaiEnabled = obj.getBoolean("openai_enabled")
+        if (obj.has("groq_enabled")) p.groqEnabled = obj.getBoolean("groq_enabled")
+        // Reminder settings
+        if (obj.has("full_screen_alarm_enabled")) p.fullScreenAlarmEnabled = obj.getBoolean("full_screen_alarm_enabled")
+        if (obj.has("snooze_duration_minutes")) p.snoozeDurationMinutes = obj.getInt("snooze_duration_minutes")
+        if (obj.has("default_remind_hour")) p.defaultRemindHour = obj.getInt("default_remind_hour")
+        if (obj.has("default_remind_minute")) p.defaultRemindMinute = obj.getInt("default_remind_minute")
+        if (obj.has("bypass_dnd_enabled")) p.bypassDndEnabled = obj.getBoolean("bypass_dnd_enabled")
+        if (obj.has("quiet_hours_start")) p.quietHoursStart = obj.getInt("quiet_hours_start")
+        if (obj.has("quiet_hours_end")) p.quietHoursEnd = obj.getInt("quiet_hours_end")
+        if (obj.has("quiet_hours_policy_before")) p.quietHoursPolicyBefore = obj.getBoolean("quiet_hours_policy_before")
+        // Notification listener
+        if (obj.has("notif_listener_auto_add")) p.notificationListenerAutoAdd = obj.getBoolean("notif_listener_auto_add")
+        // Weather
+        obj.optString("weather_notif_location").takeIf { it.isNotEmpty() }?.let { w.weatherNotifLocation = it }
         obj.optJSONArray("weather_saved_locations")?.let { arr ->
-            weatherPrefs.savedLocations = (0 until arr.length()).map { arr.getString(it) }
+            w.savedLocations = (0 until arr.length()).map { arr.getString(it) }
         }
+        if (obj.has("weather_notif_enabled")) w.weatherNotifEnabled = obj.getBoolean("weather_notif_enabled")
+        if (obj.has("weather_notif_hour")) w.weatherNotifHour = obj.getInt("weather_notif_hour")
+        if (obj.has("weather_notif_minute")) w.weatherNotifMinute = obj.getInt("weather_notif_minute")
     }
 
     suspend fun getLastBackupTime(token: String): String? = withContext(Dispatchers.IO) {
