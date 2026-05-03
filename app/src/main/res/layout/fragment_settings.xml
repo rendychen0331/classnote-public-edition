@@ -37,7 +37,7 @@
                 <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_alarm"
+                    android:src="@drawable/ic_reminder"
                     android:alpha="0.7" />
 
                 <LinearLayout

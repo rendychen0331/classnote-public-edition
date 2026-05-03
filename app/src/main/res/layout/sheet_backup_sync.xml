@@ -40,6 +40,12 @@
                 android:gravity="center_vertical"
                 android:padding="16dp">
 
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/ic_google_logo" />
+
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -90,6 +96,12 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:padding="16dp">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/ic_microsoft_logo" />
 
                 <LinearLayout
                     android:layout_width="0dp"
