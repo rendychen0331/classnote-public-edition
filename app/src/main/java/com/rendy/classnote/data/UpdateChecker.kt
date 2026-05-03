@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.Log
-import androidx.core.content.FileProvider
 import com.rendy.classnote.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -101,16 +100,21 @@ object UpdateChecker {
 
                 val query = DownloadManager.Query().setFilterById(downloadId)
                 val cursor = dm.query(query)
-                if (cursor.moveToFirst()) {
-                    val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-                    if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                        val localUri = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
-                        cursor.close()
-                        triggerInstall(ctx, localUri, filename)
-                        return
-                    }
-                }
+                val success = cursor.moveToFirst() &&
+                    cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL
                 cursor.close()
+                if (!success) return
+
+                val apkUri = dm.getUriForDownloadedFile(downloadId) ?: return
+                val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(apkUri, "application/vnd.android.package-archive")
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                }
+                try {
+                    ctx.startActivity(installIntent)
+                } catch (e: Exception) {
+                    Log.e(TAG, "triggerInstall error", e)
+                }
             }
         }
 
@@ -122,22 +126,4 @@ object UpdateChecker {
         }
     }
 
-    private fun triggerInstall(context: Context, localUri: String, filename: String) {
-        try {
-            val file = if (localUri.startsWith("file://")) {
-                java.io.File(Uri.parse(localUri).path!!)
-            } else {
-                context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.let { java.io.File(it, filename) }
-                    ?: return
-            }
-            val apkUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-            val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(apkUri, "application/vnd.android.package-archive")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-            }
-            context.startActivity(installIntent)
-        } catch (e: Exception) {
-            Log.e(TAG, "triggerInstall error", e)
-        }
-    }
 }
