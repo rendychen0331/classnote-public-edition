@@ -53,23 +53,25 @@ class MicrosoftSyncSheet : Fragment() {
             updateOneDriveSection(prefs)
         }
 
-        binding.btnOneDriveSignIn.setOnClickListener {
+        binding.ibtnMsSignIn.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                val email = OneDriveAuthManager.getAccountEmail(requireContext())
-                if (email != null) {
-                    OneDriveAuthManager.signOut(requireContext())
-                } else {
-                    try {
-                        val token = OneDriveAuthManager.signIn(requireActivity())
-                        if (token == null) {
-                            Toast.makeText(requireContext(),
-                                getString(R.string.settings_onedrive_sign_in_failed), Toast.LENGTH_SHORT).show()
-                        }
-                    } catch (e: Exception) {
-                        val msg = e.message ?: getString(R.string.settings_onedrive_sign_in_failed)
-                        Toast.makeText(requireContext(), "登入錯誤：$msg", Toast.LENGTH_LONG).show()
+                try {
+                    val token = OneDriveAuthManager.signIn(requireActivity())
+                    if (token == null) {
+                        Toast.makeText(requireContext(),
+                            getString(R.string.settings_onedrive_sign_in_failed), Toast.LENGTH_SHORT).show()
                     }
+                } catch (e: Exception) {
+                    val msg = e.message ?: getString(R.string.settings_onedrive_sign_in_failed)
+                    Toast.makeText(requireContext(), "登入錯誤：$msg", Toast.LENGTH_LONG).show()
                 }
+                updateOneDriveSection(prefs)
+            }
+        }
+
+        binding.btnOneDriveSignOut.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                OneDriveAuthManager.signOut(requireContext())
                 updateOneDriveSection(prefs)
             }
         }
@@ -160,10 +162,8 @@ class MicrosoftSyncSheet : Fragment() {
             val email = OneDriveAuthManager.getAccountEmail(requireContext())
             binding.tvOneDriveAccountEmail.text = email
                 ?: getString(R.string.settings_onedrive_not_signed_in)
-            binding.btnOneDriveSignIn.text = if (email != null)
-                getString(R.string.settings_onedrive_sign_out)
-            else
-                getString(R.string.settings_onedrive_sign_in)
+            binding.ibtnMsSignIn.visibility = if (email != null) View.GONE else View.VISIBLE
+            binding.btnOneDriveSignOut.visibility = if (email != null) View.VISIBLE else View.GONE
 
             if (email != null) {
                 binding.cardOneDriveActions.visibility = View.VISIBLE

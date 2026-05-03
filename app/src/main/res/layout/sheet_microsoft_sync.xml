@@ -105,15 +105,27 @@
                     android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp" />
 
+                <!-- 未登入：官方 Sign in with Microsoft 按鈕圖片 -->
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/ibtnMsSignIn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_ms_signin"
+                    android:scaleType="fitStart"
+                    android:adjustViewBounds="true"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:visibility="visible" />
+
+                <!-- 已登入：登出按鈕 -->
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnOneDriveSignIn"
+                    android:id="@+id/btnOneDriveSignOut"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_onedrive_sign_in"
-                    app:icon="@drawable/ic_microsoft_logo"
-                    app:iconSize="18dp"
-                    app:iconGravity="textStart" />
+                    android:text="@string/settings_onedrive_sign_out"
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/tvOneDriveLastBackup"

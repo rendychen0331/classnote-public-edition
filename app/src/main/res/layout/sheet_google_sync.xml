@@ -105,15 +105,21 @@
                     android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <!-- 未登入：官方 Google Sign-In button -->
+                <com.google.android.gms.common.SignInButton
                     android:id="@+id/btnGoogleSignIn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="visible" />
+
+                <!-- 已登入：登出按鈕 -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGoogleSignOut"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_google_sign_in"
-                    app:icon="@drawable/ic_google_logo"
-                    app:iconSize="18dp"
-                    app:iconGravity="textStart" />
+                    android:text="@string/settings_google_sign_out"
+                    android:visibility="gone" />
 
                 <LinearLayout
                     android:id="@+id/layoutUseGmailAccount"

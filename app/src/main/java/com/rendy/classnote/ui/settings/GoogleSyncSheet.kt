@@ -160,13 +160,12 @@ class GoogleSyncSheet : Fragment() {
         setupAutoBackup()
 
         binding.btnGoogleSignIn.setOnClickListener {
-            val currentAccount = GoogleAuthManager.getAccount(requireContext())
-            if (currentAccount != null) {
-                GoogleAuthManager.signOut(requireContext()) {
-                    requireActivity().runOnUiThread { updateDriveSection() }
-                }
-            } else {
-                signInLauncher.launch(GoogleAuthManager.getSignInIntent(requireContext()))
+            signInLauncher.launch(GoogleAuthManager.getSignInIntent(requireContext()))
+        }
+
+        binding.btnGoogleSignOut.setOnClickListener {
+            GoogleAuthManager.signOut(requireContext()) {
+                requireActivity().runOnUiThread { updateDriveSection() }
             }
         }
 
@@ -366,10 +365,8 @@ class GoogleSyncSheet : Fragment() {
 
         binding.tvGoogleAccountEmail.text = account?.email
             ?: getString(R.string.settings_google_not_signed_in)
-        binding.btnGoogleSignIn.text = if (signedIn)
-            getString(R.string.settings_google_sign_out)
-        else
-            getString(R.string.settings_google_sign_in)
+        binding.btnGoogleSignIn.visibility = if (signedIn) View.GONE else View.VISIBLE
+        binding.btnGoogleSignOut.visibility = if (signedIn) View.VISIBLE else View.GONE
         binding.tvGoogleLastBackup.visibility = if (signedIn) View.VISIBLE else View.GONE
 
         binding.layoutUseGmailAccount.visibility =
