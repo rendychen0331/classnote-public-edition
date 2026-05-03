@@ -78,7 +78,7 @@ object UpdateChecker {
         return false
     }
 
-    fun downloadAndInstall(context: Context, apkUrl: String, tagName: String) {
+    fun downloadAndInstall(context: Context, apkUrl: String, tagName: String): Long {
         val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val filename = "classnote-$tagName.apk"
 
@@ -123,6 +123,24 @@ object UpdateChecker {
         } else {
             @Suppress("UnspecifiedRegisterReceiverFlag")
             context.registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+        }
+
+        return downloadId
+    }
+
+    fun queryProgress(context: Context, downloadId: Long): Int {
+        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val cursor = dm.query(DownloadManager.Query().setFilterById(downloadId))
+        if (!cursor.moveToFirst()) { cursor.close(); return -1 }
+        val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+        val total = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
+        val downloaded = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+        cursor.close()
+        return when {
+            status == DownloadManager.STATUS_SUCCESSFUL -> 100
+            status == DownloadManager.STATUS_FAILED -> -1
+            total > 0 -> (downloaded * 100 / total).toInt()
+            else -> 0
         }
     }
 

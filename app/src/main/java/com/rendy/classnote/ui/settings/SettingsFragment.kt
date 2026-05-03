@@ -12,7 +12,10 @@ import com.rendy.classnote.BuildConfig
 import com.rendy.classnote.R
 import com.rendy.classnote.data.UpdateChecker
 import com.rendy.classnote.databinding.FragmentSettingsBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SettingsFragment : Fragment() {
 
@@ -112,11 +115,34 @@ class SettingsFragment : Fragment() {
             .setTitle("發現新版本 ${info.tagName}")
             .setMessage("目前版本：${BuildConfig.VERSION_NAME}\n\n是否立即下載並安裝？")
             .setPositiveButton("下載安裝") { _, _ ->
-                binding.tvUpdateStatus.text = "下載中..."
-                UpdateChecker.downloadAndInstall(requireContext(), info.apkUrl, info.tagName)
+                binding.tvUpdateStatus.text = "下載中... 0%"
+                val downloadId = UpdateChecker.downloadAndInstall(requireContext(), info.apkUrl, info.tagName)
+                trackDownloadProgress(downloadId)
             }
             .setNegativeButton("稍後", null)
             .show()
+    }
+
+    private fun trackDownloadProgress(downloadId: Long) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            while (isAdded) {
+                val progress = withContext(Dispatchers.IO) {
+                    UpdateChecker.queryProgress(requireContext(), downloadId)
+                }
+                when {
+                    progress == 100 -> {
+                        binding.tvUpdateStatus.text = "下載完成"
+                        break
+                    }
+                    progress < 0 -> {
+                        binding.tvUpdateStatus.text = "下載失敗"
+                        break
+                    }
+                    else -> binding.tvUpdateStatus.text = "下載中... $progress%"
+                }
+                delay(500)
+            }
+        }
     }
 
     override fun onDestroyView() {
