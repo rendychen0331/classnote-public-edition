@@ -54,10 +54,6 @@ class SettingsFragment : Fragment() {
             findNavController().navigate(R.id.actionSettingsToAiSettings)
         }
 
-        binding.cardMenuNotifListener.setOnClickListener {
-            findNavController().navigate(R.id.actionSettingsToNotifListener)
-        }
-
         binding.cardMenuApiLog.setOnClickListener {
             findNavController().navigate(R.id.actionSettingsToApiLog)
         }

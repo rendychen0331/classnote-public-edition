@@ -137,13 +137,6 @@
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
         <action
-            android:id="@+id/actionSettingsToNotifListener"
-            app:destination="@id/notifListenerFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-        <action
             android:id="@+id/actionSettingsToApiLog"
             app:destination="@id/apiLogFragment"
             app:enterAnim="@anim/slide_in_right"
@@ -202,12 +195,6 @@
         android:name="com.rendy.classnote.ui.settings.AiSettingsSheet"
         android:label="AI 設定"
         tools:layout="@layout/sheet_ai_settings" />
-
-    <fragment
-        android:id="@+id/notifListenerFragment"
-        android:name="com.rendy.classnote.ui.settings.NotifListenerSheet"
-        android:label="AI 通知辨識"
-        tools:layout="@layout/sheet_notif_listener" />
 
     <fragment
         android:id="@+id/apiLogFragment"
