@@ -1,6 +1,6 @@
 # ClassNote
 
-歡迎，這是一個高中**牲**用愛做的Android App
+歡迎，這是一個高中**牲**用 愛 + AI 做的Android App
 
 ## 說明
 這是一個課堂筆記與提醒管理App
@@ -61,7 +61,7 @@ Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 ## 預計開發功能
 
 - [x] 其他類型筆記的支援
-- [ ] ~~優化App清單讀取時間~~(無解)
+- [ ] ~~優化App清單讀取時間~~(懶 + 工程巨大)
 - [ ] 加入 Gmail 非 Google Classroom 郵件的AI辨識支援
 - [ ] 加入收到 Gmail 或 Google Classroom 通知後自動抓取詳細信息
 - [x] 加入 Google Tasks 支援
