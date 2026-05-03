@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         val settingsDestinations = setOf(
             R.id.settingsFragment, R.id.alarmPermFragment, R.id.backupSyncFragment,
             R.id.googleSyncFragment, R.id.microsoftSyncFragment, R.id.weatherNotifFragment,
-            R.id.aiSettingsFragment, R.id.notifListenerFragment, R.id.apiLogFragment
+            R.id.aiSettingsFragment, R.id.apiLogFragment
         )
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             if (navController.currentDestination?.id in settingsDestinations) {
