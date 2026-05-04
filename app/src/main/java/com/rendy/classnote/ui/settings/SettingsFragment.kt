@@ -50,8 +50,8 @@ class SettingsFragment : Fragment() {
             findNavController().navigate(R.id.actionSettingsToAlarmPerm)
         }
 
-        binding.cardMenuBackupSync.setOnClickListener {
-            findNavController().navigate(R.id.actionSettingsToBackupSync)
+        binding.cardMenuSync.setOnClickListener {
+            findNavController().navigate(R.id.actionSettingsToSync)
         }
 
         binding.cardMenuWeather.setOnClickListener {

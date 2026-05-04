@@ -67,12 +67,21 @@ class ClassRecordAdapter(
             if (firstPhotoPath != null) {
                 binding.ivThumbnail.visibility = View.VISIBLE
                 binding.ivThumbnail.setImageBitmap(null)
-                thumbJob = itemView.findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
-                    val opts = BitmapFactory.Options().apply { inSampleSize = 4 }
-                    val bmp = withContext(Dispatchers.IO) {
-                        BitmapFactory.decodeFile(firstPhotoPath, opts)
+                val owner = itemView.findViewTreeLifecycleOwner()
+                if (owner != null) {
+                    thumbJob = owner.lifecycleScope.launch {
+                        val opts = BitmapFactory.Options().apply { inSampleSize = 4 }
+                        val bmp = withContext(Dispatchers.IO) {
+                            BitmapFactory.decodeFile(firstPhotoPath, opts)
+                        }
+                        if (bmp != null) {
+                            binding.ivThumbnail.setImageBitmap(bmp)
+                        } else {
+                            binding.ivThumbnail.visibility = View.GONE
+                        }
                     }
-                    binding.ivThumbnail.setImageBitmap(bmp)
+                } else {
+                    binding.ivThumbnail.visibility = View.GONE
                 }
             } else {
                 binding.ivThumbnail.visibility = View.GONE

@@ -153,30 +153,44 @@ class MicrosoftSyncSheet : Fragment() {
     private fun updateOneDriveSection(prefs: com.rendy.classnote.data.AppPreferences) {
         val enabled = prefs.oneDriveBackupEnabled
         binding.cardOneDriveAccount.visibility = if (enabled) View.VISIBLE else View.GONE
-        binding.cardOneDriveActions.visibility = View.GONE
-        binding.cardOneDriveNetwork.visibility = View.GONE
-        binding.cardOneDriveAutoBackup.visibility = View.GONE
-        if (!enabled) return
+        if (!enabled) {
+            binding.cardOneDriveActions.visibility = View.GONE
+            binding.cardOneDriveNetwork.visibility = View.GONE
+            binding.cardOneDriveAutoBackup.visibility = View.GONE
+            return
+        }
 
+        // 用快取 email 立即渲染，避免等 MSAL 初始化造成畫面閃跳
+        applyOneDriveLoginState(prefs.msAccountEmail, prefs)
+
+        // 背景確認 MSAL 實際帳號並載入上次備份時間
         viewLifecycleOwner.lifecycleScope.launch {
             val email = OneDriveAuthManager.getAccountEmail(requireContext())
-            binding.tvOneDriveAccountEmail.text = email
-                ?: getString(R.string.settings_onedrive_not_signed_in)
-            binding.ibtnMsSignIn.visibility = if (email != null) View.GONE else View.VISIBLE
-            binding.btnOneDriveSignOut.visibility = if (email != null) View.VISIBLE else View.GONE
-
+            applyOneDriveLoginState(email, prefs)
             if (email != null) {
-                binding.cardOneDriveActions.visibility = View.VISIBLE
-                binding.cardOneDriveNetwork.visibility = View.VISIBLE
-                binding.cardOneDriveAutoBackup.visibility = View.VISIBLE
-                binding.tvOneDriveLastBackup.visibility = View.VISIBLE
-                updateOneDriveNetworkLabel(prefs)
-                setupOneDriveAutoBackupCard(prefs)
                 val token = OneDriveAuthManager.acquireTokenSilent(requireContext())
                 if (token != null) loadOneDriveLastBackup(token)
-            } else {
-                binding.tvOneDriveLastBackup.visibility = View.GONE
             }
+        }
+    }
+
+    private fun applyOneDriveLoginState(email: String?, prefs: com.rendy.classnote.data.AppPreferences) {
+        binding.tvOneDriveAccountEmail.text = email
+            ?: getString(R.string.settings_onedrive_not_signed_in)
+        binding.ibtnMsSignIn.visibility = if (email != null) View.GONE else View.VISIBLE
+        binding.btnOneDriveSignOut.visibility = if (email != null) View.VISIBLE else View.GONE
+        if (email != null) {
+            binding.cardOneDriveActions.visibility = View.VISIBLE
+            binding.cardOneDriveNetwork.visibility = View.VISIBLE
+            binding.cardOneDriveAutoBackup.visibility = View.VISIBLE
+            binding.tvOneDriveLastBackup.visibility = View.VISIBLE
+            updateOneDriveNetworkLabel(prefs)
+            setupOneDriveAutoBackupCard(prefs)
+        } else {
+            binding.cardOneDriveActions.visibility = View.GONE
+            binding.cardOneDriveNetwork.visibility = View.GONE
+            binding.cardOneDriveAutoBackup.visibility = View.GONE
+            binding.tvOneDriveLastBackup.visibility = View.GONE
         }
     }
 

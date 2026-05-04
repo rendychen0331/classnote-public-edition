@@ -8,25 +8,29 @@ import com.rendy.classnote.data.local.ClassNoteDatabase
 class CalendarSyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val email = GoogleAuthManager.getCalendarAccountEmail(applicationContext)
-            ?: return Result.failure()
+        val emails = GoogleAuthManager.getCalendarAccountEmails(applicationContext)
+        if (emails.isEmpty()) return Result.failure()
 
         val prefs = AppPreferences(applicationContext)
         val db = ClassNoteDatabase.getDatabase(applicationContext)
-        val result = CalendarSyncManager.sync(
-            applicationContext,
-            email,
-            db.reminderDao(),
-            db.reminderNotificationDao()
-        )
+        var totalImported = 0
+        var totalSkipped = 0
 
-        return when (result) {
-            is CalendarSyncManager.SyncResult.Success -> {
-                prefs.lastCalendarSyncSummary = "已自動匯入 ${result.imported} 筆，略過 ${result.skipped} 筆"
-                Result.success()
+        for (email in emails) {
+            val result = CalendarSyncManager.sync(
+                applicationContext, email,
+                db.reminderDao(), db.reminderNotificationDao()
+            )
+            when (result) {
+                is CalendarSyncManager.SyncResult.Success -> {
+                    totalImported += result.imported
+                    totalSkipped += result.skipped
+                }
+                else -> {}
             }
-            is CalendarSyncManager.SyncResult.Error -> Result.retry()
-            CalendarSyncManager.SyncResult.NoPermission -> Result.failure()
         }
+
+        prefs.lastCalendarSyncSummary = "已自動匯入 $totalImported 筆，略過 $totalSkipped 筆"
+        return Result.success()
     }
 }

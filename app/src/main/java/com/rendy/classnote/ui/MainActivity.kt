@@ -46,8 +46,9 @@ class MainActivity : AppCompatActivity() {
         // setupWithNavController 同步 NavController→BottomNav 選中狀態（保留）
         // 覆寫 item 點擊：切換 tab 前若在設定頁（含子頁面），先 pop 回根，避免子頁被留在 back stack
         val settingsDestinations = setOf(
-            R.id.settingsFragment, R.id.alarmPermFragment, R.id.backupSyncFragment,
-            R.id.googleSyncFragment, R.id.microsoftSyncFragment, R.id.weatherNotifFragment,
+            R.id.settingsFragment, R.id.alarmPermFragment, R.id.syncFragment,
+            R.id.backupSyncFragment, R.id.googleSyncFragment, R.id.microsoftSyncFragment,
+            R.id.localSyncFragment, R.id.weatherNotifFragment,
             R.id.aiSettingsFragment, R.id.apiLogFragment
         )
         binding.bottomNavigation.setOnItemSelectedListener { item ->
@@ -178,6 +179,86 @@ class MainActivity : AppCompatActivity() {
             !prefs.getBoolean("overlay_prompted", false)) {
             showOverlayPermissionDialog(prefs)
         }
+
+        // 允許安裝未知來源 App (Android 8+，非 Play Store 安裝)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            !packageManager.canRequestPackageInstalls() &&
+            !prefs.getBoolean("install_unknown_prompted", false) &&
+            !isInstalledFromPlayStore()) {
+            showInstallUnknownAppsDialog(prefs)
+        }
+
+        // 允許受限制的設定 (Android 13+，非 Play Store 安裝)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            !prefs.getBoolean("restricted_settings_prompted", false) &&
+            !isInstalledFromPlayStore()) {
+            showRestrictedSettingsDialog(prefs)
+        }
+    }
+
+    private fun showInstallUnknownAppsDialog(prefs: android.content.SharedPreferences) {
+        prefs.edit().putBoolean("install_unknown_prompted", true).apply()
+        MaterialAlertDialogBuilder(this)
+            .setTitle("允許安裝未知來源應用程式")
+            .setMessage(
+                "ClassNote 的應用程式內更新功能需要此權限，才能直接安裝下載的新版 APK。\n\n" +
+                "不開啟：更新功能仍可下載 APK，但需手動從檔案管理器安裝。\n\n" +
+                "⚠️ 安全提示：此權限允許 ClassNote 安裝 APK 檔案。" +
+                "ClassNote 的更新來源為官方 GitHub Releases，建議開啟後僅信任已知來源的 App。"
+            )
+            .setPositiveButton("前往設定") { _, _ ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startActivity(
+                        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                            data = Uri.fromParts("package", packageName, null)
+                        }
+                    )
+                }
+            }
+            .setNegativeButton("略過", null)
+            .show()
+    }
+
+    private fun isInstalledFromPlayStore(): Boolean = try {
+        val installer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            packageManager.getInstallSourceInfo(packageName).installingPackageName
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getInstallerPackageName(packageName)
+        }
+        installer == "com.android.vending"
+    } catch (_: Exception) { false }
+
+    private fun showRestrictedSettingsDialog(prefs: android.content.SharedPreferences) {
+        prefs.edit().putBoolean("restricted_settings_prompted", true).apply()
+        val steps = if (isXiaomiDevice()) {
+            "步驟：\n" +
+            "1. 點擊「前往設定」開啟應用程式資訊\n" +
+            "2. 捲到最底部「進階設定」區域\n" +
+            "3. 開啟「允許受限制的設定」"
+        } else {
+            "步驟：\n" +
+            "1. 點擊「前往設定」開啟應用程式資訊\n" +
+            "2. 點右上角 ⋮（三點選單）\n" +
+            "3. 選擇「允許受限制的設定」"
+        }
+        MaterialAlertDialogBuilder(this)
+            .setTitle("開啟「允許受限制的設定」")
+            .setMessage(
+                "此 App 非從 Play Store 安裝，Android 13+ 預設限制部分進階功能。\n\n" +
+                "不開啟：大部分功能正常使用。\n" +
+                "受影響功能：通知辨識、應用程式內安裝更新（下載後需手動從檔案管理器安裝）。\n\n" +
+                steps
+            )
+            .setPositiveButton("前往設定") { _, _ ->
+                startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", packageName, null)
+                    }
+                )
+            }
+            .setNegativeButton("略過", null)
+            .show()
     }
 
     private fun showFullScreenIntentDialog(prefs: android.content.SharedPreferences) {

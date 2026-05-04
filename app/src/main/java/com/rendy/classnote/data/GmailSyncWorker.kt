@@ -3,34 +3,37 @@ package com.rendy.classnote.data
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.rendy.classnote.data.local.ClassNoteDatabase
 
 class GmailSyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val account = GoogleSignIn.getLastSignedInAccount(applicationContext)
-            ?: return Result.failure()
-        if (!GmailSyncManager.hasGmailPermission(applicationContext, account))
-            return Result.failure()
+        val emails = GoogleAuthManager.getGmailAccountEmails(applicationContext)
+        if (emails.isEmpty()) return Result.failure()
 
         val prefs = AppPreferences(applicationContext)
         val db = ClassNoteDatabase.getDatabase(applicationContext)
-        val result = GmailSyncManager.sync(
-            applicationContext,
-            account,
-            db.reminderDao(),
-            db.reminderNotificationDao(),
-            prefs.gmailClassroomForwardEnabled
-        )
+        var totalImported = 0
+        var totalSkipped = 0
+        var hasError = false
 
-        return when (result) {
-            is GmailSyncManager.SyncResult.Success -> {
-                prefs.lastGmailSyncSummary = "已自動匯入 ${result.imported} 筆，略過 ${result.skipped} 筆"
-                Result.success()
+        for (email in emails) {
+            val result = GmailSyncManager.sync(
+                applicationContext, email,
+                db.reminderDao(), db.reminderNotificationDao(),
+                prefs.gmailClassroomForwardEnabled
+            )
+            when (result) {
+                is GmailSyncManager.SyncResult.Success -> {
+                    totalImported += result.imported
+                    totalSkipped += result.skipped
+                }
+                is GmailSyncManager.SyncResult.Error -> hasError = true
+                GmailSyncManager.SyncResult.NoPermission -> {}
             }
-            is GmailSyncManager.SyncResult.Error -> Result.retry()
-            GmailSyncManager.SyncResult.NoPermission -> Result.failure()
         }
+
+        prefs.lastGmailSyncSummary = "已自動匯入 $totalImported 筆，略過 $totalSkipped 筆"
+        return if (hasError && totalImported == 0) Result.retry() else Result.success()
     }
 }

@@ -2,15 +2,19 @@ package com.rendy.classnote.ui.settings
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.SignInButton
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.R
@@ -67,7 +71,7 @@ class GoogleSyncSheet : Fragment() {
         if (result.resultCode == Activity.RESULT_OK) {
             val account = GoogleAuthManager.handleSignInResult(result.data)
             if (account != null) {
-                doExport(account)
+                doSyncNotes(account)
             } else {
                 Toast.makeText(requireContext(), "授權失敗", Toast.LENGTH_SHORT).show()
             }
@@ -76,23 +80,23 @@ class GoogleSyncSheet : Fragment() {
 
     private val gmailSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            GoogleAuthManager.handleSignInResult(result.data)
-        }
-        updateGmailSection()
-    }
-
-    private val gmailPermissionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        updateGmailSection()
-        if (result.resultCode != Activity.RESULT_OK) {
+            val account = GoogleAuthManager.handleSignInResult(result.data)
+            if (account?.email != null) {
+                GoogleAuthManager.addGmailAccountEmail(requireContext(), account.email!!)
+            } else {
+                Toast.makeText(requireContext(), getString(R.string.settings_gmail_permission_denied), Toast.LENGTH_SHORT).show()
+            }
+        } else {
             Toast.makeText(requireContext(), getString(R.string.settings_gmail_permission_denied), Toast.LENGTH_SHORT).show()
         }
+        updateGmailSection()
     }
 
     private val classroomSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val account = GoogleAuthManager.handleSignInResult(result.data)
             if (account?.email != null) {
-                GoogleAuthManager.setClassroomAccountEmail(requireContext(), account.email)
+                GoogleAuthManager.addClassroomAccountEmail(requireContext(), account.email!!)
             } else {
                 Toast.makeText(requireContext(), getString(R.string.settings_classroom_permission_denied), Toast.LENGTH_SHORT).show()
             }
@@ -106,7 +110,7 @@ class GoogleSyncSheet : Fragment() {
         if (result.resultCode == Activity.RESULT_OK) {
             val account = GoogleAuthManager.handleSignInResult(result.data)
             if (account?.email != null) {
-                GoogleAuthManager.setCalendarAccountEmail(requireContext(), account.email)
+                GoogleAuthManager.addCalendarAccountEmail(requireContext(), account.email!!)
             } else {
                 Toast.makeText(requireContext(), getString(R.string.settings_calendar_permission_denied), Toast.LENGTH_SHORT).show()
             }
@@ -120,7 +124,7 @@ class GoogleSyncSheet : Fragment() {
         if (result.resultCode == Activity.RESULT_OK) {
             val account = GoogleAuthManager.handleSignInResult(result.data)
             if (account?.email != null) {
-                GoogleAuthManager.setTasksAccountEmail(requireContext(), account.email)
+                GoogleAuthManager.addTasksAccountEmail(requireContext(), account.email!!)
             } else {
                 Toast.makeText(requireContext(), getString(R.string.settings_tasks_permission_denied), Toast.LENGTH_SHORT).show()
             }
@@ -143,6 +147,39 @@ class GoogleSyncSheet : Fragment() {
         setupClassroomSection()
         setupCalendarSection()
         setupTasksSection()
+    }
+
+    // ── 帳號列動態注入 ──────────────────────────────────────────────────────────
+
+    private fun addAccountRow(container: LinearLayout, email: String, onRemove: () -> Unit) {
+        val dp = resources.displayMetrics.density
+        val row = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = (4 * dp).toInt() }
+        }
+        val emailView = TextView(requireContext()).apply {
+            text = email
+            setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        val removeBtn = MaterialButton(
+            requireContext(), null,
+            com.google.android.material.R.attr.materialButtonOutlinedStyle
+        ).apply {
+            text = "移除"
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setOnClickListener { onRemove() }
+        }
+        row.addView(emailView)
+        row.addView(removeBtn)
+        container.addView(row)
     }
 
     // ── Google 帳號備份 ──────────────────────────────────────────────────────────
@@ -203,13 +240,16 @@ class GoogleSyncSheet : Fragment() {
                     binding.btnGoogleRestore.isEnabled = false
                     viewLifecycleOwner.lifecycleScope.launch {
                         val result = DriveBackupManager.restore(requireContext(), acc, prefs.backupNetworkType)
-                        binding.btnGoogleRestore.isEnabled = true
                         when (result) {
-                            is DriveBackupManager.Result.Success ->
-                                Toast.makeText(requireContext(), getString(R.string.settings_google_restore_success), Toast.LENGTH_LONG).show()
-                            is DriveBackupManager.Result.AuthRequired -> reAuthLauncher.launch(result.intent)
-                            is DriveBackupManager.Result.Error ->
+                            is DriveBackupManager.Result.Success -> restartApp()
+                            is DriveBackupManager.Result.AuthRequired -> {
+                                binding.btnGoogleRestore.isEnabled = true
+                                reAuthLauncher.launch(result.intent)
+                            }
+                            is DriveBackupManager.Result.Error -> {
+                                binding.btnGoogleRestore.isEnabled = true
                                 Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
+                            }
                         }
                     }
                 }
@@ -231,7 +271,7 @@ class GoogleSyncSheet : Fragment() {
                 exportSignInLauncher.launch(GoogleAuthManager.getSignInIntentForExport(requireContext()))
             } else {
                 val acc = GoogleAuthManager.getAccount(requireContext()) ?: return@setOnClickListener
-                doExport(acc)
+                doSyncNotes(acc)
             }
         }
     }
@@ -401,13 +441,6 @@ class GoogleSyncSheet : Fragment() {
         binding.btnGmailSignIn.setOnClickListener {
             gmailSignInLauncher.launch(GoogleAuthManager.getSignInIntentWithGmail(requireContext()))
         }
-        binding.btnGmailSignOut.setOnClickListener {
-            GoogleAuthManager.signOut(requireContext()) { updateGmailSection() }
-        }
-
-        binding.btnUseDriveAccount.setOnClickListener {
-            gmailPermissionLauncher.launch(GoogleAuthManager.getSignInIntentWithGmail(requireContext()))
-        }
 
         binding.switchGmailForward.isChecked = prefs.gmailClassroomForwardEnabled
         binding.switchGmailForward.setOnCheckedChangeListener { _, checked ->
@@ -417,23 +450,29 @@ class GoogleSyncSheet : Fragment() {
         setupGmailAutoSync()
 
         binding.btnGmailSyncNow.setOnClickListener {
-            val account = GoogleAuthManager.getAccount(requireContext()) ?: return@setOnClickListener
+            val emails = GoogleAuthManager.getGmailAccountEmails(requireContext())
+            if (emails.isEmpty()) return@setOnClickListener
             val db = (requireActivity().application as ClassNoteApplication).database
             binding.btnGmailSyncNow.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
-                val result = GmailSyncManager.sync(
-                    requireContext(), account,
-                    db.reminderDao(), db.reminderNotificationDao(),
-                    prefs.gmailClassroomForwardEnabled
-                )
-                binding.btnGmailSyncNow.isEnabled = true
-                val summary = when (result) {
-                    is GmailSyncManager.SyncResult.Success ->
-                        getString(R.string.settings_gmail_sync_result, result.imported, result.skipped)
-                    is GmailSyncManager.SyncResult.Error -> result.message
-                    GmailSyncManager.SyncResult.NoPermission ->
-                        getString(R.string.settings_gmail_no_permission)
+                var totalImported = 0
+                var totalSkipped = 0
+                for (email in emails) {
+                    val result = GmailSyncManager.sync(
+                        requireContext(), email,
+                        db.reminderDao(), db.reminderNotificationDao(),
+                        prefs.gmailClassroomForwardEnabled
+                    )
+                    when (result) {
+                        is GmailSyncManager.SyncResult.Success -> {
+                            totalImported += result.imported
+                            totalSkipped += result.skipped
+                        }
+                        else -> {}
+                    }
                 }
+                binding.btnGmailSyncNow.isEnabled = true
+                val summary = getString(R.string.settings_gmail_sync_result, totalImported, totalSkipped)
                 prefs.lastGmailSyncSummary = summary
                 binding.tvGmailSyncStatus.text = summary
             }
@@ -473,21 +512,16 @@ class GoogleSyncSheet : Fragment() {
         binding.cardGmailSync.visibility = View.GONE
         if (!enabled) return
 
-        val account = GoogleAuthManager.getAccount(requireContext())
-        val hasPermission = account != null && GmailSyncManager.hasGmailPermission(requireContext(), account)
-
-        binding.tvGmailAccountEmail.text = account?.email ?: getString(R.string.settings_gmail_not_signed_in)
-        binding.btnGmailSignIn.visibility = if (!hasPermission) View.VISIBLE else View.GONE
-        binding.btnGmailSignOut.visibility = if (hasPermission) View.VISIBLE else View.GONE
-
-        val driveAccount = GoogleAuthManager.getAccount(requireContext())
-        val showUseDrive = driveAccount != null && !hasPermission
-        binding.layoutUseDriveAccount.visibility = if (showUseDrive) View.VISIBLE else View.GONE
-        if (showUseDrive) {
-            binding.tvDriveAccountEmail.text = driveAccount!!.email ?: driveAccount.displayName
+        val emails = GoogleAuthManager.getGmailAccountEmails(requireContext())
+        binding.llGmailAccounts.removeAllViews()
+        emails.forEach { email ->
+            addAccountRow(binding.llGmailAccounts, email) {
+                GoogleAuthManager.removeGmailAccountEmail(requireContext(), email)
+                updateGmailSection()
+            }
         }
 
-        if (hasPermission) {
+        if (emails.isNotEmpty()) {
             binding.cardGmailSync.visibility = View.VISIBLE
             binding.tvGmailSyncStatus.text = prefs.lastGmailSyncSummary.ifEmpty {
                 getString(R.string.settings_gmail_no_sync)
@@ -516,32 +550,32 @@ class GoogleSyncSheet : Fragment() {
                 }
             }
         }
-        binding.btnClassroomSignOut.setOnClickListener {
-            GoogleAuthManager.clearClassroomAccount(requireContext())
-            GoogleAuthManager.signOutClassroom(requireContext()) {
-                requireActivity().runOnUiThread { updateClassroomSection() }
-            }
-        }
 
         setupClassroomAutoSync()
 
         binding.btnClassroomSyncNow.setOnClickListener {
-            val email = GoogleAuthManager.getClassroomAccountEmail(requireContext()) ?: return@setOnClickListener
+            val emails = GoogleAuthManager.getClassroomAccountEmails(requireContext())
+            if (emails.isEmpty()) return@setOnClickListener
             val db = (requireActivity().application as ClassNoteApplication).database
             binding.btnClassroomSyncNow.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
-                val result = ClassroomSyncManager.sync(
-                    requireContext(), email,
-                    db.reminderDao(), db.reminderNotificationDao()
-                )
-                binding.btnClassroomSyncNow.isEnabled = true
-                val summary = when (result) {
-                    is ClassroomSyncManager.SyncResult.Success ->
-                        getString(R.string.settings_classroom_sync_result, result.imported, result.skipped)
-                    is ClassroomSyncManager.SyncResult.Error -> result.message
-                    ClassroomSyncManager.SyncResult.NoPermission ->
-                        getString(R.string.settings_classroom_permission_denied)
+                var totalImported = 0
+                var totalSkipped = 0
+                for (email in emails) {
+                    val result = ClassroomSyncManager.sync(
+                        requireContext(), email,
+                        db.reminderDao(), db.reminderNotificationDao()
+                    )
+                    when (result) {
+                        is ClassroomSyncManager.SyncResult.Success -> {
+                            totalImported += result.imported
+                            totalSkipped += result.skipped
+                        }
+                        else -> {}
+                    }
                 }
+                binding.btnClassroomSyncNow.isEnabled = true
+                val summary = getString(R.string.settings_classroom_sync_result, totalImported, totalSkipped)
                 prefs.lastClassroomSyncSummary = summary
                 binding.tvClassroomSyncStatus.text = summary
             }
@@ -581,15 +615,16 @@ class GoogleSyncSheet : Fragment() {
         binding.cardClassroomSync.visibility = View.GONE
         if (!enabled) return
 
-        val email = GoogleAuthManager.getClassroomAccountEmail(requireContext())
-        val hasAccount = email != null
+        val emails = GoogleAuthManager.getClassroomAccountEmails(requireContext())
+        binding.llClassroomAccounts.removeAllViews()
+        emails.forEach { email ->
+            addAccountRow(binding.llClassroomAccounts, email) {
+                GoogleAuthManager.removeClassroomAccountEmail(requireContext(), email)
+                updateClassroomSection()
+            }
+        }
 
-        binding.tvClassroomAccountEmail.text = email
-            ?: getString(R.string.settings_classroom_not_authorized)
-        binding.btnClassroomAuth.visibility = if (!hasAccount) View.VISIBLE else View.GONE
-        binding.btnClassroomSignOut.visibility = if (hasAccount) View.VISIBLE else View.GONE
-
-        if (hasAccount) {
+        if (emails.isNotEmpty()) {
             binding.cardClassroomSync.visibility = View.VISIBLE
             binding.tvClassroomSyncStatus.text = prefs.lastClassroomSyncSummary.ifEmpty {
                 getString(R.string.settings_classroom_no_sync)
@@ -618,12 +653,6 @@ class GoogleSyncSheet : Fragment() {
                 }
             }
         }
-        binding.btnCalendarSignOut.setOnClickListener {
-            GoogleAuthManager.clearCalendarAccount(requireContext())
-            GoogleAuthManager.signOutCalendar(requireContext()) {
-                requireActivity().runOnUiThread { updateCalendarSection() }
-            }
-        }
 
         binding.switchCalendarAutoSync.isChecked = prefs.autoCalendarSyncEnabled
         binding.tvAutoCalendarSyncInterval.text =
@@ -635,19 +664,28 @@ class GoogleSyncSheet : Fragment() {
         }
 
         binding.btnCalendarSyncNow.setOnClickListener {
-            val email = GoogleAuthManager.getCalendarAccountEmail(requireContext()) ?: return@setOnClickListener
+            val emails = GoogleAuthManager.getCalendarAccountEmails(requireContext())
+            if (emails.isEmpty()) return@setOnClickListener
             val db = (requireActivity().application as ClassNoteApplication).database
             binding.btnCalendarSyncNow.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
-                val result = CalendarSyncManager.sync(requireContext(), email, db.reminderDao(), db.reminderNotificationDao())
-                binding.btnCalendarSyncNow.isEnabled = true
-                val summary = when (result) {
-                    is CalendarSyncManager.SyncResult.Success ->
-                        getString(R.string.settings_calendar_sync_result, result.imported, result.skipped)
-                    is CalendarSyncManager.SyncResult.Error -> result.message
-                    CalendarSyncManager.SyncResult.NoPermission ->
-                        getString(R.string.settings_calendar_no_permission)
+                var totalImported = 0
+                var totalSkipped = 0
+                for (email in emails) {
+                    val result = CalendarSyncManager.sync(
+                        requireContext(), email,
+                        db.reminderDao(), db.reminderNotificationDao()
+                    )
+                    when (result) {
+                        is CalendarSyncManager.SyncResult.Success -> {
+                            totalImported += result.imported
+                            totalSkipped += result.skipped
+                        }
+                        else -> {}
+                    }
                 }
+                binding.btnCalendarSyncNow.isEnabled = true
+                val summary = getString(R.string.settings_calendar_sync_result, totalImported, totalSkipped)
                 prefs.lastCalendarSyncSummary = summary
                 binding.tvCalendarSyncStatus.text = summary
             }
@@ -675,15 +713,16 @@ class GoogleSyncSheet : Fragment() {
         binding.cardCalendarSync.visibility = View.GONE
         if (!enabled) return
 
-        val email = GoogleAuthManager.getCalendarAccountEmail(requireContext())
-        val hasAccount = email != null
+        val emails = GoogleAuthManager.getCalendarAccountEmails(requireContext())
+        binding.llCalendarAccounts.removeAllViews()
+        emails.forEach { email ->
+            addAccountRow(binding.llCalendarAccounts, email) {
+                GoogleAuthManager.removeCalendarAccountEmail(requireContext(), email)
+                updateCalendarSection()
+            }
+        }
 
-        binding.tvCalendarAccountEmail.text = email
-            ?: getString(R.string.settings_calendar_no_permission)
-        binding.btnCalendarSignIn.visibility = if (!hasAccount) View.VISIBLE else View.GONE
-        binding.btnCalendarSignOut.visibility = if (hasAccount) View.VISIBLE else View.GONE
-
-        if (hasAccount) {
+        if (emails.isNotEmpty()) {
             binding.cardCalendarSync.visibility = View.VISIBLE
             binding.tvCalendarSyncStatus.text = prefs.lastCalendarSyncSummary.ifEmpty {
                 getString(R.string.settings_calendar_no_sync)
@@ -712,12 +751,6 @@ class GoogleSyncSheet : Fragment() {
                 }
             }
         }
-        binding.btnTasksSignOut.setOnClickListener {
-            GoogleAuthManager.clearTasksAccount(requireContext())
-            GoogleAuthManager.signOutTasks(requireContext()) {
-                requireActivity().runOnUiThread { updateTasksSection() }
-            }
-        }
 
         binding.switchTasksAutoSync.isChecked = prefs.autoTasksSyncEnabled
         binding.tvAutoTasksSyncInterval.text =
@@ -729,19 +762,28 @@ class GoogleSyncSheet : Fragment() {
         }
 
         binding.btnTasksSyncNow.setOnClickListener {
-            val email = GoogleAuthManager.getTasksAccountEmail(requireContext()) ?: return@setOnClickListener
+            val emails = GoogleAuthManager.getTasksAccountEmails(requireContext())
+            if (emails.isEmpty()) return@setOnClickListener
             val db = (requireActivity().application as ClassNoteApplication).database
             binding.btnTasksSyncNow.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
-                val result = TasksSyncManager.sync(requireContext(), email, db.reminderDao(), db.reminderNotificationDao())
-                binding.btnTasksSyncNow.isEnabled = true
-                val summary = when (result) {
-                    is TasksSyncManager.SyncResult.Success ->
-                        getString(R.string.settings_tasks_sync_result, result.imported, result.skipped)
-                    is TasksSyncManager.SyncResult.Error -> result.message
-                    TasksSyncManager.SyncResult.NoPermission ->
-                        getString(R.string.settings_tasks_no_permission)
+                var totalImported = 0
+                var totalSkipped = 0
+                for (email in emails) {
+                    val result = TasksSyncManager.sync(
+                        requireContext(), email,
+                        db.reminderDao(), db.reminderNotificationDao()
+                    )
+                    when (result) {
+                        is TasksSyncManager.SyncResult.Success -> {
+                            totalImported += result.imported
+                            totalSkipped += result.skipped
+                        }
+                        else -> {}
+                    }
                 }
+                binding.btnTasksSyncNow.isEnabled = true
+                val summary = getString(R.string.settings_tasks_sync_result, totalImported, totalSkipped)
                 prefs.lastTasksSyncSummary = summary
                 binding.tvTasksSyncStatus.text = summary
             }
@@ -769,20 +811,30 @@ class GoogleSyncSheet : Fragment() {
         binding.cardTasksSync.visibility = View.GONE
         if (!enabled) return
 
-        val email = GoogleAuthManager.getTasksAccountEmail(requireContext())
-        val hasAccount = email != null
+        val emails = GoogleAuthManager.getTasksAccountEmails(requireContext())
+        binding.llTasksAccounts.removeAllViews()
+        emails.forEach { email ->
+            addAccountRow(binding.llTasksAccounts, email) {
+                GoogleAuthManager.removeTasksAccountEmail(requireContext(), email)
+                updateTasksSection()
+            }
+        }
 
-        binding.tvTasksAccountEmail.text = email
-            ?: getString(R.string.settings_tasks_no_permission)
-        binding.btnTasksSignIn.visibility = if (!hasAccount) View.VISIBLE else View.GONE
-        binding.btnTasksSignOut.visibility = if (hasAccount) View.VISIBLE else View.GONE
-
-        if (hasAccount) {
+        if (emails.isNotEmpty()) {
             binding.cardTasksSync.visibility = View.VISIBLE
             binding.tvTasksSyncStatus.text = prefs.lastTasksSyncSummary.ifEmpty {
                 getString(R.string.settings_tasks_no_sync)
             }
         }
+    }
+
+    private fun restartApp() {
+        val ctx = requireContext().applicationContext
+        val intent = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)?.apply {
+            addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        ctx.startActivity(intent)
+        android.os.Process.killProcess(android.os.Process.myPid())
     }
 
     override fun onDestroyView() {

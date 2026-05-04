@@ -113,6 +113,7 @@
                     android:layout_height="wrap_content"
                     android:text="以 Microsoft 帳號登入"
                     app:icon="@drawable/ic_microsoft_logo"
+                    app:iconTint="@null"
                     app:iconGravity="textStart"
                     app:iconSize="18dp"
                     app:iconPadding="8dp"

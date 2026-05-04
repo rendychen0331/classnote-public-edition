@@ -148,6 +148,68 @@ object GmailSyncManager {
             }
         }
 
+    private fun buildGmailServiceByEmail(context: Context, email: String): Gmail {
+        val credential = GoogleAccountCredential.usingOAuth2(
+            context, listOf(GmailScopes.GMAIL_READONLY)
+        ).apply { selectedAccountName = email }
+        return Gmail.Builder(NetHttpTransport(), GsonFactory.getDefaultInstance(), credential)
+            .setApplicationName("ClassNote")
+            .build()
+    }
+
+    suspend fun sync(
+        context: Context,
+        email: String,
+        dao: ReminderDao,
+        notificationDao: ReminderNotificationDao,
+        includeForwarded: Boolean = false
+    ): SyncResult = withContext(Dispatchers.IO) {
+        if (email.isBlank()) return@withContext SyncResult.NoPermission
+        try {
+            val gmail = buildGmailServiceByEmail(context, email)
+            val queries = mutableListOf(
+                "from:no-reply@classroom.google.com (subject:新作業 OR subject:\"new assignment\")"
+            )
+            if (includeForwarded) {
+                queries += "(subject:新作業 OR subject:\"new assignment\") -from:no-reply@classroom.google.com"
+            }
+            var imported = 0
+            var skipped = 0
+            for (query in queries) {
+                val messages = gmail.users().messages().list("me")
+                    .setQ(query).setMaxResults(50L).execute().messages ?: continue
+                for (msgRef in messages) {
+                    val externalId = "gmail:${msgRef.id}"
+                    if (dao.findByExternalId(externalId) != null) { skipped++; continue }
+                    val msg = gmail.users().messages().get("me", msgRef.id).setFormat("full").execute()
+                    val parsed = parseMessage(msg)
+                    if (parsed == null) { skipped++; continue }
+                    val reminderId = dao.insertReminder(
+                        ReminderEntity(
+                            title = parsed.title,
+                            note = parsed.bodyNote,
+                            dueDate = parsed.dueDate,
+                            dueTime = parsed.dueTime,
+                            category = "HOMEWORK",
+                            externalId = externalId,
+                            syncSource = "gmail",
+                            sourceName = parsed.courseName?.ifBlank { null } ?: "unknown"
+                        )
+                    )
+                    scheduleDefaultNotifications(context, reminderId, parsed.dueDate, parsed.dueTime, notificationDao)
+                    imported++
+                }
+            }
+            ApiLogger.log("Gmail(同步)", email, "匯入$imported 略過$skipped", 0, true)
+            if (imported > 0) com.rendy.classnote.widget.ClassNoteWidget.refreshAll(context)
+            SyncResult.Success(imported, skipped)
+        } catch (e: Exception) {
+            Log.e(TAG, "Sync failed for $email", e)
+            ApiLogger.log("Gmail(同步)", email, e.message ?: "同步失敗", 0, false)
+            SyncResult.Error(e.message ?: "同步失敗")
+        }
+    }
+
     private fun parseMessage(msg: com.google.api.services.gmail.model.Message): ParsedAssignment? {
         val headers = msg.payload?.headers ?: return null
         val subject = headers.find { it.name.equals("Subject", ignoreCase = true) }?.value ?: return null

@@ -116,8 +116,8 @@
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
         <action
-            android:id="@+id/actionSettingsToBackupSync"
-            app:destination="@id/backupSyncFragment"
+            android:id="@+id/actionSettingsToSync"
+            app:destination="@id/syncFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -152,6 +152,27 @@
         tools:layout="@layout/sheet_alarm_perm" />
 
     <fragment
+        android:id="@+id/syncFragment"
+        android:name="com.rendy.classnote.ui.settings.SyncFragment"
+        android:label="同步"
+        tools:layout="@layout/fragment_sync">
+        <action
+            android:id="@+id/actionSyncToBackupSync"
+            app:destination="@id/backupSyncFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/actionSyncToLocalSync"
+            app:destination="@id/localSyncFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
         android:id="@+id/backupSyncFragment"
         android:name="com.rendy.classnote.ui.settings.BackupSyncSheet"
         android:label="雲端服務設定"
@@ -171,6 +192,12 @@
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
     </fragment>
+
+    <fragment
+        android:id="@+id/localSyncFragment"
+        android:name="com.rendy.classnote.ui.settings.LocalSyncSheet"
+        android:label="本地同步設定"
+        tools:layout="@layout/sheet_local_sync" />
 
     <fragment
         android:id="@+id/googleSyncFragment"

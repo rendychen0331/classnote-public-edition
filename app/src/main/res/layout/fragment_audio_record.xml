@@ -65,6 +65,30 @@
         app:iconPadding="0dp"
         android:text="" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnTakePhoto"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:text="拍照"
+        app:icon="@drawable/ic_camera"
+        app:iconGravity="textStart" />
+
+    <HorizontalScrollView
+        android:id="@+id/scrollAudioPhotos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone">
+        <LinearLayout
+            android:id="@+id/layoutAudioPhotos"
+            android:layout_width="wrap_content"
+            android:layout_height="68dp"
+            android:orientation="horizontal"
+            android:padding="4dp" />
+    </HorizontalScrollView>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

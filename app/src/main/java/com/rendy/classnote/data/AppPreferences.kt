@@ -290,6 +290,26 @@ class AppPreferences(context: Context) {
         get() = prefs.getInt(KEY_DEFAULT_REMIND_MINUTE, 0)
         set(value) = prefs.edit { putInt(KEY_DEFAULT_REMIND_MINUTE, value) }
 
+    /** 本地日曆同步開關。預設關閉。 */
+    var localCalendarSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_LOCAL_CALENDAR_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_LOCAL_CALENDAR_SYNC_ENABLED, value) }
+
+    /** 上次本地日曆同步的結果摘要。 */
+    var lastLocalCalendarSyncSummary: String
+        get() = prefs.getString(KEY_LOCAL_CALENDAR_SYNC_SUMMARY, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_LOCAL_CALENDAR_SYNC_SUMMARY, value) }
+
+    /** 自動本地日曆同步開關。預設關閉。 */
+    var autoLocalCalendarSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_LOCAL_CALENDAR_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_AUTO_LOCAL_CALENDAR_SYNC_ENABLED, value) }
+
+    /** 自動本地日曆同步間隔（小時）。預設 6 小時。 */
+    var autoLocalCalendarSyncIntervalHours: Int
+        get() = prefs.getInt(KEY_AUTO_LOCAL_CALENDAR_SYNC_INTERVAL_HOURS, 6)
+        set(value) = prefs.edit { putInt(KEY_AUTO_LOCAL_CALENDAR_SYNC_INTERVAL_HOURS, value) }
+
     /** 自動檢查更新開關。預設開啟。 */
     var autoUpdateEnabled: Boolean
         get() = prefs.getBoolean(KEY_AUTO_UPDATE_ENABLED, true)
@@ -428,6 +448,10 @@ class AppPreferences(context: Context) {
         private const val KEY_AUTO_ONEDRIVE_BACKUP_ENABLED = "auto_onedrive_backup_enabled"
         private const val KEY_AUTO_ONEDRIVE_BACKUP_INTERVAL_HOURS = "auto_onedrive_backup_interval_hours"
         private const val KEY_ONEDRIVE_BACKUP_NETWORK = "onedrive_backup_network_type"
+        private const val KEY_LOCAL_CALENDAR_SYNC_ENABLED = "local_calendar_sync_enabled"
+        private const val KEY_LOCAL_CALENDAR_SYNC_SUMMARY = "local_calendar_sync_summary"
+        private const val KEY_AUTO_LOCAL_CALENDAR_SYNC_ENABLED = "auto_local_calendar_sync_enabled"
+        private const val KEY_AUTO_LOCAL_CALENDAR_SYNC_INTERVAL_HOURS = "auto_local_calendar_sync_interval_hours"
         private const val KEY_AUTO_UPDATE_ENABLED = "auto_update_enabled"
 
         const val NETWORK_WIFI = "wifi"

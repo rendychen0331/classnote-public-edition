@@ -89,6 +89,16 @@ class FormulaEditFragment : Fragment() {
         lf,                       rt,                         kcmd("x̄","\\bar"),       kcmd("x⃗","\\vec"),  kcmd("x̂","\\hat")
     )
 
+    // 拉丁字母（未知數）
+    private val letterKeys get() = listOf(
+        o("a","a"), o("b","b"), o("c","c"), o("d","d"), o("e","e"),
+        o("f","f"), o("g","g"), o("h","h"), o("i","i"), o("j","j"),
+        o("k","k"), o("l","l"), o("m","m"), o("n","n"), o("o","o"),
+        o("p","p"), o("q","q"), o("r","r"), o("s","s"), o("t","t"),
+        o("u","u"), o("v","v"), o("w","w"), o("x","x"), o("y","y"),
+        o("z","z"), o("X","X"), o("Y","Y"), o("Z","Z"),             bk
+    )
+
     // 希臘字母 + 關係符號
     private val greekKeys get() = listOf(
         o("α","\\alpha "),  o("β","\\beta "),  o("γ","\\gamma "), o("δ","\\delta "), o("ε","\\epsilon "),
@@ -161,8 +171,8 @@ class FormulaEditFragment : Fragment() {
     // ── 自訂鍵盤 ──────────────────────────────────────────────────────────────
 
     private fun setupKeyboard() {
-        val pages = listOf(basicKeys, functionKeys, greekKeys)
-        listOf("基本", "函數", "希臘").forEachIndexed { idx, name ->
+        val pages = listOf(basicKeys, functionKeys, greekKeys, letterKeys)
+        listOf("基本", "函數", "希臘", "字母").forEachIndexed { idx, name ->
             binding.keyboardTabs.addTab(binding.keyboardTabs.newTab().setText(name))
             val page = buildPage(pages[idx])
             page.visibility = if (idx == 0) View.VISIBLE else View.GONE

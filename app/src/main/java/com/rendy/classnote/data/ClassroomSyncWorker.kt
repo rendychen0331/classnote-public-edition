@@ -8,25 +8,29 @@ import com.rendy.classnote.data.local.ClassNoteDatabase
 class ClassroomSyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val email = GoogleAuthManager.getClassroomAccountEmail(applicationContext)
-            ?: return Result.failure()
+        val emails = GoogleAuthManager.getClassroomAccountEmails(applicationContext)
+        if (emails.isEmpty()) return Result.failure()
 
         val prefs = AppPreferences(applicationContext)
         val db = ClassNoteDatabase.getDatabase(applicationContext)
-        val result = ClassroomSyncManager.sync(
-            applicationContext,
-            email,
-            db.reminderDao(),
-            db.reminderNotificationDao()
-        )
+        var totalImported = 0
+        var totalSkipped = 0
 
-        return when (result) {
-            is ClassroomSyncManager.SyncResult.Success -> {
-                prefs.lastClassroomSyncSummary = "已自動匯入 ${result.imported} 筆，略過 ${result.skipped} 筆"
-                Result.success()
+        for (email in emails) {
+            val result = ClassroomSyncManager.sync(
+                applicationContext, email,
+                db.reminderDao(), db.reminderNotificationDao()
+            )
+            when (result) {
+                is ClassroomSyncManager.SyncResult.Success -> {
+                    totalImported += result.imported
+                    totalSkipped += result.skipped
+                }
+                else -> {}
             }
-            is ClassroomSyncManager.SyncResult.Error -> Result.retry()
-            ClassroomSyncManager.SyncResult.NoPermission -> Result.failure()
         }
+
+        prefs.lastClassroomSyncSummary = "已自動匯入 $totalImported 筆，略過 $totalSkipped 筆"
+        return Result.success()
     }
 }

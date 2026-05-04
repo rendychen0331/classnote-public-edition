@@ -422,53 +422,18 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/tvGmailAccountEmail"
+                <!-- 動態帳號列表（程式碼注入） -->
+                <LinearLayout
+                    android:id="@+id/llGmailAccounts"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_gmail_not_signed_in"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface"
+                    android:orientation="vertical"
                     android:layout_marginBottom="8dp" />
 
                 <com.google.android.gms.common.SignInButton
                     android:id="@+id/btnGmailSignIn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnGmailSignOut"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:text="@string/settings_gmail_sign_out" />
-
-                <LinearLayout
-                    android:id="@+id/layoutUseDriveAccount"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginTop="8dp"
-                    android:visibility="gone">
-
-                    <TextView
-                        android:id="@+id/tvDriveAccountEmail"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnUseDriveAccount"
-                        style="@style/Widget.Material3.Button.TextButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_gmail_use_drive_account" />
-
-                </LinearLayout>
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -662,27 +627,17 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/tvClassroomAccountEmail"
+                <LinearLayout
+                    android:id="@+id/llClassroomAccounts"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_classroom_not_authorized"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface"
+                    android:orientation="vertical"
                     android:layout_marginBottom="8dp" />
 
                 <com.google.android.gms.common.SignInButton
                     android:id="@+id/btnClassroomAuth"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnClassroomSignOut"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:text="@string/settings_classroom_sign_out" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -838,27 +793,17 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/tvCalendarAccountEmail"
+                <LinearLayout
+                    android:id="@+id/llCalendarAccounts"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_calendar_no_permission"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface"
+                    android:orientation="vertical"
                     android:layout_marginBottom="8dp" />
 
                 <com.google.android.gms.common.SignInButton
                     android:id="@+id/btnCalendarSignIn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCalendarSignOut"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:text="@string/settings_calendar_sign_out" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -1014,27 +959,17 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/tvTasksAccountEmail"
+                <LinearLayout
+                    android:id="@+id/llTasksAccounts"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_tasks_no_permission"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface"
+                    android:orientation="vertical"
                     android:layout_marginBottom="8dp" />
 
                 <com.google.android.gms.common.SignInButton
                     android:id="@+id/btnTasksSignIn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTasksSignOut"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:text="@string/settings_tasks_sign_out" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

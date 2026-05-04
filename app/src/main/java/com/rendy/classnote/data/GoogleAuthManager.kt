@@ -177,4 +177,108 @@ object GoogleAuthManager {
             client.signOut().addOnCompleteListener { onDone() }
         }
     }
+
+    // ── Gmail 多帳號 ──────────────────────────────────────────────────────
+
+    private const val KEY_GMAIL_ACCOUNT_EMAILS = "gmail_account_emails"
+
+    fun getGmailAccountEmails(context: Context): Set<String> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val stored = prefs.getStringSet(KEY_GMAIL_ACCOUNT_EMAILS, null)
+        if (stored != null) return stored
+        val single = getAccount(context)?.email
+        return if (single != null) setOf(single) else emptySet()
+    }
+
+    fun addGmailAccountEmail(context: Context, email: String) {
+        val current = getGmailAccountEmails(context).toMutableSet()
+        current.add(email)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putStringSet(KEY_GMAIL_ACCOUNT_EMAILS, current).apply()
+    }
+
+    fun removeGmailAccountEmail(context: Context, email: String) {
+        val current = getGmailAccountEmails(context).toMutableSet()
+        current.remove(email)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putStringSet(KEY_GMAIL_ACCOUNT_EMAILS, current).apply()
+    }
+
+    // ── Classroom 多帳號 ─────────────────────────────────────────────────
+
+    private const val KEY_CLASSROOM_ACCOUNT_EMAILS = "classroom_account_emails"
+
+    fun getClassroomAccountEmails(context: Context): Set<String> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val stored = prefs.getStringSet(KEY_CLASSROOM_ACCOUNT_EMAILS, null)
+        if (stored != null) return stored
+        val single = getClassroomAccountEmail(context)
+        return if (single != null) setOf(single) else emptySet()
+    }
+
+    fun addClassroomAccountEmail(context: Context, email: String) {
+        val current = getClassroomAccountEmails(context).toMutableSet()
+        current.add(email)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putStringSet(KEY_CLASSROOM_ACCOUNT_EMAILS, current).apply()
+    }
+
+    fun removeClassroomAccountEmail(context: Context, email: String) {
+        val current = getClassroomAccountEmails(context).toMutableSet()
+        current.remove(email)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putStringSet(KEY_CLASSROOM_ACCOUNT_EMAILS, current).apply()
+    }
+
+    // ── Calendar 多帳號 ──────────────────────────────────────────────────
+
+    private const val KEY_CALENDAR_ACCOUNT_EMAILS = "calendar_account_emails"
+
+    fun getCalendarAccountEmails(context: Context): Set<String> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val stored = prefs.getStringSet(KEY_CALENDAR_ACCOUNT_EMAILS, null)
+        if (stored != null) return stored
+        val single = getCalendarAccountEmail(context)
+        return if (single != null) setOf(single) else emptySet()
+    }
+
+    fun addCalendarAccountEmail(context: Context, email: String) {
+        val current = getCalendarAccountEmails(context).toMutableSet()
+        current.add(email)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putStringSet(KEY_CALENDAR_ACCOUNT_EMAILS, current).apply()
+    }
+
+    fun removeCalendarAccountEmail(context: Context, email: String) {
+        val current = getCalendarAccountEmails(context).toMutableSet()
+        current.remove(email)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putStringSet(KEY_CALENDAR_ACCOUNT_EMAILS, current).apply()
+    }
+
+    // ── Tasks 多帳號 ─────────────────────────────────────────────────────
+
+    private const val KEY_TASKS_ACCOUNT_EMAILS = "tasks_account_emails"
+
+    fun getTasksAccountEmails(context: Context): Set<String> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val stored = prefs.getStringSet(KEY_TASKS_ACCOUNT_EMAILS, null)
+        if (stored != null) return stored
+        val single = getTasksAccountEmail(context)
+        return if (single != null) setOf(single) else emptySet()
+    }
+
+    fun addTasksAccountEmail(context: Context, email: String) {
+        val current = getTasksAccountEmails(context).toMutableSet()
+        current.add(email)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putStringSet(KEY_TASKS_ACCOUNT_EMAILS, current).apply()
+    }
+
+    fun removeTasksAccountEmail(context: Context, email: String) {
+        val current = getTasksAccountEmails(context).toMutableSet()
+        current.remove(email)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putStringSet(KEY_TASKS_ACCOUNT_EMAILS, current).apply()
+    }
 }

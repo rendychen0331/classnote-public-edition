@@ -15,7 +15,10 @@
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
 
     <application
         android:name=".ClassNoteApplication"
@@ -103,6 +106,12 @@
             android:name=".widget.OverviewRemoteViewsService"
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <!-- 錄音 Foreground Service -->
+        <service
+            android:name=".ui.classrecord.AudioRecordService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
 
         <!-- AI 通知解析：監聽所有通知並用 Gemini 自動辨識作業/活動 -->
         <service
