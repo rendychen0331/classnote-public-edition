@@ -61,16 +61,21 @@ jobs:
           APK=$(find app/build/outputs/apk/debug -name "*.apk" | head -1)
           $ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | tail -1)/apksigner verify --print-certs "$APK" | grep -E "SHA-1|SHA1"
 
+      - name: Rename APK
+        run: |
+          TAG=${GITHUB_REF_NAME:-build-${{ github.run_number }}}
+          mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/classnote-${TAG}.apk
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: classnote-debug-${{ github.run_number }}
-          path: app/build/outputs/apk/debug/*.apk
+          name: classnote-${{ github.run_number }}
+          path: app/build/outputs/apk/debug/classnote-*.apk
           retention-days: 30
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/debug/*.apk
+          files: app/build/outputs/apk/debug/classnote-*.apk
           generate_release_notes: true
