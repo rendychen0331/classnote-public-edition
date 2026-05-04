@@ -61,6 +61,8 @@ Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 >[!NOTE]
 >若你想自行Build APK，請見[Wiki-Setup](https://github.com/rendychen0331/classnote-public-edition/wiki/Setup)
 
+你可以直接下載[最新版APK](https://github.com/rendychen0331/classnote-public-edition/releases)使用
+
 [AI API Key取得](https://github.com/rendychen0331/classnote-public-edition/wiki/API-Keys)
 
 
