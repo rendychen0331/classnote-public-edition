@@ -290,6 +290,11 @@ class AppPreferences(context: Context) {
         get() = prefs.getInt(KEY_DEFAULT_REMIND_MINUTE, 0)
         set(value) = prefs.edit { putInt(KEY_DEFAULT_REMIND_MINUTE, value) }
 
+    /** 自動檢查更新開關。預設開啟。 */
+    var autoUpdateEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_UPDATE_ENABLED, true)
+        set(value) = prefs.edit { putBoolean(KEY_AUTO_UPDATE_ENABLED, value) }
+
     /** AI 通知解析開關：自動偵測通知並加入提醒。預設關閉。 */
     var notificationListenerAutoAdd: Boolean
         get() = prefs.getBoolean(KEY_NOTIF_LISTENER_AUTO_ADD, false)
@@ -423,6 +428,7 @@ class AppPreferences(context: Context) {
         private const val KEY_AUTO_ONEDRIVE_BACKUP_ENABLED = "auto_onedrive_backup_enabled"
         private const val KEY_AUTO_ONEDRIVE_BACKUP_INTERVAL_HOURS = "auto_onedrive_backup_interval_hours"
         private const val KEY_ONEDRIVE_BACKUP_NETWORK = "onedrive_backup_network_type"
+        private const val KEY_AUTO_UPDATE_ENABLED = "auto_update_enabled"
 
         const val NETWORK_WIFI = "wifi"
         const val NETWORK_MOBILE = "mobile"

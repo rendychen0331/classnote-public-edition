@@ -7,20 +7,27 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.BuildConfig
 import com.rendy.classnote.R
+import com.rendy.classnote.data.AppPreferences
+import com.rendy.classnote.data.AutoUpdateWorker
 import com.rendy.classnote.data.UpdateChecker
 import com.rendy.classnote.databinding.FragmentSettingsBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 
 class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
+    private lateinit var prefs: AppPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,6 +39,7 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        prefs = AppPreferences(requireContext())
         setupMenuRows()
         setupAboutSection()
         autoCheckUpdate()
@@ -78,6 +86,27 @@ class SettingsFragment : Fragment() {
         binding.btnCheckUpdate.setOnClickListener {
             performUpdateCheck(force = true)
         }
+
+        val autoUpdateEnabled = prefs.autoUpdateEnabled
+        binding.switchAutoUpdate.isChecked = autoUpdateEnabled
+        if (autoUpdateEnabled) scheduleAutoUpdate()
+        binding.switchAutoUpdate.setOnCheckedChangeListener { _, checked ->
+            prefs.autoUpdateEnabled = checked
+            if (checked) scheduleAutoUpdate() else cancelAutoUpdate()
+        }
+    }
+
+    private fun scheduleAutoUpdate() {
+        val request = PeriodicWorkRequestBuilder<AutoUpdateWorker>(24, TimeUnit.HOURS).build()
+        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+            AutoUpdateWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+            request
+        )
+    }
+
+    private fun cancelAutoUpdate() {
+        WorkManager.getInstance(requireContext()).cancelUniqueWork(AutoUpdateWorker.WORK_NAME)
     }
 
     private fun autoCheckUpdate() {
