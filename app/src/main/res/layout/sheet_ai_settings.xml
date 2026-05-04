@@ -455,8 +455,7 @@
                                 android:layout_width="18dp"
                                 android:layout_height="18dp"
                                 android:src="@drawable/ic_ai_openai"
-                                android:layout_marginEnd="6dp"
-                                app:tint="?attr/colorOnSurface" />
+                                android:layout_marginEnd="6dp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -571,8 +570,7 @@
                                 android:layout_width="18dp"
                                 android:layout_height="18dp"
                                 android:src="@drawable/ic_ai_groq"
-                                android:layout_marginEnd="6dp"
-                                app:tint="?attr/colorOnSurface" />
+                                android:layout_marginEnd="6dp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
