@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.common.SignInButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.R
@@ -159,6 +160,7 @@ class GoogleSyncSheet : Fragment() {
         binding.cardBackupNetwork.setOnClickListener { showBackupNetworkDialog() }
         setupAutoBackup()
 
+        binding.btnGoogleSignIn.setSize(SignInButton.SIZE_WIDE)
         binding.btnGoogleSignIn.setOnClickListener {
             signInLauncher.launch(GoogleAuthManager.getSignInIntent(requireContext()))
         }
@@ -395,14 +397,12 @@ class GoogleSyncSheet : Fragment() {
             updateDriveSection()
         }
 
+        binding.btnGmailSignIn.setSize(SignInButton.SIZE_WIDE)
         binding.btnGmailSignIn.setOnClickListener {
-            val account = GoogleAuthManager.getAccount(requireContext())
-            val hasPermission = account != null && GmailSyncManager.hasGmailPermission(requireContext(), account)
-            if (hasPermission) {
-                GoogleAuthManager.signOut(requireContext()) { updateGmailSection() }
-            } else {
-                gmailSignInLauncher.launch(GoogleAuthManager.getSignInIntentWithGmail(requireContext()))
-            }
+            gmailSignInLauncher.launch(GoogleAuthManager.getSignInIntentWithGmail(requireContext()))
+        }
+        binding.btnGmailSignOut.setOnClickListener {
+            GoogleAuthManager.signOut(requireContext()) { updateGmailSection() }
         }
 
         binding.btnUseDriveAccount.setOnClickListener {
@@ -477,10 +477,8 @@ class GoogleSyncSheet : Fragment() {
         val hasPermission = account != null && GmailSyncManager.hasGmailPermission(requireContext(), account)
 
         binding.tvGmailAccountEmail.text = account?.email ?: getString(R.string.settings_gmail_not_signed_in)
-        binding.btnGmailSignIn.text = if (hasPermission)
-            getString(R.string.settings_gmail_sign_out)
-        else
-            getString(R.string.settings_gmail_sign_in)
+        binding.btnGmailSignIn.visibility = if (!hasPermission) View.VISIBLE else View.GONE
+        binding.btnGmailSignOut.visibility = if (hasPermission) View.VISIBLE else View.GONE
 
         val driveAccount = GoogleAuthManager.getAccount(requireContext())
         val showUseDrive = driveAccount != null && !hasPermission
@@ -508,21 +506,20 @@ class GoogleSyncSheet : Fragment() {
             updateClassroomSection()
         }
 
+        binding.btnClassroomAuth.setSize(SignInButton.SIZE_WIDE)
         binding.btnClassroomAuth.setOnClickListener {
-            val email = GoogleAuthManager.getClassroomAccountEmail(requireContext())
-            if (email != null) {
-                GoogleAuthManager.clearClassroomAccount(requireContext())
-                GoogleAuthManager.signOutClassroom(requireContext()) {
-                    requireActivity().runOnUiThread { updateClassroomSection() }
+            GoogleAuthManager.signOutClassroom(requireContext()) {
+                requireActivity().runOnUiThread {
+                    classroomSignInLauncher.launch(
+                        GoogleAuthManager.getSignInIntentForClassroom(requireContext())
+                    )
                 }
-            } else {
-                GoogleAuthManager.signOutClassroom(requireContext()) {
-                    requireActivity().runOnUiThread {
-                        classroomSignInLauncher.launch(
-                            GoogleAuthManager.getSignInIntentForClassroom(requireContext())
-                        )
-                    }
-                }
+            }
+        }
+        binding.btnClassroomSignOut.setOnClickListener {
+            GoogleAuthManager.clearClassroomAccount(requireContext())
+            GoogleAuthManager.signOutClassroom(requireContext()) {
+                requireActivity().runOnUiThread { updateClassroomSection() }
             }
         }
 
@@ -589,10 +586,8 @@ class GoogleSyncSheet : Fragment() {
 
         binding.tvClassroomAccountEmail.text = email
             ?: getString(R.string.settings_classroom_not_authorized)
-        binding.btnClassroomAuth.text = if (hasAccount)
-            getString(R.string.settings_classroom_sign_out)
-        else
-            getString(R.string.settings_classroom_authorize)
+        binding.btnClassroomAuth.visibility = if (!hasAccount) View.VISIBLE else View.GONE
+        binding.btnClassroomSignOut.visibility = if (hasAccount) View.VISIBLE else View.GONE
 
         if (hasAccount) {
             binding.cardClassroomSync.visibility = View.VISIBLE
@@ -613,21 +608,20 @@ class GoogleSyncSheet : Fragment() {
             updateCalendarSection()
         }
 
+        binding.btnCalendarSignIn.setSize(SignInButton.SIZE_WIDE)
         binding.btnCalendarSignIn.setOnClickListener {
-            val email = GoogleAuthManager.getCalendarAccountEmail(requireContext())
-            if (email != null) {
-                GoogleAuthManager.clearCalendarAccount(requireContext())
-                GoogleAuthManager.signOutCalendar(requireContext()) {
-                    requireActivity().runOnUiThread { updateCalendarSection() }
+            GoogleAuthManager.signOutCalendar(requireContext()) {
+                requireActivity().runOnUiThread {
+                    calendarSignInLauncher.launch(
+                        GoogleAuthManager.getSignInIntentForCalendar(requireContext())
+                    )
                 }
-            } else {
-                GoogleAuthManager.signOutCalendar(requireContext()) {
-                    requireActivity().runOnUiThread {
-                        calendarSignInLauncher.launch(
-                            GoogleAuthManager.getSignInIntentForCalendar(requireContext())
-                        )
-                    }
-                }
+            }
+        }
+        binding.btnCalendarSignOut.setOnClickListener {
+            GoogleAuthManager.clearCalendarAccount(requireContext())
+            GoogleAuthManager.signOutCalendar(requireContext()) {
+                requireActivity().runOnUiThread { updateCalendarSection() }
             }
         }
 
@@ -686,10 +680,8 @@ class GoogleSyncSheet : Fragment() {
 
         binding.tvCalendarAccountEmail.text = email
             ?: getString(R.string.settings_calendar_no_permission)
-        binding.btnCalendarSignIn.text = if (hasAccount)
-            getString(R.string.settings_calendar_sign_out)
-        else
-            getString(R.string.settings_calendar_sign_in)
+        binding.btnCalendarSignIn.visibility = if (!hasAccount) View.VISIBLE else View.GONE
+        binding.btnCalendarSignOut.visibility = if (hasAccount) View.VISIBLE else View.GONE
 
         if (hasAccount) {
             binding.cardCalendarSync.visibility = View.VISIBLE
@@ -710,21 +702,20 @@ class GoogleSyncSheet : Fragment() {
             updateTasksSection()
         }
 
+        binding.btnTasksSignIn.setSize(SignInButton.SIZE_WIDE)
         binding.btnTasksSignIn.setOnClickListener {
-            val email = GoogleAuthManager.getTasksAccountEmail(requireContext())
-            if (email != null) {
-                GoogleAuthManager.clearTasksAccount(requireContext())
-                GoogleAuthManager.signOutTasks(requireContext()) {
-                    requireActivity().runOnUiThread { updateTasksSection() }
+            GoogleAuthManager.signOutTasks(requireContext()) {
+                requireActivity().runOnUiThread {
+                    tasksSignInLauncher.launch(
+                        GoogleAuthManager.getSignInIntentForTasks(requireContext())
+                    )
                 }
-            } else {
-                GoogleAuthManager.signOutTasks(requireContext()) {
-                    requireActivity().runOnUiThread {
-                        tasksSignInLauncher.launch(
-                            GoogleAuthManager.getSignInIntentForTasks(requireContext())
-                        )
-                    }
-                }
+            }
+        }
+        binding.btnTasksSignOut.setOnClickListener {
+            GoogleAuthManager.clearTasksAccount(requireContext())
+            GoogleAuthManager.signOutTasks(requireContext()) {
+                requireActivity().runOnUiThread { updateTasksSection() }
             }
         }
 
@@ -783,10 +774,8 @@ class GoogleSyncSheet : Fragment() {
 
         binding.tvTasksAccountEmail.text = email
             ?: getString(R.string.settings_tasks_no_permission)
-        binding.btnTasksSignIn.text = if (hasAccount)
-            getString(R.string.settings_tasks_sign_out)
-        else
-            getString(R.string.settings_tasks_sign_in)
+        binding.btnTasksSignIn.visibility = if (!hasAccount) View.VISIBLE else View.GONE
+        binding.btnTasksSignOut.visibility = if (hasAccount) View.VISIBLE else View.GONE
 
         if (hasAccount) {
             binding.cardTasksSync.visibility = View.VISIBLE

@@ -99,6 +99,7 @@ class AiSettingsSheet : Fragment() {
                     onSuccess = {
                         saveKey(et.text?.toString()?.trim() ?: "")
                         Toast.makeText(requireContext(), savedMsg, Toast.LENGTH_SHORT).show()
+                        refreshProviderChips()
                     }
                 )
             }
@@ -121,6 +122,7 @@ class AiSettingsSheet : Fragment() {
             switch.setOnCheckedChangeListener { _, checked ->
                 saveEnabled(checked)
                 keyLayout.visibility = if (checked) View.VISIBLE else View.GONE
+                refreshProviderChips()
             }
             setupKeyField(til, et, btn, getKey, saveKey, savedMsg)
         }
@@ -188,6 +190,32 @@ class AiSettingsSheet : Fragment() {
 
         setupChatProviderChips()
         setupNotifProviderChips()
+    }
+
+    private fun refreshProviderChips() {
+        val states = mapOf(
+            "gemini" to (prefs.geminiApiKey.isNotBlank() && prefs.geminiEnabled),
+            "mimo"   to (prefs.mimoApiKey.isNotBlank()   && prefs.mimoEnabled),
+            "claude" to (prefs.claudeApiKey.isNotBlank() && prefs.claudeEnabled),
+            "openai" to (prefs.openaiApiKey.isNotBlank() && prefs.openaiEnabled),
+            "groq"   to (prefs.groqApiKey.isNotBlank()   && prefs.groqEnabled)
+        )
+        listOf(
+            binding.chipChatGemini  to "gemini",
+            binding.chipChatMimo    to "mimo",
+            binding.chipChatClaude  to "claude",
+            binding.chipChatOpenai  to "openai",
+            binding.chipChatGroq    to "groq",
+            binding.chipNotifGemini to "gemini",
+            binding.chipNotifMimo   to "mimo",
+            binding.chipNotifClaude to "claude",
+            binding.chipNotifOpenai to "openai",
+            binding.chipNotifGroq   to "groq"
+        ).forEach { (chip, provider) ->
+            val active = states[provider] == true
+            chip.isEnabled = active
+            chip.alpha = if (active) 1f else 0.4f
+        }
     }
 
     private fun setupChatProviderChips() {

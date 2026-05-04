@@ -431,12 +431,18 @@
                     android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <com.google.android.gms.common.SignInButton
                     android:id="@+id/btnGmailSignIn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGmailSignOut"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_gmail_sign_in" />
+                    android:visibility="gone"
+                    android:text="@string/settings_gmail_sign_out" />
 
                 <LinearLayout
                     android:id="@+id/layoutUseDriveAccount"
@@ -665,12 +671,18 @@
                     android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <com.google.android.gms.common.SignInButton
                     android:id="@+id/btnClassroomAuth"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnClassroomSignOut"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_classroom_authorize" />
+                    android:visibility="gone"
+                    android:text="@string/settings_classroom_sign_out" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -835,12 +847,18 @@
                     android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <com.google.android.gms.common.SignInButton
                     android:id="@+id/btnCalendarSignIn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCalendarSignOut"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_calendar_sign_in" />
+                    android:visibility="gone"
+                    android:text="@string/settings_calendar_sign_out" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -1005,12 +1023,18 @@
                     android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <com.google.android.gms.common.SignInButton
                     android:id="@+id/btnTasksSignIn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTasksSignOut"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_tasks_sign_in" />
+                    android:visibility="gone"
+                    android:text="@string/settings_tasks_sign_out" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

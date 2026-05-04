@@ -105,17 +105,17 @@
                     android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp" />
 
-                <!-- 未登入：官方 Sign in with Microsoft 按鈕圖片 -->
-                <androidx.appcompat.widget.AppCompatImageView
+                <!-- 未登入：Sign in with Microsoft 按鈕 -->
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/ibtnMsSignIn"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:src="@drawable/ic_ms_signin"
-                    android:scaleType="fitStart"
-                    android:adjustViewBounds="true"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_height="wrap_content"
+                    android:text="以 Microsoft 帳號登入"
+                    app:icon="@drawable/ic_microsoft_logo"
+                    app:iconGravity="textStart"
+                    app:iconSize="18dp"
+                    app:iconPadding="8dp"
                     android:visibility="visible" />
 
                 <!-- 已登入：登出按鈕 -->

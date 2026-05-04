@@ -6,10 +6,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -82,6 +86,18 @@ class MainActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             binding.toolbar.menu.findItem(R.id.action_settings)
                 ?.isVisible = destination.id !in settingsDestinations
+        }
+
+        // adjustNothing：BottomNav 固定不動，鍵盤彈起時手動把內容區上推
+        // 注意：必須呼叫 ViewCompat.onApplyWindowInsets(view, insets) 讓
+        // CoordinatorLayout 的 fitsSystemWindows 繼續處理 status bar padding
+        val defaultNavBottomMargin = (80 * resources.displayMetrics.density).toInt()
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+            binding.navHostFragment.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = if (imeHeight > 0) imeHeight else defaultNavBottomMargin
+            }
+            ViewCompat.onApplyWindowInsets(view, insets)
         }
 
         // 僅首次建立時請求權限（避免旋轉螢幕重複跳轉設定頁）
