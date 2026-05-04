@@ -68,6 +68,11 @@ class LocalSyncSheet : Fragment() {
             }
         }
 
+        binding.switchImportHolidays.isChecked = prefs.localCalendarImportHolidays
+        binding.switchImportHolidays.setOnCheckedChangeListener { _, checked ->
+            prefs.localCalendarImportHolidays = checked
+        }
+
         binding.btnLocalCalendarSyncNow.setOnClickListener {
             binding.btnLocalCalendarSyncNow.isEnabled = false
             binding.tvLocalCalendarSyncStatus.text = "同步中..."
@@ -76,7 +81,8 @@ class LocalSyncSheet : Fragment() {
                 val result = LocalCalendarSyncManager.sync(
                     requireContext(),
                     app.database.reminderDao(),
-                    app.database.reminderNotificationDao()
+                    app.database.reminderNotificationDao(),
+                    importHolidays = prefs.localCalendarImportHolidays
                 )
                 binding.btnLocalCalendarSyncNow.isEnabled = true
                 val summary = when (result) {

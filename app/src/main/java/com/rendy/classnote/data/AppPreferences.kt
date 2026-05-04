@@ -310,10 +310,20 @@ class AppPreferences(context: Context) {
         get() = prefs.getInt(KEY_AUTO_LOCAL_CALENDAR_SYNC_INTERVAL_HOURS, 6)
         set(value) = prefs.edit { putInt(KEY_AUTO_LOCAL_CALENDAR_SYNC_INTERVAL_HOURS, value) }
 
+    /** 本地日曆同步是否匯入節假日行事曆。預設關閉。 */
+    var localCalendarImportHolidays: Boolean
+        get() = prefs.getBoolean(KEY_LOCAL_CALENDAR_IMPORT_HOLIDAYS, false)
+        set(value) = prefs.edit { putBoolean(KEY_LOCAL_CALENDAR_IMPORT_HOLIDAYS, value) }
+
     /** 自動檢查更新開關。預設開啟。 */
     var autoUpdateEnabled: Boolean
         get() = prefs.getBoolean(KEY_AUTO_UPDATE_ENABLED, true)
         set(value) = prefs.edit { putBoolean(KEY_AUTO_UPDATE_ENABLED, value) }
+
+    /** 自動檢查更新間隔（小時）。預設 24 小時。 */
+    var autoUpdateIntervalHours: Int
+        get() = prefs.getInt(KEY_AUTO_UPDATE_INTERVAL_HOURS, 24)
+        set(value) = prefs.edit { putInt(KEY_AUTO_UPDATE_INTERVAL_HOURS, value) }
 
     /** AI 通知解析開關：自動偵測通知並加入提醒。預設關閉。 */
     var notificationListenerAutoAdd: Boolean
@@ -452,7 +462,9 @@ class AppPreferences(context: Context) {
         private const val KEY_LOCAL_CALENDAR_SYNC_SUMMARY = "local_calendar_sync_summary"
         private const val KEY_AUTO_LOCAL_CALENDAR_SYNC_ENABLED = "auto_local_calendar_sync_enabled"
         private const val KEY_AUTO_LOCAL_CALENDAR_SYNC_INTERVAL_HOURS = "auto_local_calendar_sync_interval_hours"
+        private const val KEY_LOCAL_CALENDAR_IMPORT_HOLIDAYS = "local_calendar_import_holidays"
         private const val KEY_AUTO_UPDATE_ENABLED = "auto_update_enabled"
+        private const val KEY_AUTO_UPDATE_INTERVAL_HOURS = "auto_update_interval_hours"
 
         const val NETWORK_WIFI = "wifi"
         const val NETWORK_MOBILE = "mobile"

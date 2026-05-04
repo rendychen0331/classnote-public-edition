@@ -19,7 +19,8 @@ class LocalCalendarSyncWorker(context: Context, params: WorkerParameters) : Coro
         return when (val result = LocalCalendarSyncManager.sync(
             applicationContext,
             db.reminderDao(),
-            db.reminderNotificationDao()
+            db.reminderNotificationDao(),
+            importHolidays = prefs.localCalendarImportHolidays
         )) {
             is LocalCalendarSyncManager.SyncResult.Success -> {
                 prefs.lastLocalCalendarSyncSummary = "已自動匯入 ${result.imported} 筆，略過 ${result.skipped} 筆"

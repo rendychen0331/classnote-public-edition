@@ -23,6 +23,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
+private val UPDATE_INTERVAL_OPTIONS = listOf(6, 12, 24, 72)
+private fun intervalLabel(hours: Int) = when (hours) {
+    6 -> "每 6 小時"
+    12 -> "每 12 小時"
+    24 -> "每 24 小時"
+    72 -> "每 3 天"
+    else -> "每 $hours 小時"
+}
+
 class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
@@ -89,20 +98,46 @@ class SettingsFragment : Fragment() {
 
         val autoUpdateEnabled = prefs.autoUpdateEnabled
         binding.switchAutoUpdate.isChecked = autoUpdateEnabled
+        binding.rowAutoUpdateInterval.visibility = if (autoUpdateEnabled) View.VISIBLE else View.GONE
+        binding.tvAutoUpdateInterval.text = intervalLabel(prefs.autoUpdateIntervalHours)
         if (autoUpdateEnabled) scheduleAutoUpdate()
+
         binding.switchAutoUpdate.setOnCheckedChangeListener { _, checked ->
             prefs.autoUpdateEnabled = checked
+            binding.rowAutoUpdateInterval.visibility = if (checked) View.VISIBLE else View.GONE
             if (checked) scheduleAutoUpdate() else cancelAutoUpdate()
+        }
+
+        binding.rowAutoUpdateInterval.setOnClickListener {
+            showAutoUpdateIntervalDialog()
         }
     }
 
     private fun scheduleAutoUpdate() {
-        val request = PeriodicWorkRequestBuilder<AutoUpdateWorker>(24, TimeUnit.HOURS).build()
+        val hours = prefs.autoUpdateIntervalHours.toLong()
+        val request = PeriodicWorkRequestBuilder<AutoUpdateWorker>(hours, TimeUnit.HOURS).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
             AutoUpdateWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
             request
         )
+    }
+
+    private fun showAutoUpdateIntervalDialog() {
+        val labels = UPDATE_INTERVAL_OPTIONS.map { intervalLabel(it) }.toTypedArray()
+        val current = prefs.autoUpdateIntervalHours
+        val checked = UPDATE_INTERVAL_OPTIONS.indexOf(current).coerceAtLeast(0)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("更新頻率")
+            .setSingleChoiceItems(labels, checked) { dialog, which ->
+                val hours = UPDATE_INTERVAL_OPTIONS[which]
+                prefs.autoUpdateIntervalHours = hours
+                binding.tvAutoUpdateInterval.text = intervalLabel(hours)
+                scheduleAutoUpdate()
+                dialog.dismiss()
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
 
     private fun cancelAutoUpdate() {

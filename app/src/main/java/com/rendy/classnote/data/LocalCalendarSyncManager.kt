@@ -28,10 +28,16 @@ object LocalCalendarSyncManager {
     private val DATE_FMT = DateTimeFormatter.ISO_LOCAL_DATE
     private val TIME_FMT = DateTimeFormatter.ofPattern("HH:mm")
 
+    private val HOLIDAY_KEYWORDS = listOf("假日", "holiday", "節日", "節假日")
+
+    private fun isHolidayCalendar(displayName: String): Boolean =
+        HOLIDAY_KEYWORDS.any { displayName.contains(it, ignoreCase = true) }
+
     suspend fun sync(
         context: Context,
         dao: ReminderDao,
-        notificationDao: ReminderNotificationDao
+        notificationDao: ReminderNotificationDao,
+        importHolidays: Boolean = false
     ): SyncResult = withContext(Dispatchers.IO) {
         try {
             val now = System.currentTimeMillis()
@@ -40,6 +46,9 @@ object LocalCalendarSyncManager {
 
             // 先讀取所有日曆的 displayName，用 calendarId 對照
             val calendarNames = queryCalendarNames(context)
+            val holidayCalendarIds = if (!importHolidays)
+                calendarNames.filter { (_, name) -> isHolidayCalendar(name) }.keys
+            else emptySet()
 
             val eventProjection = arrayOf(
                 CalendarContract.Events._ID,
@@ -74,6 +83,11 @@ object LocalCalendarSyncManager {
                     val dtEnd = it.getLong(4)
                     val allDay = it.getInt(5) != 0
                     val calendarId = it.getLong(6)
+
+                    if (calendarId in holidayCalendarIds) {
+                        skipped++
+                        continue
+                    }
 
                     val externalId = "lcal:$calendarId:$eventId"
                     if (dao.findByExternalId(externalId) != null) {
