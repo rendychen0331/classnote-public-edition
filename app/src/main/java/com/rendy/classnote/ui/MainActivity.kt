@@ -70,8 +70,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.reminderListFragment,
                 R.id.formulaListFragment,
                 R.id.weatherFragment,
-                R.id.classRecordListFragment,
-                R.id.settingsFragment
+                R.id.classRecordListFragment
             )
         )
         binding.toolbar.setupWithNavController(navController, appBarConfig)
