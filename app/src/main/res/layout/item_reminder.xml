@@ -147,14 +147,6 @@
 
         </LinearLayout>
 
-        <!-- Action buttons -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnEdit"
-            style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:contentDescription="@string/edit"
-            app:icon="@drawable/ic_reminder" />
 
 
     </LinearLayout>

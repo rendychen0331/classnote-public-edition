@@ -45,12 +45,6 @@ class ReminderListFragment : Fragment() {
 
         adapter = ReminderAdapter(
             onComplete = { reminder -> viewModel.completeReminder(reminder.id) },
-            onEdit = { reminder ->
-                findNavController().navigate(
-                    ReminderListFragmentDirections
-                        .actionReminderListFragmentToReminderEditFragment(reminder.id)
-                )
-            },
             onItemClick = { reminder ->
                 findNavController().navigate(
                     ReminderListFragmentDirections
