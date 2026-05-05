@@ -111,6 +111,11 @@ class ReminderDetailFragment : Fragment() {
             if (!reminder.rawNotification.isNullOrBlank()) {
                 binding.sectionRawNotification.visibility = View.VISIBLE
                 binding.tvDetailRawNotification.text = reminder.rawNotification
+                binding.rowRawNotificationHeader.setOnClickListener {
+                    val expanded = binding.tvDetailRawNotification.visibility == View.VISIBLE
+                    binding.tvDetailRawNotification.visibility = if (expanded) View.GONE else View.VISIBLE
+                    binding.ivRawNotificationChevron.rotation = if (expanded) 90f else 270f
+                }
             }
 
             // ── 重複 ─────────────────────────────────────────────────────────

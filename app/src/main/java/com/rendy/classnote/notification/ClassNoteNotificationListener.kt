@@ -90,6 +90,11 @@ class ClassNoteNotificationListener : NotificationListenerService() {
 
         if (text.isBlank()) return
 
+        if (prefs.sensitiveKeywordsEnabled) {
+            val combined = "$title $text"
+            if (SENSITIVE_KEYWORDS.any { combined.contains(it, ignoreCase = true) }) return
+        }
+
         val dedupeKey = "${sbn.packageName}|$title|${text.take(100)}"
         val isNew = synchronized(seenKeys) {
             if (seenKeys.contains(dedupeKey)) false
@@ -253,5 +258,11 @@ class ClassNoteNotificationListener : NotificationListenerService() {
     companion object {
         private const val TAG = "ClassNoteNotifListener"
         private const val BATCH_DELAY_MS = 10_000L
+
+        private val SENSITIVE_KEYWORDS = setOf(
+            "驗證碼", "認證碼", "OTP", "一次性密碼",
+            "verification code", "one-time password", "one time password",
+            "身份證", "身分證", "國民身分證", "證號", "身份證字號", "身分證字號"
+        )
     }
 }

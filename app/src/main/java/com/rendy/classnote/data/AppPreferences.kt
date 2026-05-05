@@ -330,6 +330,10 @@ class AppPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_NOTIF_LISTENER_AUTO_ADD, false)
         set(value) = prefs.edit { putBoolean(KEY_NOTIF_LISTENER_AUTO_ADD, value) }
 
+    var sensitiveKeywordsEnabled: Boolean
+        get() = prefs.getBoolean(KEY_SENSITIVE_KEYWORDS_ENABLED, true)
+        set(value) = prefs.edit { putBoolean(KEY_SENSITIVE_KEYWORDS_ENABLED, value) }
+
     /**
      * 要監控的 App package name 清單。
      * 空集合 = 監控所有 App；非空 = 只監控清單內的 App。
@@ -465,6 +469,7 @@ class AppPreferences(context: Context) {
         private const val KEY_LOCAL_CALENDAR_IMPORT_HOLIDAYS = "local_calendar_import_holidays"
         private const val KEY_AUTO_UPDATE_ENABLED = "auto_update_enabled"
         private const val KEY_AUTO_UPDATE_INTERVAL_HOURS = "auto_update_interval_hours"
+        private const val KEY_SENSITIVE_KEYWORDS_ENABLED = "sensitive_keywords_enabled"
 
         const val NETWORK_WIFI = "wifi"
         const val NETWORK_MOBILE = "mobile"

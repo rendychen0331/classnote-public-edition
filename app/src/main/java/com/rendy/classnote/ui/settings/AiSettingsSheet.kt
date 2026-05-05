@@ -357,6 +357,11 @@ class AiSettingsSheet : Fragment() {
                 true
             ).show()
         }
+
+        binding.switchSensitiveKeywords.isChecked = prefs.sensitiveKeywordsEnabled
+        binding.switchSensitiveKeywords.setOnCheckedChangeListener { _, checked ->
+            prefs.sensitiveKeywordsEnabled = checked
+        }
     }
 
     private fun updateAiNotifySettingsVisibility() {

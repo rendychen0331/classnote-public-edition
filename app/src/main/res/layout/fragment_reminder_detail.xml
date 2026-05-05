@@ -173,12 +173,32 @@
             android:layout_marginBottom="14dp"
             android:visibility="gone">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/rowRawNotificationHeader"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="原始通知"
-                android:textAppearance="?attr/textAppearanceLabelMedium"
-                android:textColor="?attr/colorOutline" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="原始通知"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="?attr/colorOutline" />
+
+                <ImageView
+                    android:id="@+id/ivRawNotificationChevron"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:rotation="90"
+                    android:contentDescription="@null" />
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvDetailRawNotification"
@@ -188,7 +208,8 @@
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:lineSpacingMultiplier="1.4"
-                android:fontFamily="monospace" />
+                android:fontFamily="monospace"
+                android:visibility="gone" />
 
         </LinearLayout>
 
