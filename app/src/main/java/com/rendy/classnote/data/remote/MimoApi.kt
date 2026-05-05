@@ -24,7 +24,7 @@ object MimoApi {
     suspend fun analyzeNotifications(
         apiKey: String,
         inputs: List<GeminiApi.NotificationInput>
-    ): List<GeminiApi.EventInfo?> = withContext(Dispatchers.IO) {
+    ): List<List<GeminiApi.EventInfo>> = withContext(Dispatchers.IO) {
         if (apiKey.isBlank() || inputs.isEmpty()) return@withContext emptyList()
         val prompt = GeminiApi.buildBatchPrompt(inputs)
         var responseText: String? = null
@@ -69,7 +69,7 @@ object MimoApi {
             }
         }
         ApiLogger.log("mimo(通知辨識)", prompt.take(300), responseText?.take(300), duration, success)
-        if (!success || responseText == null) return@withContext List(inputs.size) { null }
+        if (!success || responseText == null) return@withContext List(inputs.size) { emptyList() }
         GeminiApi.parseNotificationJsonText(responseText!!, inputs.size)
     }
 

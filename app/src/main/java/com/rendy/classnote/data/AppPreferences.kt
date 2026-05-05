@@ -334,6 +334,11 @@ class AppPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_SENSITIVE_KEYWORDS_ENABLED, true)
         set(value) = prefs.edit { putBoolean(KEY_SENSITIVE_KEYWORDS_ENABLED, value) }
 
+    /** 待確認的 AI 辨識事件（JSON 陣列字串），超過 5 筆時暫存等待使用者確認。 */
+    var pendingAiEvents: String
+        get() = prefs.getString(KEY_PENDING_AI_EVENTS, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_PENDING_AI_EVENTS, value) }
+
     /**
      * 要監控的 App package name 清單。
      * 空集合 = 監控所有 App；非空 = 只監控清單內的 App。
@@ -470,6 +475,7 @@ class AppPreferences(context: Context) {
         private const val KEY_AUTO_UPDATE_ENABLED = "auto_update_enabled"
         private const val KEY_AUTO_UPDATE_INTERVAL_HOURS = "auto_update_interval_hours"
         private const val KEY_SENSITIVE_KEYWORDS_ENABLED = "sensitive_keywords_enabled"
+        private const val KEY_PENDING_AI_EVENTS = "pending_ai_events"
 
         const val NETWORK_WIFI = "wifi"
         const val NETWORK_MOBILE = "mobile"

@@ -18,6 +18,7 @@ object NotificationHelper {
 
     private const val CHANNEL_AI_ID = "classnote_ai_status"
     private const val AI_STATUS_NOTIF_ID = 9_001
+    private const val PENDING_CONFIRM_NOTIF_ID = 9_002
 
     fun createAiStatusChannel(context: Context) {
         val channel = NotificationChannel(
@@ -92,6 +93,44 @@ object NotificationHelper {
     fun cancelAiStatus(context: Context) {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.cancel(AI_STATUS_NOTIF_ID)
+    }
+
+    fun showAiPendingConfirmation(context: Context, count: Int, titles: List<String>) {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val confirmIntent = Intent(context, AiConfirmReceiver::class.java).apply {
+            action = AiConfirmReceiver.ACTION_CONFIRM
+        }
+        val confirmPi = PendingIntent.getBroadcast(
+            context, PENDING_CONFIRM_NOTIF_ID, confirmIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val cancelIntent = Intent(context, AiConfirmReceiver::class.java).apply {
+            action = AiConfirmReceiver.ACTION_CANCEL
+        }
+        val cancelPi = PendingIntent.getBroadcast(
+            context, PENDING_CONFIRM_NOTIF_ID + 1, cancelIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val body = titles.take(3).joinToString("、").let {
+            if (titles.size > 3) "$it 等" else it
+        }
+        val n = NotificationCompat.Builder(context, CHANNEL_AI_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("偵測到 $count 個提醒事項")
+            .setContentText("$body，是否全部加入？")
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText("$body\n\n共 $count 個事件，點「全部加入」確認新增。"))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(false)
+            .addAction(0, "全部加入", confirmPi)
+            .addAction(0, "取消", cancelPi)
+            .build()
+        manager.notify(PENDING_CONFIRM_NOTIF_ID, n)
+    }
+
+    fun cancelPendingConfirmation(context: Context) {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.cancel(PENDING_CONFIRM_NOTIF_ID)
     }
 
     fun createNotificationChannel(context: Context, bypassDnd: Boolean = false) {
