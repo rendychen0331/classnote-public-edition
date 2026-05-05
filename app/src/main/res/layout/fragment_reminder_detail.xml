@@ -164,6 +164,34 @@
 
         </LinearLayout>
 
+        <!-- 原始通知 -->
+        <LinearLayout
+            android:id="@+id/sectionRawNotification"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="14dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="原始通知"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorOutline" />
+
+            <TextView
+                android:id="@+id/tvDetailRawNotification"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:lineSpacingMultiplier="1.4"
+                android:fontFamily="monospace" />
+
+        </LinearLayout>
+
         <!-- 重複 -->
         <LinearLayout
             android:id="@+id/sectionRepeat"

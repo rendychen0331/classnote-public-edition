@@ -169,7 +169,8 @@ class ClassNoteNotificationListener : NotificationListenerService() {
                         }
                         if (duplicate) return@forEachIndexed
 
-                        val fallbackNote = batch.getOrNull(i)?.text?.take(300) ?: ""
+                        val input = batch.getOrNull(i)
+                        val fallbackNote = input?.text?.take(300) ?: ""
                         val reminderId = dao.insertReminder(
                             ReminderEntity(
                                 title = event.title,
@@ -178,11 +179,18 @@ class ClassNoteNotificationListener : NotificationListenerService() {
                                 dueTime = event.dueTime,
                                 category = event.category,
                                 syncSource = "notify",
-                                sourceName = batch.getOrNull(i)?.let { input ->
-                                    val groupName = input.title.trim()
-                                    if (groupName.isNotBlank() && groupName != input.appLabel)
-                                        "${input.appLabel}・$groupName"
-                                    else input.appLabel
+                                sourceName = input?.let { inp ->
+                                    val groupName = inp.title.trim()
+                                    if (groupName.isNotBlank() && groupName != inp.appLabel)
+                                        "${inp.appLabel}・$groupName"
+                                    else inp.appLabel
+                                },
+                                rawNotification = input?.let { inp ->
+                                    buildString {
+                                        append("[${inp.appLabel}]")
+                                        if (inp.title.isNotBlank()) append("\n${inp.title}")
+                                        if (inp.text.isNotBlank()) append("\n${inp.text}")
+                                    }
                                 }
                             )
                         )

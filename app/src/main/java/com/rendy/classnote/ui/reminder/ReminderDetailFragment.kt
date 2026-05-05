@@ -107,6 +107,12 @@ class ReminderDetailFragment : Fragment() {
                 binding.tvDetailNote.text = reminder.note
             }
 
+            // ── 原始通知 ─────────────────────────────────────────────────────
+            if (!reminder.rawNotification.isNullOrBlank()) {
+                binding.sectionRawNotification.visibility = View.VISIBLE
+                binding.tvDetailRawNotification.text = reminder.rawNotification
+            }
+
             // ── 重複 ─────────────────────────────────────────────────────────
             val repeatLabel = when (reminder.repeatType) {
                 "DAILY" -> getString(R.string.repeat_daily)

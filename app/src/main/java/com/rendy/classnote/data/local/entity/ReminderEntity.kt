@@ -39,5 +39,6 @@ data class ReminderEntity(
     val externalId: String? = null,  // 外部來源唯一識別碼，如 "gmail:MSG_ID"
     val syncSource: String? = null,  // 同步來源："gmail" | "classroom" | "notify"
     val sourceName: String? = null,  // 來源顯示名稱，如課程名稱或寄件者
-    val repeatType: String = "NONE"  // NONE / DAILY / WEEKLY / MONTHLY
+    val repeatType: String = "NONE",  // NONE / DAILY / WEEKLY / MONTHLY
+    val rawNotification: String? = null  // 原始通知完整文字（通知監聽來源）
 )
