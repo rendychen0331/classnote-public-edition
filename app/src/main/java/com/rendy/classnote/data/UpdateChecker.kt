@@ -58,7 +58,8 @@ object UpdateChecker {
             } ?: return@withContext null
 
             val currentTag = BuildConfig.RELEASE_TAG
-            val isNewer = currentTag == "dev" || isTagNewer(tagName, currentTag)
+            if (currentTag == "dev") return@withContext null
+            val isNewer = isTagNewer(tagName, currentTag)
             ReleaseInfo(tagName, apkUrl, isNewer)
         } catch (e: Exception) {
             Log.e(TAG, "checkForUpdate error", e)

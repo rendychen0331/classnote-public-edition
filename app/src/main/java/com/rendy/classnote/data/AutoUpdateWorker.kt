@@ -14,7 +14,7 @@ import com.rendy.classnote.ui.MainActivity
 class AutoUpdateWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val info = UpdateChecker.checkForUpdate(applicationContext, force = true)
+        val info = UpdateChecker.checkForUpdate(applicationContext, force = false)
             ?: return Result.success()
         if (!info.isNewer) return Result.success()
         showUpdateNotification(applicationContext, info.tagName)
