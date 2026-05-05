@@ -16,8 +16,7 @@ object BiometricHelper {
             BiometricManager.Authenticators.BIOMETRIC_STRONG or
                     BiometricManager.Authenticators.DEVICE_CREDENTIAL
         )
-        return result == BiometricManager.BIOMETRIC_SUCCESS ||
-                result == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED
+        return result == BiometricManager.BIOMETRIC_SUCCESS
     }
 
     /**
@@ -35,6 +34,15 @@ object BiometricHelper {
         onSuccess: () -> Unit,
         onCancel: (() -> Unit)? = null
     ) {
+        val manager = BiometricManager.from(fragment.requireContext())
+        val canAuth = manager.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        )
+        if (canAuth != BiometricManager.BIOMETRIC_SUCCESS) {
+            onSuccess()
+            return
+        }
         val executor = ContextCompat.getMainExecutor(fragment.requireContext())
 
         val callback = object : BiometricPrompt.AuthenticationCallback() {
