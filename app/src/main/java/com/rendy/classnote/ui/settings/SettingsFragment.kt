@@ -23,12 +23,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
-private val UPDATE_INTERVAL_OPTIONS = listOf(6, 12, 24, 72)
+private val UPDATE_INTERVAL_OPTIONS = listOf(24, 72, 168)
 private fun intervalLabel(hours: Int) = when (hours) {
-    6 -> "每 6 小時"
-    12 -> "每 12 小時"
-    24 -> "每 24 小時"
+    24 -> "每天"
     72 -> "每 3 天"
+    168 -> "每週"
     else -> "每 $hours 小時"
 }
 
