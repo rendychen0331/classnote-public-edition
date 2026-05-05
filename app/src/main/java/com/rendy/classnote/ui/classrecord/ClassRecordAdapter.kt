@@ -4,7 +4,7 @@ import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -27,6 +27,7 @@ sealed class ClassRecordListItem {
 }
 
 class ClassRecordAdapter(
+    private val lifecycleOwner: LifecycleOwner,
     private val onClick: (ClassRecordEntity) -> Unit
 ) : ListAdapter<ClassRecordListItem, RecyclerView.ViewHolder>(DiffCallback) {
 
@@ -67,21 +68,16 @@ class ClassRecordAdapter(
             if (firstPhotoPath != null) {
                 binding.ivThumbnail.visibility = View.VISIBLE
                 binding.ivThumbnail.setImageBitmap(null)
-                val owner = itemView.findViewTreeLifecycleOwner()
-                if (owner != null) {
-                    thumbJob = owner.lifecycleScope.launch {
-                        val opts = BitmapFactory.Options().apply { inSampleSize = 4 }
-                        val bmp = withContext(Dispatchers.IO) {
-                            BitmapFactory.decodeFile(firstPhotoPath, opts)
-                        }
-                        if (bmp != null) {
-                            binding.ivThumbnail.setImageBitmap(bmp)
-                        } else {
-                            binding.ivThumbnail.visibility = View.GONE
-                        }
+                thumbJob = lifecycleOwner.lifecycleScope.launch {
+                    val opts = BitmapFactory.Options().apply { inSampleSize = 4 }
+                    val bmp = withContext(Dispatchers.IO) {
+                        BitmapFactory.decodeFile(firstPhotoPath, opts)
                     }
-                } else {
-                    binding.ivThumbnail.visibility = View.GONE
+                    if (bmp != null) {
+                        binding.ivThumbnail.setImageBitmap(bmp)
+                    } else {
+                        binding.ivThumbnail.visibility = View.GONE
+                    }
                 }
             } else {
                 binding.ivThumbnail.visibility = View.GONE

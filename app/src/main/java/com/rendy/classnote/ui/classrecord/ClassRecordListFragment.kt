@@ -39,6 +39,7 @@ class ClassRecordListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = ClassRecordAdapter(
+            lifecycleOwner = viewLifecycleOwner,
             onClick = { record ->
                 findNavController().navigate(
                     ClassRecordListFragmentDirections
