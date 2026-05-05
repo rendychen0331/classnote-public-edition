@@ -281,7 +281,6 @@ class AiSettingsSheet : Fragment() {
         binding.cardGroq.visibility = v
         binding.cardChatProvider.visibility = v
         binding.cardNotifProvider.visibility = v
-        binding.cardNotifListenerSwitch.visibility = v
     }
 
     // ── 通知辨識 ──
