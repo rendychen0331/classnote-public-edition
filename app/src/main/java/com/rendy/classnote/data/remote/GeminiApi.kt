@@ -27,7 +27,7 @@ object GeminiApi {
 嚴格規則：
 1. 只能使用通知文字中明確出現的資訊，絕對不能猜測、推測或補充通知裡沒有的內容。
 2. 截止日期（dueDate）和時間（dueTime）：通知中有提到日期或時間時必須填入，包含相對時間（「明天」「下週」「等下X分」「X分後」「X分鐘後」等）皆需換算為絕對日期/時間，沒有提到才填 null。
-3. title 必須使用通知中的事件名稱，不得自行創造或修改。
+3. title 必須從「內容」欄位中提取事件名稱，不得使用「發送者/群組」欄位的值（那是通知來源，不是事件名稱）。
 4. 沒有明確的待辦、截止、提醒等時間性意圖時，回傳 isEvent:false（例如純廣告、新聞、聊天訊息）。
 5. 只回傳純 JSON，不含任何解釋、標記符號或多餘文字。"""
 
@@ -52,24 +52,24 @@ object GeminiApi {
     suspend fun analyzeNotifications(
         apiKey: String,
         inputs: List<NotificationInput>
-    ): List<EventInfo?> = withContext(Dispatchers.IO) {
+    ): List<List<EventInfo>> = withContext(Dispatchers.IO) {
         if (apiKey.isBlank() || inputs.isEmpty()) return@withContext emptyList()
         val prompt = buildBatchPrompt(inputs)
         var responseJson: String? = null
         var success = false
         val duration = measureTimeMillis {
             try {
-                responseJson = callGemini(apiKey, prompt, NOTIFICATION_ENDPOINT)
+                responseJson = callGemini(apiKey, prompt, NOTIFICATION_ENDPOINT, maxTokens = 1200)
                 success = responseJson != null
             } catch (e: Exception) {
                 Log.e(TAG, "analyzeNotifications failed", e)
             }
         }
         ApiLogger.log("gemini-flash(通知辨識)", prompt.take(300), responseJson?.take(300), duration, success)
-        if (!success) return@withContext List(inputs.size) { null }
+        if (!success) return@withContext List(inputs.size) { emptyList() }
         try { parseBatchResponse(responseJson!!, inputs.size) } catch (e: Exception) {
             Log.e(TAG, "parseBatchResponse failed", e)
-            List(inputs.size) { null }
+            List(inputs.size) { emptyList() }
         }
     }
 
@@ -78,22 +78,24 @@ object GeminiApi {
         val today = now.toLocalDate().toString()  // YYYY-MM-DD
         val currentTime = now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
         val notifList = inputs.mapIndexed { i, n ->
-            "通知 ${i + 1}｜來源：${n.appLabel}\n<notification_content>\n標題：${n.title}\n內容：${n.text}\n</notification_content>"
+            "通知 ${i + 1}｜來源：${n.appLabel}\n<notification_content>\n發送者/群組：${n.title}\n內容：${n.text}\n</notification_content>"
         }.joinToString("\n\n")
 
         return """
 今天日期：$today
 現在時間：$currentTime
 
-以下是 ${inputs.size} 則手機通知，請逐一判斷是否為需要記錄的提醒事項（作業截止、考試、繳費期限、活動、集合、吃藥、約會、任何有時間性的待辦等）。
+以下是 ${inputs.size} 則手機通知，請逐一判斷是否包含需要記錄的提醒事項（作業截止、考試、繳費期限、活動、集合、吃藥、約會、任何有時間性的待辦等）。
 
 $notifList
 
 ---
-回傳一個 JSON 陣列，長度必須等於通知數量（${inputs.size} 個元素），每個元素對應一則通知：
+回傳一個 JSON 陣列，長度必須等於通知數量（${inputs.size} 個元素），每個元素是對應通知的事件陣列：
 
-若是提醒事項：{"isEvent":true,"title":"事件名稱","dueDate":"YYYY-MM-DD 或 null","dueTime":"HH:MM 或 null","category":"類別","note":"補充說明，最多 80 字"}
-若不是：{"isEvent":false}
+有事件：[{"title":"事件名稱","dueDate":"YYYY-MM-DD 或 null","dueTime":"HH:MM 或 null","category":"類別","note":"補充說明，最多 80 字"}, ...]
+無事件（廣告、純聊天等）：[]
+
+一則通知可以包含多個事件（例如通知提到兩個不同日期的考試，需分別輸出）。
 
 category 值：HOMEWORK（作業）、EXAM（考試）、PAYMENT（繳費）、EVENT（活動）、REMINDER（其他）
 
@@ -102,17 +104,20 @@ category 值：HOMEWORK（作業）、EXAM（考試）、PAYMENT（繳費）、E
 - 「明天」「下週X」等相對日期 → 換算為絕對日期 YYYY-MM-DD
 - 「今天下午X點」「晚上X點」等 → 換算為 HH:MM 24小時制
 
-示例（2 則通知）：
+示例（2 則通知，第一則有 2 個事件，第二則沒有）：
 [
-  {"isEvent":true,"title":"音樂教室集合","dueDate":"2026-04-27","dueTime":"14:30","category":"EVENT","note":"一部全體在音樂教室集合"},
-  {"isEvent":false}
+  [
+    {"title":"課堂考2-3","dueDate":"2026-05-06","dueTime":null,"category":"EXAM","note":"5/6三課堂考"},
+    {"title":"小考2-1+2-2","dueDate":"2026-05-11","dueTime":null,"category":"EXAM","note":"5/11一小考"}
+  ],
+  []
 ]
 
 只回傳 JSON 陣列，不含任何其他文字。
         """.trimIndent()
     }
 
-    private fun callGemini(apiKey: String, prompt: String, endpoint: String = SUMMARY_ENDPOINT): String? {
+    private fun callGemini(apiKey: String, prompt: String, endpoint: String = SUMMARY_ENDPOINT, maxTokens: Int = 800): String? {
         val url = URL("$endpoint?key=$apiKey")
         val conn = url.openConnection() as HttpURLConnection
         conn.requestMethod = "POST"
@@ -137,7 +142,7 @@ category 值：HOMEWORK（作業）、EXAM（考試）、PAYMENT（繳費）、E
             })
             put("generationConfig", JSONObject().apply {
                 put("temperature", 0.0)
-                put("maxOutputTokens", 800)
+                put("maxOutputTokens", maxTokens)
                 put("responseMimeType", "application/json")
             })
         }.toString()
@@ -484,34 +489,34 @@ category 值：HOMEWORK（作業）、EXAM（考試）、PAYMENT（繳費）、E
         result
     }
 
-    internal fun parseNotificationJsonText(text: String, expectedCount: Int): List<EventInfo?> {
+    internal fun parseNotificationJsonText(text: String, expectedCount: Int): List<List<EventInfo>> {
         return try {
-            val arr = JSONArray(text.trim())
+            val outer = JSONArray(text.trim())
             (0 until expectedCount).map { i ->
-                if (i >= arr.length()) return@map null
-                val obj = arr.getJSONObject(i)
-                if (!obj.optBoolean("isEvent", false)) return@map null
-
-                val title = obj.optString("title", "").trim()
-                if (title.isBlank()) return@map null
-
-                EventInfo(
-                    title = title,
-                    dueDate = obj.optString("dueDate").takeIf { it != "null" && it.isNotBlank() },
-                    dueTime = obj.optString("dueTime").takeIf { it != "null" && it.isNotBlank() },
-                    category = obj.optString("category", "REMINDER").let { cat ->
-                        if (cat in setOf("HOMEWORK", "EXAM", "PAYMENT", "EVENT", "REMINDER")) cat else "REMINDER"
-                    },
-                    note = obj.optString("note", "").trim()
-                )
+                if (i >= outer.length()) return@map emptyList()
+                val inner = outer.optJSONArray(i) ?: return@map emptyList()
+                (0 until inner.length()).mapNotNull { j ->
+                    val obj = inner.optJSONObject(j) ?: return@mapNotNull null
+                    val title = obj.optString("title", "").trim()
+                    if (title.isBlank()) return@mapNotNull null
+                    EventInfo(
+                        title = title,
+                        dueDate = obj.optString("dueDate").takeIf { it != "null" && it.isNotBlank() },
+                        dueTime = obj.optString("dueTime").takeIf { it != "null" && it.isNotBlank() },
+                        category = obj.optString("category", "REMINDER").let { cat ->
+                            if (cat in setOf("HOMEWORK", "EXAM", "PAYMENT", "EVENT", "REMINDER")) cat else "REMINDER"
+                        },
+                        note = obj.optString("note", "").trim()
+                    )
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "parseNotificationJsonText failed", e)
-            List(expectedCount) { null }
+            List(expectedCount) { emptyList() }
         }
     }
 
-    private fun parseBatchResponse(json: String, expectedCount: Int): List<EventInfo?> {
+    private fun parseBatchResponse(json: String, expectedCount: Int): List<List<EventInfo>> {
         return try {
             val text = JSONObject(json)
                 .getJSONArray("candidates")
@@ -523,7 +528,7 @@ category 值：HOMEWORK（作業）、EXAM（考試）、PAYMENT（繳費）、E
             parseNotificationJsonText(text, expectedCount)
         } catch (e: Exception) {
             Log.e(TAG, "parseBatchResponse failed: $json", e)
-            List(expectedCount) { null }
+            List(expectedCount) { emptyList() }
         }
     }
 }

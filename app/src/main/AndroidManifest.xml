@@ -67,6 +67,16 @@
             </intent-filter>
         </receiver>
 
+        <!-- BroadcastReceiver for AI batch confirm / cancel -->
+        <receiver
+            android:name=".notification.AiConfirmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.rendy.classnote.AI_CONFIRM" />
+                <action android:name="com.rendy.classnote.AI_CANCEL" />
+            </intent-filter>
+        </receiver>
+
         <!-- BroadcastReceiver for weather daily notification -->
         <receiver
             android:name=".notification.WeatherNotificationReceiver"

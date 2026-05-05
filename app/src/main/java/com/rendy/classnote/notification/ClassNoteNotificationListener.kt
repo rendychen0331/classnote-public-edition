@@ -7,6 +7,8 @@ import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import org.json.JSONArray
+import org.json.JSONObject
 import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.local.ClassNoteDatabase
 import com.rendy.classnote.data.local.dao.ReminderNotificationDao
@@ -136,7 +138,7 @@ class ClassNoteNotificationListener : NotificationListenerService() {
             try {
                 val prefs = AppPreferences(applicationContext)
                 val provider = prefs.preferredNotifProvider
-                val results: List<GeminiApi.EventInfo?> = when {
+                val results: List<List<GeminiApi.EventInfo>> = when {
                     provider == "mimo"   && prefs.mimoEnabled   && prefs.mimoApiKey.isNotBlank()   ->
                         MimoApi.analyzeNotifications(prefs.mimoApiKey, batch)
                     provider == "claude" && prefs.claudeEnabled && prefs.claudeApiKey.isNotBlank() ->
@@ -157,45 +159,72 @@ class ClassNoteNotificationListener : NotificationListenerService() {
                         GroqApi.analyzeNotifications(prefs.groqApiKey, batch)
                     else -> { NotificationHelper.cancelAiStatus(applicationContext); return@launch }
                 }
+
+                // Flatten results with source tracking
+                val allEvents = mutableListOf<Pair<GeminiApi.EventInfo, GeminiApi.NotificationInput>>()
+                results.forEachIndexed { i, events ->
+                    val input = batch.getOrNull(i) ?: return@forEachIndexed
+                    events.forEach { event -> allEvents.add(event to input) }
+                }
+
+                if (allEvents.size > 5) {
+                    // Too many events — ask user to confirm before inserting
+                    val json = JSONArray().also { arr ->
+                        allEvents.forEach { (event, input) ->
+                            arr.put(JSONObject().apply {
+                                put("title", event.title)
+                                put("dueDate", event.dueDate ?: JSONObject.NULL)
+                                put("dueTime", event.dueTime ?: JSONObject.NULL)
+                                put("category", event.category)
+                                put("note", event.note)
+                                put("appLabel", input.appLabel)
+                                put("notifTitle", input.title)
+                                put("notifText", input.text)
+                            })
+                        }
+                    }.toString()
+                    prefs.pendingAiEvents = json
+                    NotificationHelper.cancelAiStatus(applicationContext)
+                    NotificationHelper.showAiPendingConfirmation(
+                        applicationContext, allEvents.size, allEvents.map { it.first.title }
+                    )
+                    return@launch
+                }
+
                 val db = ClassNoteDatabase.getDatabase(applicationContext)
                 val dao = db.reminderDao()
                 val notifDao = db.reminderNotificationDao()
 
                 val addedTitles = mutableListOf<String>()
-                val recognizedTitles = mutableListOf<String>()
-                results.forEachIndexed { i, event ->
-                    if (event == null) return@forEachIndexed
-                    recognizedTitles.add(event.title)
+                val recognizedTitles = allEvents.map { it.first.title }
+
+                allEvents.forEach { (event, input) ->
                     try {
                         val duplicate = if (event.dueDate != null) {
                             dao.findByTitleAndDueDate(event.title, event.dueDate) != null
                         } else {
                             dao.findByTitleWithNullDueDate(event.title) != null
                         }
-                        if (duplicate) return@forEachIndexed
+                        if (duplicate) return@forEach
 
-                        val input = batch.getOrNull(i)
-                        val fallbackNote = input?.text?.take(300) ?: ""
                         val reminderId = dao.insertReminder(
                             ReminderEntity(
                                 title = event.title,
-                                note = event.note.ifBlank { fallbackNote },
+                                note = event.note.ifBlank { input.text.take(300) },
                                 dueDate = event.dueDate,
                                 dueTime = event.dueTime,
                                 category = event.category,
                                 syncSource = "notify",
-                                sourceName = input?.let { inp ->
+                                sourceName = input.let { inp ->
                                     val groupName = inp.title.trim()
                                     if (groupName.isNotBlank() && groupName != inp.appLabel)
                                         "${inp.appLabel}・$groupName"
                                     else inp.appLabel
                                 },
-                                rawNotification = input?.let { inp ->
-                                    buildString {
-                                        append("[${inp.appLabel}]")
-                                        if (inp.title.isNotBlank()) append("\n${inp.title}")
-                                        if (inp.text.isNotBlank()) append("\n${inp.text}")
-                                    }
+                                rawNotification = buildString {
+                                    append("[${input.appLabel}]")
+                                    if (input.title.isNotBlank()) append("\n${input.title}")
+                                    if (input.text.isNotBlank()) append("\n${input.text}")
                                 }
                             )
                         )
@@ -206,7 +235,7 @@ class ClassNoteNotificationListener : NotificationListenerService() {
                         addedTitles.add(event.title)
                         Log.i(TAG, "Auto-added from notification: ${event.title}")
                     } catch (e: Exception) {
-                        Log.e(TAG, "Failed to save event from batch[$i]", e)
+                        Log.e(TAG, "Failed to save event: ${event.title}", e)
                     }
                 }
 
