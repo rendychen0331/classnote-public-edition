@@ -28,6 +28,8 @@ import com.rendy.classnote.data.DriveBackupWorker
 import com.rendy.classnote.data.GmailSyncManager
 import com.rendy.classnote.data.GmailSyncWorker
 import com.rendy.classnote.data.GoogleAuthManager
+import com.rendy.classnote.data.KeepSyncManager
+import com.rendy.classnote.data.KeepSyncWorker
 import com.rendy.classnote.data.TasksSyncManager
 import com.rendy.classnote.data.TasksSyncWorker
 import com.rendy.classnote.databinding.SheetGoogleSyncBinding
@@ -134,6 +136,20 @@ class GoogleSyncSheet : Fragment() {
         updateTasksSection()
     }
 
+    private val keepSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val account = GoogleAuthManager.handleSignInResult(result.data)
+            if (account?.email != null) {
+                GoogleAuthManager.addKeepAccountEmail(requireContext(), account.email!!)
+            } else {
+                Toast.makeText(requireContext(), getString(R.string.settings_keep_no_permission), Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(requireContext(), getString(R.string.settings_keep_no_permission), Toast.LENGTH_SHORT).show()
+        }
+        updateKeepSection()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -147,6 +163,7 @@ class GoogleSyncSheet : Fragment() {
         setupClassroomSection()
         setupCalendarSection()
         setupTasksSection()
+        setupKeepSection()
     }
 
     // ── 帳號列動態注入 ──────────────────────────────────────────────────────────
@@ -824,6 +841,108 @@ class GoogleSyncSheet : Fragment() {
             binding.cardTasksSync.visibility = View.VISIBLE
             binding.tvTasksSyncStatus.text = prefs.lastTasksSyncSummary.ifEmpty {
                 getString(R.string.settings_tasks_no_sync)
+            }
+        }
+    }
+
+    // ── Google Keep 同步 ──────────────────────────────────────────────────────
+
+    private fun setupKeepSection() {
+        binding.switchKeepSync.isChecked = prefs.keepSyncEnabled
+        updateKeepSection()
+
+        binding.switchKeepSync.setOnCheckedChangeListener { _, checked ->
+            prefs.keepSyncEnabled = checked
+            updateKeepSection()
+        }
+
+        binding.btnKeepAuth.setOnClickListener {
+            GoogleAuthManager.signOutKeep(requireContext()) {
+                requireActivity().runOnUiThread {
+                    keepSignInLauncher.launch(
+                        GoogleAuthManager.getSignInIntentForKeep(requireContext())
+                    )
+                }
+            }
+        }
+
+        binding.switchKeepAutoSync.isChecked = prefs.autoKeepSyncEnabled
+        binding.tvAutoKeepSyncInterval.text =
+            getString(R.string.settings_auto_keep_sync_interval, prefs.autoKeepSyncIntervalHours)
+
+        binding.switchKeepAutoSync.setOnCheckedChangeListener { _, checked ->
+            prefs.autoKeepSyncEnabled = checked
+            if (checked) scheduleKeepSync() else cancelKeepSync()
+        }
+
+        binding.btnKeepSyncNow.setOnClickListener {
+            val emails = GoogleAuthManager.getKeepAccountEmails(requireContext())
+            if (emails.isEmpty()) return@setOnClickListener
+            val db = (requireActivity().application as ClassNoteApplication).database
+            binding.btnKeepSyncNow.isEnabled = false
+            viewLifecycleOwner.lifecycleScope.launch {
+                var totalImported = 0
+                var totalSkipped = 0
+                var noPermission = false
+                for (email in emails) {
+                    val result = KeepSyncManager.sync(
+                        requireContext(), email,
+                        db.reminderDao(), db.reminderNotificationDao()
+                    )
+                    when (result) {
+                        is KeepSyncManager.SyncResult.Success -> {
+                            totalImported += result.imported
+                            totalSkipped += result.skipped
+                        }
+                        is KeepSyncManager.SyncResult.NoPermission -> noPermission = true
+                        else -> {}
+                    }
+                }
+                binding.btnKeepSyncNow.isEnabled = true
+                val summary = if (noPermission && totalImported == 0)
+                    getString(R.string.settings_keep_no_permission)
+                else
+                    getString(R.string.settings_keep_sync_result, totalImported, totalSkipped)
+                prefs.lastKeepSyncSummary = summary
+                binding.tvKeepSyncStatus.text = summary
+            }
+        }
+    }
+
+    private fun scheduleKeepSync() {
+        val request = PeriodicWorkRequestBuilder<KeepSyncWorker>(
+            prefs.autoKeepSyncIntervalHours.toLong(), TimeUnit.HOURS
+        ).setConstraints(
+            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        ).build()
+        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+            "keep_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+        )
+    }
+
+    private fun cancelKeepSync() {
+        WorkManager.getInstance(requireContext()).cancelUniqueWork("keep_auto_sync")
+    }
+
+    private fun updateKeepSection() {
+        val enabled = prefs.keepSyncEnabled
+        binding.cardKeepAccount.visibility = if (enabled) View.VISIBLE else View.GONE
+        binding.cardKeepSync.visibility = View.GONE
+        if (!enabled) return
+
+        val emails = GoogleAuthManager.getKeepAccountEmails(requireContext())
+        binding.llKeepAccounts.removeAllViews()
+        emails.forEach { email ->
+            addAccountRow(binding.llKeepAccounts, email) {
+                GoogleAuthManager.removeKeepAccountEmail(requireContext(), email)
+                updateKeepSection()
+            }
+        }
+
+        if (emails.isNotEmpty()) {
+            binding.cardKeepSync.visibility = View.VISIBLE
+            binding.tvKeepSyncStatus.text = prefs.lastKeepSyncSummary.ifEmpty {
+                getString(R.string.settings_keep_no_sync)
             }
         }
     }

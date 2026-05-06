@@ -130,6 +130,26 @@ class AppPreferences(context: Context) {
         get() = prefs.getInt(KEY_AUTO_TASKS_SYNC_INTERVAL_HOURS, 6)
         set(value) = prefs.edit { putInt(KEY_AUTO_TASKS_SYNC_INTERVAL_HOURS, value) }
 
+    /** Google Keep 同步開關。預設關閉。 */
+    var keepSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_KEEP_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_KEEP_SYNC_ENABLED, value) }
+
+    /** 上次 Keep 同步結果摘要。 */
+    var lastKeepSyncSummary: String
+        get() = prefs.getString(KEY_KEEP_SYNC_SUMMARY, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_KEEP_SYNC_SUMMARY, value) }
+
+    /** 自動 Keep 同步開關。預設關閉。 */
+    var autoKeepSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_KEEP_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_AUTO_KEEP_SYNC_ENABLED, value) }
+
+    /** 自動 Keep 同步間隔（小時）。預設 6 小時。 */
+    var autoKeepSyncIntervalHours: Int
+        get() = prefs.getInt(KEY_AUTO_KEEP_SYNC_INTERVAL_HOURS, 6)
+        set(value) = prefs.edit { putInt(KEY_AUTO_KEEP_SYNC_INTERVAL_HOURS, value) }
+
     /** MS To Do 同步開關。預設關閉。 */
     var msTodoSyncEnabled: Boolean
         get() = prefs.getBoolean(KEY_MSTODO_SYNC_ENABLED, false)
@@ -494,6 +514,10 @@ class AppPreferences(context: Context) {
         private const val KEY_TASKS_SYNC_SUMMARY = "tasks_sync_summary"
         private const val KEY_AUTO_TASKS_SYNC_ENABLED = "auto_tasks_sync_enabled"
         private const val KEY_AUTO_TASKS_SYNC_INTERVAL_HOURS = "auto_tasks_sync_interval_hours"
+        private const val KEY_KEEP_SYNC_ENABLED = "keep_sync_enabled"
+        private const val KEY_KEEP_SYNC_SUMMARY = "keep_sync_summary"
+        private const val KEY_AUTO_KEEP_SYNC_ENABLED = "auto_keep_sync_enabled"
+        private const val KEY_AUTO_KEEP_SYNC_INTERVAL_HOURS = "auto_keep_sync_interval_hours"
         private const val KEY_DEFAULT_REMIND_HOUR = "default_remind_hour"
         private const val KEY_DEFAULT_REMIND_MINUTE = "default_remind_minute"
         private const val KEY_MSTODO_SYNC_ENABLED = "mstodo_sync_enabled"

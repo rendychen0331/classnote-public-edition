@@ -117,7 +117,7 @@ category 值：HOMEWORK（作業）、EXAM（考試）、PAYMENT（繳費）、E
         """.trimIndent()
     }
 
-    private fun callGemini(apiKey: String, prompt: String, endpoint: String = SUMMARY_ENDPOINT, maxTokens: Int = 800): String? {
+    internal fun callGemini(apiKey: String, prompt: String, endpoint: String = SUMMARY_ENDPOINT, maxTokens: Int = 800): String? {
         val url = URL("$endpoint?key=$apiKey")
         val conn = url.openConnection() as HttpURLConnection
         conn.requestMethod = "POST"
@@ -487,6 +487,45 @@ category 值：HOMEWORK（作業）、EXAM（考試）、PAYMENT（繳費）、E
         }
         ApiLogger.log("gemini-flash(筆記對話)", userMessage.take(100), result?.take(200), duration, result != null)
         result
+    }
+
+    suspend fun analyzeKeepNote(
+        apiKey: String,
+        noteTitle: String,
+        noteBody: String
+    ): EventInfo? = withContext(Dispatchers.IO) {
+        if (apiKey.isBlank()) return@withContext null
+        val today = java.time.LocalDate.now().toString()
+        val prompt = """
+今天日期：$today
+
+以下是一則 Google Keep 筆記，請判斷是否包含需要記錄的提醒事項（作業截止、考試、繳費期限、活動等）。
+
+標題：$noteTitle
+內容：$noteBody
+
+若包含提醒事項，回傳單一 JSON 物件：
+{"title":"事件名稱","dueDate":"YYYY-MM-DD 或 null","dueTime":"HH:MM 或 null","category":"類別","note":"補充說明，最多 80 字"}
+
+category 值：HOMEWORK（作業）、EXAM（考試）、PAYMENT（繳費）、EVENT（活動）、REMINDER（其他）
+
+若不包含提醒事項（純記錄、購物清單等），回傳：null
+
+只回傳純 JSON 或 null，不含任何解釋。
+""".trimIndent()
+        val raw = callGemini(apiKey, prompt, maxTokens = 300) ?: return@withContext null
+        val trimmed = raw.trim()
+        if (trimmed == "null" || trimmed.isBlank()) return@withContext null
+        try {
+            val obj = JSONObject(trimmed)
+            EventInfo(
+                title = obj.optString("title").ifBlank { noteTitle },
+                dueDate = obj.optString("dueDate").takeIf { it != "null" && it.isNotBlank() && it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) },
+                dueTime = obj.optString("dueTime").takeIf { it != "null" && it.isNotBlank() },
+                category = obj.optString("category", "REMINDER"),
+                note = obj.optString("note")
+            )
+        } catch (_: Exception) { null }
     }
 
     internal fun parseNotificationJsonText(text: String, expectedCount: Int): List<List<EventInfo>> {

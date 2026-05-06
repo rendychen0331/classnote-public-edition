@@ -281,4 +281,49 @@ object GoogleAuthManager {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putStringSet(KEY_TASKS_ACCOUNT_EMAILS, current).apply()
     }
+
+    // ── Keep 登入 ──────────────────────────────────────────────────────────
+
+    private const val KEEP_READONLY_SCOPE = "https://www.googleapis.com/auth/keep.readonly"
+
+    fun getSignInIntentForKeep(context: Context): Intent {
+        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestScopes(Scope(KEEP_READONLY_SCOPE))
+            .build()
+        return GoogleSignIn.getClient(context, options).signInIntent
+    }
+
+    fun signOutKeep(context: Context, onDone: () -> Unit = {}) {
+        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestScopes(Scope(KEEP_READONLY_SCOPE))
+            .build()
+        GoogleSignIn.getClient(context.applicationContext, options)
+            .signOut()
+            .addOnCompleteListener { onDone() }
+    }
+
+    // ── Keep 多帳號 ──────────────────────────────────────────────────────
+
+    private const val KEY_KEEP_ACCOUNT_EMAILS = "keep_account_emails"
+
+    fun getKeepAccountEmails(context: Context): Set<String> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getStringSet(KEY_KEEP_ACCOUNT_EMAILS, emptySet()) ?: emptySet()
+    }
+
+    fun addKeepAccountEmail(context: Context, email: String) {
+        val current = getKeepAccountEmails(context).toMutableSet()
+        current.add(email)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putStringSet(KEY_KEEP_ACCOUNT_EMAILS, current).apply()
+    }
+
+    fun removeKeepAccountEmail(context: Context, email: String) {
+        val current = getKeepAccountEmails(context).toMutableSet()
+        current.remove(email)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putStringSet(KEY_KEEP_ACCOUNT_EMAILS, current).apply()
+    }
 }

@@ -283,6 +283,16 @@
     <string name="settings_tasks_sync_result">已匯入 %1$d 筆，略過 %2$d 筆</string>
     <string name="settings_auto_tasks_sync_title">自動同步</string>
     <string name="settings_auto_tasks_sync_interval">每 %1$d 小時自動同步一次</string>
+    <string name="settings_section_keep">Google Keep</string>
+    <string name="settings_keep_sync_title">Google Keep 同步</string>
+    <string name="settings_keep_sync_desc">從 Google Keep 匯入筆記作為提醒事項（需 Google Workspace 或教育帳號）</string>
+    <string name="settings_auto_keep_sync_title">自動同步</string>
+    <string name="settings_auto_keep_sync_interval">每 %1$d 小時同步一次</string>
+    <string name="settings_keep_no_sync">尚未同步</string>
+    <string name="settings_keep_sync_now">立即同步</string>
+    <string name="settings_keep_sync_result">已匯入 %1$d 筆，略過 %2$d 筆</string>
+    <string name="settings_keep_no_permission">此功能需要 Google Workspace 或教育帳號</string>
+    <string name="settings_add_account">新增帳號</string>
     <string name="settings_auto_mstodo_sync_interval">每 %1$d 小時自動同步一次</string>
     <string name="settings_auto_outlook_calendar_sync_interval">每 %1$d 小時自動同步一次</string>
     <string name="settings_auto_teams_assignment_sync_interval">每 %1$d 小時自動同步一次</string>
