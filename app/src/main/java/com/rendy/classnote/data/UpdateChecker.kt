@@ -107,9 +107,10 @@ object UpdateChecker {
                 if (!success) return
 
                 val apkUri = dm.getUriForDownloadedFile(downloadId) ?: return
-                val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(apkUri, "application/vnd.android.package-archive")
+                val installIntent = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
+                    data = apkUri
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
                 }
                 try {
                     ctx.startActivity(installIntent)
