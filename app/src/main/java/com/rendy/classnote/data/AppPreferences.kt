@@ -257,6 +257,15 @@ class AppPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_GROQ_ENABLED, false)
         set(value) = prefs.edit { putBoolean(KEY_GROQ_ENABLED, value) }
 
+    /** DeepSeek API Key。 */
+    var deepseekApiKey: String
+        get() = prefs.getString(KEY_DEEPSEEK_API_KEY, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_DEEPSEEK_API_KEY, value) }
+
+    var deepseekEnabled: Boolean
+        get() = prefs.getBoolean(KEY_DEEPSEEK_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_DEEPSEEK_ENABLED, value) }
+
     /** 勿擾模式穿透：提醒通知在勿擾模式下仍顯示。預設關閉。需搭配 ACCESS_NOTIFICATION_POLICY 授權。 */
     var bypassDndEnabled: Boolean
         get() = prefs.getBoolean(KEY_BYPASS_DND, false)
@@ -432,6 +441,8 @@ class AppPreferences(context: Context) {
         private const val KEY_OPENAI_ENABLED = "openai_enabled"
         private const val KEY_GROQ_API_KEY = "groq_api_key"
         private const val KEY_GROQ_ENABLED = "groq_enabled"
+        private const val KEY_DEEPSEEK_API_KEY = "deepseek_api_key"
+        private const val KEY_DEEPSEEK_ENABLED = "deepseek_enabled"
         private const val KEY_NOTIF_LISTENER_AUTO_ADD = "notif_listener_auto_add"
         private const val KEY_BYPASS_DND = "bypass_dnd_enabled"
         private const val KEY_MONITORED_PACKAGES = "notif_monitored_packages"

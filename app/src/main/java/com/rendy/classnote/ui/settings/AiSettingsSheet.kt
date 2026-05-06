@@ -187,6 +187,18 @@ class AiSettingsSheet : Fragment() {
             saveKey = { prefs.groqApiKey = it },
             savedMsg = "Groq API Key 已儲存"
         )
+        setupModelSwitch(
+            switch = binding.switchDeepseekEnabled,
+            keyLayout = binding.layoutDeepseekKey,
+            getEnabled = { prefs.deepseekEnabled },
+            saveEnabled = { prefs.deepseekEnabled = it },
+            til = binding.tilDeepseekApiKey,
+            et = binding.etDeepseekApiKey,
+            btn = binding.btnSaveDeepseekKey,
+            getKey = { prefs.deepseekApiKey },
+            saveKey = { prefs.deepseekApiKey = it },
+            savedMsg = "DeepSeek API Key 已儲存"
+        )
 
         setupChatProviderChips()
         setupNotifProviderChips()
@@ -198,19 +210,22 @@ class AiSettingsSheet : Fragment() {
             "mimo"   to (prefs.mimoApiKey.isNotBlank()   && prefs.mimoEnabled),
             "claude" to (prefs.claudeApiKey.isNotBlank() && prefs.claudeEnabled),
             "openai" to (prefs.openaiApiKey.isNotBlank() && prefs.openaiEnabled),
-            "groq"   to (prefs.groqApiKey.isNotBlank()   && prefs.groqEnabled)
+            "groq"      to (prefs.groqApiKey.isNotBlank()      && prefs.groqEnabled),
+            "deepseek"  to (prefs.deepseekApiKey.isNotBlank()  && prefs.deepseekEnabled)
         )
         listOf(
             binding.chipChatGemini  to "gemini",
             binding.chipChatMimo    to "mimo",
             binding.chipChatClaude  to "claude",
             binding.chipChatOpenai  to "openai",
-            binding.chipChatGroq    to "groq",
-            binding.chipNotifGemini to "gemini",
+            binding.chipChatGroq      to "groq",
+            binding.chipChatDeepseek  to "deepseek",
+            binding.chipNotifGemini   to "gemini",
             binding.chipNotifMimo   to "mimo",
             binding.chipNotifClaude to "claude",
-            binding.chipNotifOpenai to "openai",
-            binding.chipNotifGroq   to "groq"
+            binding.chipNotifOpenai    to "openai",
+            binding.chipNotifGroq      to "groq",
+            binding.chipNotifDeepseek  to "deepseek"
         ).forEach { (chip, provider) ->
             val active = states[provider] == true
             chip.isEnabled = active
@@ -224,7 +239,8 @@ class AiSettingsSheet : Fragment() {
             binding.chipChatMimo   to ("mimo"   to (prefs.mimoApiKey   to prefs.mimoEnabled)),
             binding.chipChatClaude to ("claude" to (prefs.claudeApiKey to prefs.claudeEnabled)),
             binding.chipChatOpenai to ("openai" to (prefs.openaiApiKey to prefs.openaiEnabled)),
-            binding.chipChatGroq   to ("groq"   to (prefs.groqApiKey   to prefs.groqEnabled))
+            binding.chipChatGroq      to ("groq"      to (prefs.groqApiKey      to prefs.groqEnabled)),
+            binding.chipChatDeepseek  to ("deepseek"  to (prefs.deepseekApiKey  to prefs.deepseekEnabled))
         )
         chipMap.forEach { (chip, pair) ->
             val (_, keyAndEnabled) = pair
@@ -251,7 +267,8 @@ class AiSettingsSheet : Fragment() {
             binding.chipNotifMimo   to ("mimo"   to (prefs.mimoApiKey   to prefs.mimoEnabled)),
             binding.chipNotifClaude to ("claude" to (prefs.claudeApiKey to prefs.claudeEnabled)),
             binding.chipNotifOpenai to ("openai" to (prefs.openaiApiKey to prefs.openaiEnabled)),
-            binding.chipNotifGroq   to ("groq"   to (prefs.groqApiKey   to prefs.groqEnabled))
+            binding.chipNotifGroq      to ("groq"      to (prefs.groqApiKey      to prefs.groqEnabled)),
+            binding.chipNotifDeepseek  to ("deepseek"  to (prefs.deepseekApiKey  to prefs.deepseekEnabled))
         )
         chipMap.forEach { (chip, pair) ->
             val (_, keyAndEnabled) = pair
@@ -279,6 +296,7 @@ class AiSettingsSheet : Fragment() {
         binding.cardClaude.visibility = v
         binding.cardOpenai.visibility = v
         binding.cardGroq.visibility = v
+        binding.cardDeepseek.visibility = v
         binding.cardChatProvider.visibility = v
         binding.cardNotifProvider.visibility = v
     }

@@ -645,6 +645,121 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- DeepSeek -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardDeepseek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainer">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <androidx.appcompat.widget.AppCompatImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_ai_deepseek"
+                                android:layout_marginEnd="6dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="DeepSeek"
+                                android:textAppearance="?attr/textAppearanceTitleSmall"
+                                android:textColor="?attr/colorOnSurface" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="課堂筆記對話、通知辨識（deepseek-chat）"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    </LinearLayout>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switchDeepseekEnabled"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutDeepseekKey"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="16dp"
+                    android:visibility="gone">
+
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilDeepseekApiKey"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        app:endIconMode="custom"
+                        app:endIconDrawable="@drawable/ic_visibility_off"
+                        app:endIconContentDescription="顯示 Key">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDeepseekApiKey"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword"
+                            android:hint="貼上 DeepSeek API Key (sk-...)"
+                            android:maxLines="1" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSaveDeepseekKey"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="儲存" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- 筆記對話使用的 AI -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardChatProvider"
@@ -720,6 +835,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Groq" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipChatDeepseek"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="DeepSeek" />
 
                 </com.google.android.material.chip.ChipGroup>
 
@@ -801,6 +923,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Groq" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipNotifDeepseek"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="DeepSeek" />
 
                 </com.google.android.material.chip.ChipGroup>
 

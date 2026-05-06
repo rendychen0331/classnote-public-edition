@@ -15,6 +15,7 @@ import com.rendy.classnote.data.local.dao.ReminderNotificationDao
 import com.rendy.classnote.data.local.entity.ReminderEntity
 import com.rendy.classnote.data.local.entity.ReminderNotificationEntity
 import com.rendy.classnote.data.remote.ClaudeApi
+import com.rendy.classnote.data.remote.DeepSeekApi
 import com.rendy.classnote.data.remote.GeminiApi
 import com.rendy.classnote.data.remote.GroqApi
 import com.rendy.classnote.data.remote.MimoApi
@@ -75,7 +76,8 @@ class ClassNoteNotificationListener : NotificationListenerService() {
             (mimoEnabled   && mimoApiKey.isNotBlank())   ||
             (claudeEnabled && claudeApiKey.isNotBlank()) ||
             (openaiEnabled && openaiApiKey.isNotBlank()) ||
-            (groqEnabled   && groqApiKey.isNotBlank())
+            (groqEnabled      && groqApiKey.isNotBlank()) ||
+            (deepseekEnabled  && deepseekApiKey.isNotBlank())
         }
         if (!hasAnyKey) return
 
@@ -145,8 +147,10 @@ class ClassNoteNotificationListener : NotificationListenerService() {
                         ClaudeApi.analyzeNotifications(prefs.claudeApiKey, batch)
                     provider == "openai" && prefs.openaiEnabled && prefs.openaiApiKey.isNotBlank() ->
                         OpenAiApi.analyzeNotifications(prefs.openaiApiKey, batch)
-                    provider == "groq"   && prefs.groqEnabled   && prefs.groqApiKey.isNotBlank()   ->
+                    provider == "groq"      && prefs.groqEnabled      && prefs.groqApiKey.isNotBlank()      ->
                         GroqApi.analyzeNotifications(prefs.groqApiKey, batch)
+                    provider == "deepseek" && prefs.deepseekEnabled  && prefs.deepseekApiKey.isNotBlank() ->
+                        DeepSeekApi.analyzeNotifications(prefs.deepseekApiKey, batch)
                     prefs.geminiEnabled  && prefs.geminiApiKey.isNotBlank()                        ->
                         GeminiApi.analyzeNotifications(prefs.geminiApiKey, batch)
                     prefs.mimoEnabled    && prefs.mimoApiKey.isNotBlank()                          ->
@@ -155,8 +159,10 @@ class ClassNoteNotificationListener : NotificationListenerService() {
                         ClaudeApi.analyzeNotifications(prefs.claudeApiKey, batch)
                     prefs.openaiEnabled  && prefs.openaiApiKey.isNotBlank()                        ->
                         OpenAiApi.analyzeNotifications(prefs.openaiApiKey, batch)
-                    prefs.groqEnabled    && prefs.groqApiKey.isNotBlank()                          ->
+                    prefs.groqEnabled     && prefs.groqApiKey.isNotBlank()                           ->
                         GroqApi.analyzeNotifications(prefs.groqApiKey, batch)
+                    prefs.deepseekEnabled && prefs.deepseekApiKey.isNotBlank()                     ->
+                        DeepSeekApi.analyzeNotifications(prefs.deepseekApiKey, batch)
                     else -> { NotificationHelper.cancelAiStatus(applicationContext); return@launch }
                 }
 

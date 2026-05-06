@@ -22,6 +22,7 @@ import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.R
 import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.remote.ClaudeApi
+import com.rendy.classnote.data.remote.DeepSeekApi
 import com.rendy.classnote.data.remote.GeminiApi
 import com.rendy.classnote.data.remote.GroqApi
 import com.rendy.classnote.data.remote.MimoApi
@@ -167,7 +168,8 @@ class ClassRecordSummaryFragment : Fragment() {
             binding.chipMimo   to ("mimo"   to (prefs.mimoApiKey   to prefs.mimoEnabled)),
             binding.chipClaude to ("claude" to (prefs.claudeApiKey to prefs.claudeEnabled)),
             binding.chipOpenai to ("openai" to (prefs.openaiApiKey to prefs.openaiEnabled)),
-            binding.chipGroq   to ("groq"   to (prefs.groqApiKey   to prefs.groqEnabled))
+            binding.chipGroq      to ("groq"      to (prefs.groqApiKey      to prefs.groqEnabled)),
+            binding.chipDeepseek  to ("deepseek"  to (prefs.deepseekApiKey  to prefs.deepseekEnabled))
         )
 
         chipMap.forEach { (chip, pair) ->
@@ -195,8 +197,9 @@ class ClassRecordSummaryFragment : Fragment() {
             R.id.chipMimo   -> "mimo"
             R.id.chipClaude -> "claude"
             R.id.chipOpenai -> "openai"
-            R.id.chipGroq   -> "groq"
-            else            -> "gemini"
+            R.id.chipGroq      -> "groq"
+            R.id.chipDeepseek  -> "deepseek"
+            else               -> "gemini"
         }
     }
 
@@ -213,8 +216,9 @@ class ClassRecordSummaryFragment : Fragment() {
             "mimo"   -> prefs.mimoApiKey
             "claude" -> prefs.claudeApiKey
             "openai" -> prefs.openaiApiKey
-            "groq"   -> prefs.groqApiKey
-            else     -> prefs.geminiApiKey
+            "groq"      -> prefs.groqApiKey
+            "deepseek"  -> prefs.deepseekApiKey
+            else        -> prefs.geminiApiKey
         }
         if (apiKey.isBlank()) {
             Toast.makeText(requireContext(), "請先在設定頁輸入 API Key", Toast.LENGTH_SHORT).show()
@@ -234,8 +238,9 @@ class ClassRecordSummaryFragment : Fragment() {
                 "mimo"   -> MimoApi.chatWithContext(apiKey, noteContext, history, text)
                 "claude" -> ClaudeApi.chatWithContext(apiKey, noteContext, history, text)
                 "openai" -> OpenAiApi.chatWithContext(apiKey, noteContext, history, text)
-                "groq"   -> GroqApi.chatWithContext(apiKey, noteContext, history, text)
-                else     -> GeminiApi.chatWithContext(apiKey, noteContext, history, text)
+                "groq"      -> GroqApi.chatWithContext(apiKey, noteContext, history, text)
+                "deepseek"  -> DeepSeekApi.chatWithContext(apiKey, noteContext, history, text)
+                else        -> GeminiApi.chatWithContext(apiKey, noteContext, history, text)
             }
             binding.progressChat.visibility = View.GONE
             binding.btnSend.isEnabled = true
