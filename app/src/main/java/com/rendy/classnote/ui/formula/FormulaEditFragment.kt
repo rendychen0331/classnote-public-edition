@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.webkit.JavascriptInterface
-import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
@@ -39,6 +38,7 @@ class FormulaEditFragment : Fragment() {
         FormulaViewModel.Factory((requireActivity().application as ClassNoteApplication).formulaRepository)
     }
 
+    private var webView: WebView? = null
     private var existingFormula: FormulaEntity? = null
     private var currentLatex: String = ""
     private var editorReady = false
@@ -110,7 +110,6 @@ class FormulaEditFragment : Fragment() {
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
-    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentFormulaEditBinding.inflate(inflater, container, false)
         return binding.root
@@ -148,13 +147,11 @@ class FormulaEditFragment : Fragment() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupEditor() {
-        val wv = binding.webViewEditor
-        wv.setBackgroundColor(android.graphics.Color.TRANSPARENT)
-        wv.settings.apply {
-            javaScriptEnabled = true
-            domStorageEnabled = true
-            cacheMode = WebSettings.LOAD_NO_CACHE
-        }
+        val app = requireContext().applicationContext as ClassNoteApplication
+        app.warmFormulaEditor()
+        val wv = app.formulaEditorWebView
+        webView = wv
+
         wv.addJavascriptInterface(MathInterface(), "Android")
         wv.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -165,7 +162,14 @@ class FormulaEditFragment : Fragment() {
                 }
             }
         }
-        wv.loadUrl("file:///android_asset/mathquill/editor.html")
+
+        (wv.parent as? ViewGroup)?.removeView(wv)
+        binding.webViewContainer.addView(wv, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+
+        if (app.formulaWebViewReady) {
+            editorReady = true
+            wv.evaluateJavascript("suppressKeyboard()", null)
+        }
     }
 
     // ── 自訂鍵盤 ──────────────────────────────────────────────────────────────
@@ -234,7 +238,7 @@ class FormulaEditFragment : Fragment() {
             is KA.Cmd -> "insertCmd('${esc(action.s)}')"
             is KA.Ks  -> "keystroke('${action.s}')"
         }
-        binding.webViewEditor.evaluateJavascript(js, null)
+        webView?.evaluateJavascript(js, null)
     }
 
     private fun esc(s: String) = s.replace("\\", "\\\\").replace("'", "\\'")
@@ -255,7 +259,7 @@ class FormulaEditFragment : Fragment() {
                 binding.etExplanation.setText(f.explanation)
                 binding.etSubject.setText(f.subject)
                 currentLatex = f.latex
-                if (editorReady) binding.webViewEditor.evaluateJavascript("setLatex('${esc(f.latex)}')", null)
+                if (editorReady) webView?.evaluateJavascript("setLatex('${esc(f.latex)}')", null)
             }
         }
     }
@@ -283,7 +287,8 @@ class FormulaEditFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        binding.webViewEditor.destroy()
+        webView?.let { (it.parent as? ViewGroup)?.removeView(it) }
+        webView = null
         super.onDestroyView()
         _binding = null
     }

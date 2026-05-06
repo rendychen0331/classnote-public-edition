@@ -82,8 +82,8 @@
         app:cardElevation="2dp"
         app:cardCornerRadius="8dp">
 
-        <WebView
-            android:id="@+id/webViewEditor"
+        <FrameLayout
+            android:id="@+id/webViewContainer"
             android:layout_width="match_parent"
             android:layout_height="100dp" />
 

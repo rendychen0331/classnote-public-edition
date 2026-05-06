@@ -1,6 +1,11 @@
 package com.rendy.classnote
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.graphics.Color
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.WeatherPreferences
 import com.rendy.classnote.data.local.ClassNoteDatabase
@@ -42,6 +47,32 @@ class ClassNoteApplication : Application() {
 
     val appPreferences by lazy { AppPreferences(this) }
     val weatherPreferences by lazy { WeatherPreferences(this) }
+
+    private var _formulaWebView: WebView? = null
+    var formulaWebViewReady = false
+        private set
+
+    @SuppressLint("SetJavaScriptEnabled")
+    fun warmFormulaEditor() {
+        if (_formulaWebView != null) return
+        _formulaWebView = WebView(this).also { wv ->
+            wv.setBackgroundColor(Color.TRANSPARENT)
+            wv.settings.apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                cacheMode = WebSettings.LOAD_DEFAULT
+            }
+            wv.webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    formulaWebViewReady = true
+                }
+            }
+            wv.loadUrl("file:///android_asset/mathquill/editor.html")
+        }
+    }
+
+    val formulaEditorWebView: WebView
+        get() = _formulaWebView ?: WebView(this).also { _formulaWebView = it }
 
     override fun onCreate() {
         super.onCreate()
