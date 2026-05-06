@@ -283,6 +283,10 @@
     <string name="settings_tasks_sync_result">已匯入 %1$d 筆，略過 %2$d 筆</string>
     <string name="settings_auto_tasks_sync_title">自動同步</string>
     <string name="settings_auto_tasks_sync_interval">每 %1$d 小時自動同步一次</string>
+    <string name="settings_auto_mstodo_sync_interval">每 %1$d 小時自動同步一次</string>
+    <string name="settings_auto_outlook_calendar_sync_interval">每 %1$d 小時自動同步一次</string>
+    <string name="settings_auto_teams_assignment_sync_interval">每 %1$d 小時自動同步一次</string>
+    <string name="settings_auto_sync">自動同步</string>
 
     <!-- OneDrive 備份 -->
     <string name="settings_section_onedrive">OneDrive 備份</string>

@@ -11,11 +11,14 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.R
 import com.rendy.classnote.data.MsTodoSyncManager
+import com.rendy.classnote.data.MsTodoSyncWorker
 import com.rendy.classnote.data.OneDriveAuthManager
 import com.rendy.classnote.data.OneDriveBackupManager
 import com.rendy.classnote.data.OneDriveBackupWorker
 import com.rendy.classnote.data.OutlookCalendarSyncManager
+import com.rendy.classnote.data.OutlookCalendarSyncWorker
 import com.rendy.classnote.data.TeamsAssignmentSyncManager
+import com.rendy.classnote.data.TeamsAssignmentSyncWorker
 import com.rendy.classnote.databinding.SheetMicrosoftSyncBinding
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -311,6 +314,14 @@ class MicrosoftSyncSheet : Fragment() {
                 binding.tvMsTodoSyncStatus.text = summary
             }
         }
+
+        binding.switchMsTodoAutoSync.isChecked = prefs.autoMsTodoSyncEnabled
+        binding.tvAutoMsTodoSyncInterval.text =
+            getString(R.string.settings_auto_mstodo_sync_interval, prefs.autoMsTodoSyncIntervalHours)
+        binding.switchMsTodoAutoSync.setOnCheckedChangeListener { _, checked ->
+            prefs.autoMsTodoSyncEnabled = checked
+            if (checked) scheduleMsTodoSync(prefs) else cancelMsTodoSync()
+        }
     }
 
     private fun updateMsTodoSection(prefs: com.rendy.classnote.data.AppPreferences) {
@@ -321,6 +332,21 @@ class MicrosoftSyncSheet : Fragment() {
                 getString(R.string.settings_mstodo_no_sync)
             }
         }
+    }
+
+    private fun scheduleMsTodoSync(prefs: com.rendy.classnote.data.AppPreferences) {
+        val request = PeriodicWorkRequestBuilder<MsTodoSyncWorker>(
+            prefs.autoMsTodoSyncIntervalHours.toLong(), TimeUnit.HOURS
+        ).setConstraints(
+            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        ).build()
+        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+            "mstodo_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+        )
+    }
+
+    private fun cancelMsTodoSync() {
+        WorkManager.getInstance(requireContext()).cancelUniqueWork("mstodo_auto_sync")
     }
 
     private fun setupOutlookCalendarSection(prefs: com.rendy.classnote.data.AppPreferences) {
@@ -355,6 +381,14 @@ class MicrosoftSyncSheet : Fragment() {
                 binding.tvOutlookCalendarSyncStatus.text = summary
             }
         }
+
+        binding.switchOutlookCalendarAutoSync.isChecked = prefs.autoOutlookCalendarSyncEnabled
+        binding.tvAutoOutlookCalendarSyncInterval.text =
+            getString(R.string.settings_auto_outlook_calendar_sync_interval, prefs.autoOutlookCalendarSyncIntervalHours)
+        binding.switchOutlookCalendarAutoSync.setOnCheckedChangeListener { _, checked ->
+            prefs.autoOutlookCalendarSyncEnabled = checked
+            if (checked) scheduleOutlookCalendarSync(prefs) else cancelOutlookCalendarSync()
+        }
     }
 
     private fun updateOutlookCalendarSection(prefs: com.rendy.classnote.data.AppPreferences) {
@@ -365,6 +399,21 @@ class MicrosoftSyncSheet : Fragment() {
                 getString(R.string.settings_outlook_calendar_no_sync)
             }
         }
+    }
+
+    private fun scheduleOutlookCalendarSync(prefs: com.rendy.classnote.data.AppPreferences) {
+        val request = PeriodicWorkRequestBuilder<OutlookCalendarSyncWorker>(
+            prefs.autoOutlookCalendarSyncIntervalHours.toLong(), TimeUnit.HOURS
+        ).setConstraints(
+            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        ).build()
+        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+            "outlook_calendar_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+        )
+    }
+
+    private fun cancelOutlookCalendarSync() {
+        WorkManager.getInstance(requireContext()).cancelUniqueWork("outlook_calendar_auto_sync")
     }
 
     private fun setupTeamsAssignmentSection(prefs: com.rendy.classnote.data.AppPreferences) {
@@ -400,6 +449,14 @@ class MicrosoftSyncSheet : Fragment() {
                 binding.tvTeamsAssignmentSyncStatus.text = summary
             }
         }
+
+        binding.switchTeamsAssignmentAutoSync.isChecked = prefs.autoTeamsAssignmentSyncEnabled
+        binding.tvAutoTeamsAssignmentSyncInterval.text =
+            getString(R.string.settings_auto_teams_assignment_sync_interval, prefs.autoTeamsAssignmentSyncIntervalHours)
+        binding.switchTeamsAssignmentAutoSync.setOnCheckedChangeListener { _, checked ->
+            prefs.autoTeamsAssignmentSyncEnabled = checked
+            if (checked) scheduleTeamsAssignmentSync(prefs) else cancelTeamsAssignmentSync()
+        }
     }
 
     private fun updateTeamsAssignmentSection(prefs: com.rendy.classnote.data.AppPreferences) {
@@ -410,6 +467,21 @@ class MicrosoftSyncSheet : Fragment() {
                 getString(R.string.settings_teams_assignment_no_sync)
             }
         }
+    }
+
+    private fun scheduleTeamsAssignmentSync(prefs: com.rendy.classnote.data.AppPreferences) {
+        val request = PeriodicWorkRequestBuilder<TeamsAssignmentSyncWorker>(
+            prefs.autoTeamsAssignmentSyncIntervalHours.toLong(), TimeUnit.HOURS
+        ).setConstraints(
+            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        ).build()
+        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+            "teams_assignment_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+        )
+    }
+
+    private fun cancelTeamsAssignmentSync() {
+        WorkManager.getInstance(requireContext()).cancelUniqueWork("teams_assignment_auto_sync")
     }
 
     override fun onDestroyView() {

@@ -160,6 +160,36 @@ class AppPreferences(context: Context) {
         get() = prefs.getString(KEY_TEAMS_ASSIGNMENT_SYNC_SUMMARY, "") ?: ""
         set(value) = prefs.edit { putString(KEY_TEAMS_ASSIGNMENT_SYNC_SUMMARY, value) }
 
+    /** 自動 MS To Do 同步開關。預設關閉。 */
+    var autoMsTodoSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_MSTODO_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_AUTO_MSTODO_SYNC_ENABLED, value) }
+
+    /** 自動 MS To Do 同步間隔（小時）。預設 6 小時。 */
+    var autoMsTodoSyncIntervalHours: Int
+        get() = prefs.getInt(KEY_AUTO_MSTODO_SYNC_INTERVAL_HOURS, 6)
+        set(value) = prefs.edit { putInt(KEY_AUTO_MSTODO_SYNC_INTERVAL_HOURS, value) }
+
+    /** 自動 Outlook Calendar 同步開關。預設關閉。 */
+    var autoOutlookCalendarSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_OUTLOOK_CALENDAR_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_AUTO_OUTLOOK_CALENDAR_SYNC_ENABLED, value) }
+
+    /** 自動 Outlook Calendar 同步間隔（小時）。預設 6 小時。 */
+    var autoOutlookCalendarSyncIntervalHours: Int
+        get() = prefs.getInt(KEY_AUTO_OUTLOOK_CALENDAR_SYNC_INTERVAL_HOURS, 6)
+        set(value) = prefs.edit { putInt(KEY_AUTO_OUTLOOK_CALENDAR_SYNC_INTERVAL_HOURS, value) }
+
+    /** 自動 Teams 作業同步開關。預設關閉。 */
+    var autoTeamsAssignmentSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_TEAMS_ASSIGNMENT_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_AUTO_TEAMS_ASSIGNMENT_SYNC_ENABLED, value) }
+
+    /** 自動 Teams 作業同步間隔（小時）。預設 6 小時。 */
+    var autoTeamsAssignmentSyncIntervalHours: Int
+        get() = prefs.getInt(KEY_AUTO_TEAMS_ASSIGNMENT_SYNC_INTERVAL_HOURS, 6)
+        set(value) = prefs.edit { putInt(KEY_AUTO_TEAMS_ASSIGNMENT_SYNC_INTERVAL_HOURS, value) }
+
     /** 已登入的 Microsoft 帳號 email（登入時存，登出時清）。 */
     var msAccountEmail: String?
         get() = prefs.getString(KEY_MS_ACCOUNT_EMAIL, null)
@@ -467,6 +497,12 @@ class AppPreferences(context: Context) {
         private const val KEY_DEFAULT_REMIND_HOUR = "default_remind_hour"
         private const val KEY_DEFAULT_REMIND_MINUTE = "default_remind_minute"
         private const val KEY_MSTODO_SYNC_ENABLED = "mstodo_sync_enabled"
+        private const val KEY_AUTO_MSTODO_SYNC_ENABLED = "auto_mstodo_sync_enabled"
+        private const val KEY_AUTO_MSTODO_SYNC_INTERVAL_HOURS = "auto_mstodo_sync_interval_hours"
+        private const val KEY_AUTO_OUTLOOK_CALENDAR_SYNC_ENABLED = "auto_outlook_calendar_sync_enabled"
+        private const val KEY_AUTO_OUTLOOK_CALENDAR_SYNC_INTERVAL_HOURS = "auto_outlook_calendar_sync_interval_hours"
+        private const val KEY_AUTO_TEAMS_ASSIGNMENT_SYNC_ENABLED = "auto_teams_assignment_sync_enabled"
+        private const val KEY_AUTO_TEAMS_ASSIGNMENT_SYNC_INTERVAL_HOURS = "auto_teams_assignment_sync_interval_hours"
         private const val KEY_MSTODO_SYNC_SUMMARY = "mstodo_sync_summary"
         private const val KEY_OUTLOOK_CALENDAR_SYNC_ENABLED = "outlook_calendar_sync_enabled"
         private const val KEY_OUTLOOK_CALENDAR_SYNC_SUMMARY = "outlook_calendar_sync_summary"
