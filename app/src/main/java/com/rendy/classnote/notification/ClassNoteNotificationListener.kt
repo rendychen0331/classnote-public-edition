@@ -235,8 +235,10 @@ class ClassNoteNotificationListener : NotificationListenerService() {
                             )
                         )
 
-                        if (event.dueDate != null) {
-                            scheduleDefaultNotifications(reminderId, event.dueDate, event.dueTime, notifDao)
+                        val effectiveDueDate = event.dueDate
+                            ?: if (event.dueTime != null) LocalDate.now().toString() else null
+                        if (effectiveDueDate != null) {
+                            scheduleDefaultNotifications(reminderId, effectiveDueDate, event.dueTime, notifDao)
                         }
                         addedTitles.add(event.title)
                         Log.i(TAG, "Auto-added from notification: ${event.title}")
