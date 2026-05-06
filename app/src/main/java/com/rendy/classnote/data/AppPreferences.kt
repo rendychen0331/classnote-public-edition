@@ -413,6 +413,11 @@ class AppPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_SENSITIVE_KEYWORDS_ENABLED, true)
         set(value) = prefs.edit { putBoolean(KEY_SENSITIVE_KEYWORDS_ENABLED, value) }
 
+    /** 使用者自訂關鍵字黑名單：通知標題或內容含任一關鍵字時，跳過 AI 辨識。 */
+    var userKeywordBlacklist: Set<String>
+        get() = prefs.getStringSet(KEY_USER_KEYWORD_BLACKLIST, emptySet()) ?: emptySet()
+        set(value) = prefs.edit { putStringSet(KEY_USER_KEYWORD_BLACKLIST, value) }
+
     /** 待確認的 AI 辨識事件（JSON 陣列字串），超過 5 筆時暫存等待使用者確認。 */
     var pendingAiEvents: String
         get() = prefs.getString(KEY_PENDING_AI_EVENTS, "") ?: ""
@@ -570,6 +575,7 @@ class AppPreferences(context: Context) {
         private const val KEY_AUTO_UPDATE_ENABLED = "auto_update_enabled"
         private const val KEY_AUTO_UPDATE_INTERVAL_HOURS = "auto_update_interval_hours"
         private const val KEY_SENSITIVE_KEYWORDS_ENABLED = "sensitive_keywords_enabled"
+        private const val KEY_USER_KEYWORD_BLACKLIST = "notif_user_keyword_blacklist"
         private const val KEY_PENDING_AI_EVENTS = "pending_ai_events"
 
         const val NETWORK_WIFI = "wifi"

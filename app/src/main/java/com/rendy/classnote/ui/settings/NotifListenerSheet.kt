@@ -108,6 +108,9 @@ class NotifListenerSheet : Fragment() {
         }
         updateChannelBlacklistSummary()
 
+        binding.btnKeywordBlacklist.setOnClickListener { showKeywordBlacklistDialog() }
+        updateKeywordBlacklistSummary()
+
         updateDefaultRemindTimeSummary()
         binding.tvDefaultRemindTime.setOnClickListener {
             TimePickerDialog(
@@ -145,6 +148,66 @@ class NotifListenerSheet : Fragment() {
     private fun updateDefaultRemindTimeSummary() {
         binding.tvDefaultRemindTime.text =
             "%02d:%02d".format(prefs.defaultRemindHour, prefs.defaultRemindMinute)
+    }
+
+    private fun updateKeywordBlacklistSummary() {
+        val keywords = prefs.userKeywordBlacklist
+        binding.tvKeywordBlacklist.text = if (keywords.isEmpty())
+            getString(R.string.settings_ai_keyword_blacklist_none)
+        else
+            getString(R.string.settings_ai_keyword_blacklist_count, keywords.size)
+    }
+
+    private fun showKeywordBlacklistDialog() {
+        val keywords = prefs.userKeywordBlacklist.toMutableSet()
+        val adapter = android.widget.ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_list_item_1,
+            keywords.sorted().toMutableList()
+        )
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_keyword_blacklist, null)
+        val listView = dialogView.findViewById<android.widget.ListView>(R.id.listKeywords)
+        val etKeyword = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etKeyword)
+        val btnAdd = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAddKeyword)
+
+        fun refreshAdapter() {
+            adapter.clear()
+            adapter.addAll(keywords.sorted())
+            adapter.notifyDataSetChanged()
+        }
+
+        listView.adapter = adapter
+        listView.setOnItemClickListener { _, _, pos, _ ->
+            val kw = adapter.getItem(pos) ?: return@setOnItemClickListener
+            MaterialAlertDialogBuilder(requireContext())
+                .setMessage("刪除關鍵字「$kw」？")
+                .setPositiveButton("刪除") { _, _ ->
+                    keywords.remove(kw)
+                    refreshAdapter()
+                }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+
+        btnAdd.setOnClickListener {
+            val kw = etKeyword.text?.toString()?.trim() ?: ""
+            if (kw.isNotBlank()) {
+                keywords.add(kw)
+                etKeyword.text?.clear()
+                refreshAdapter()
+            }
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.settings_ai_keyword_blacklist_dialog_title))
+            .setView(dialogView)
+            .setPositiveButton("儲存") { _, _ ->
+                prefs.userKeywordBlacklist = keywords
+                updateKeywordBlacklistSummary()
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
 
     private fun updateMonitoredAppsSummary() {

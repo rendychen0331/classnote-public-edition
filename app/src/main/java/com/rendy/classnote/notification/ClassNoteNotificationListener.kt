@@ -99,6 +99,12 @@ class ClassNoteNotificationListener : NotificationListenerService() {
             if (SENSITIVE_KEYWORDS.any { combined.contains(it, ignoreCase = true) }) return
         }
 
+        val userBlacklist = prefs.userKeywordBlacklist
+        if (userBlacklist.isNotEmpty()) {
+            val combined = "$title $text"
+            if (userBlacklist.any { combined.contains(it, ignoreCase = true) }) return
+        }
+
         val dedupeKey = "${sbn.packageName}|$title|${text.take(100)}"
         val isNew = synchronized(seenKeys) {
             if (seenKeys.contains(dedupeKey)) false
