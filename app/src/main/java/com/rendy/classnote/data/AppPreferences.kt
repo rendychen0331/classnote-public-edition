@@ -210,6 +210,26 @@ class AppPreferences(context: Context) {
         get() = prefs.getInt(KEY_AUTO_TEAMS_ASSIGNMENT_SYNC_INTERVAL_HOURS, 6)
         set(value) = prefs.edit { putInt(KEY_AUTO_TEAMS_ASSIGNMENT_SYNC_INTERVAL_HOURS, value) }
 
+    /** OneNote 同步開關。預設關閉。 */
+    var oneNoteSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_ONENOTE_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_ONENOTE_SYNC_ENABLED, value) }
+
+    /** 上次 OneNote 同步結果摘要。 */
+    var lastOneNoteSyncSummary: String
+        get() = prefs.getString(KEY_ONENOTE_SYNC_SUMMARY, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_ONENOTE_SYNC_SUMMARY, value) }
+
+    /** 自動 OneNote 同步開關。預設關閉。 */
+    var autoOneNoteSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_ONENOTE_SYNC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_AUTO_ONENOTE_SYNC_ENABLED, value) }
+
+    /** 自動 OneNote 同步間隔（小時）。預設 6 小時。 */
+    var autoOneNoteSyncIntervalHours: Int
+        get() = prefs.getInt(KEY_AUTO_ONENOTE_SYNC_INTERVAL_HOURS, 6)
+        set(value) = prefs.edit { putInt(KEY_AUTO_ONENOTE_SYNC_INTERVAL_HOURS, value) }
+
     /** 已登入的 Microsoft 帳號 email（登入時存，登出時清）。 */
     var msAccountEmail: String?
         get() = prefs.getString(KEY_MS_ACCOUNT_EMAIL, null)
@@ -527,6 +547,10 @@ class AppPreferences(context: Context) {
         private const val KEY_AUTO_OUTLOOK_CALENDAR_SYNC_INTERVAL_HOURS = "auto_outlook_calendar_sync_interval_hours"
         private const val KEY_AUTO_TEAMS_ASSIGNMENT_SYNC_ENABLED = "auto_teams_assignment_sync_enabled"
         private const val KEY_AUTO_TEAMS_ASSIGNMENT_SYNC_INTERVAL_HOURS = "auto_teams_assignment_sync_interval_hours"
+        private const val KEY_ONENOTE_SYNC_ENABLED = "onenote_sync_enabled"
+        private const val KEY_ONENOTE_SYNC_SUMMARY = "onenote_sync_summary"
+        private const val KEY_AUTO_ONENOTE_SYNC_ENABLED = "auto_onenote_sync_enabled"
+        private const val KEY_AUTO_ONENOTE_SYNC_INTERVAL_HOURS = "auto_onenote_sync_interval_hours"
         private const val KEY_MSTODO_SYNC_SUMMARY = "mstodo_sync_summary"
         private const val KEY_OUTLOOK_CALENDAR_SYNC_ENABLED = "outlook_calendar_sync_enabled"
         private const val KEY_OUTLOOK_CALENDAR_SYNC_SUMMARY = "outlook_calendar_sync_summary"

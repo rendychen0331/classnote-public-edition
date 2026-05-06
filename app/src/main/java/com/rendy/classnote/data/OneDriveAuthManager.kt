@@ -27,6 +27,7 @@ object OneDriveAuthManager {
         "Files.ReadWrite",
         "Tasks.Read",
         "Calendars.Read",
+        "Notes.Read",
         "User.Read"
     )
 

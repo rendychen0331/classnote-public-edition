@@ -296,6 +296,15 @@
     <string name="settings_auto_mstodo_sync_interval">每 %1$d 小時自動同步一次</string>
     <string name="settings_auto_outlook_calendar_sync_interval">每 %1$d 小時自動同步一次</string>
     <string name="settings_auto_teams_assignment_sync_interval">每 %1$d 小時自動同步一次</string>
+    <string name="settings_section_onenote">Microsoft OneNote</string>
+    <string name="settings_onenote_sync_title">OneNote 同步</string>
+    <string name="settings_onenote_sync_desc">從 OneNote 筆記本匯入頁面作為提醒事項，支援個人與企業帳號</string>
+    <string name="settings_onenote_no_sync">尚未同步</string>
+    <string name="settings_onenote_sync_now">立即同步</string>
+    <string name="settings_onenote_sync_result">已匯入 %1$d 筆，略過 %2$d 筆</string>
+    <string name="settings_auto_onenote_sync_title">自動同步</string>
+    <string name="settings_auto_onenote_sync_interval">每 %1$d 小時自動同步一次</string>
+    <string name="settings_onenote_no_permission">請先登入 Microsoft 帳號</string>
     <string name="settings_auto_sync">自動同步</string>
 
     <!-- OneDrive 備份 -->

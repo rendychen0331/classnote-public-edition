@@ -19,6 +19,8 @@ import com.rendy.classnote.data.OutlookCalendarSyncManager
 import com.rendy.classnote.data.OutlookCalendarSyncWorker
 import com.rendy.classnote.data.TeamsAssignmentSyncManager
 import com.rendy.classnote.data.TeamsAssignmentSyncWorker
+import com.rendy.classnote.data.OneNoteSyncManager
+import com.rendy.classnote.data.OneNoteSyncWorker
 import com.rendy.classnote.databinding.SheetMicrosoftSyncBinding
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -45,6 +47,7 @@ class MicrosoftSyncSheet : Fragment() {
         setupMsTodoSection(prefs)
         setupOutlookCalendarSection(prefs)
         setupTeamsAssignmentSection(prefs)
+        setupOneNoteSection(prefs)
     }
 
     private fun setupOneDriveSection(prefs: com.rendy.classnote.data.AppPreferences) {
@@ -482,6 +485,73 @@ class MicrosoftSyncSheet : Fragment() {
 
     private fun cancelTeamsAssignmentSync() {
         WorkManager.getInstance(requireContext()).cancelUniqueWork("teams_assignment_auto_sync")
+    }
+
+    private fun setupOneNoteSection(prefs: com.rendy.classnote.data.AppPreferences) {
+        binding.switchOneNoteSync.isChecked = prefs.oneNoteSyncEnabled
+        updateOneNoteSection(prefs)
+
+        binding.switchOneNoteSync.setOnCheckedChangeListener { _, checked ->
+            prefs.oneNoteSyncEnabled = checked
+            updateOneNoteSection(prefs)
+        }
+
+        binding.btnOneNoteSyncNow.setOnClickListener {
+            binding.btnOneNoteSyncNow.isEnabled = false
+            viewLifecycleOwner.lifecycleScope.launch {
+                val token = OneDriveAuthManager.acquireTokenSilent(requireContext())
+                    ?: OneDriveAuthManager.signIn(requireActivity())
+                if (token == null) {
+                    binding.btnOneNoteSyncNow.isEnabled = true
+                    Toast.makeText(requireContext(), getString(R.string.settings_onenote_no_permission), Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                val db = (requireActivity().application as ClassNoteApplication).database
+                val result = OneNoteSyncManager.sync(requireContext(), token, db.reminderDao(), db.reminderNotificationDao())
+                binding.btnOneNoteSyncNow.isEnabled = true
+                val summary = when (result) {
+                    is OneNoteSyncManager.SyncResult.Success ->
+                        getString(R.string.settings_onenote_sync_result, result.imported, result.skipped)
+                    is OneNoteSyncManager.SyncResult.Error -> result.message
+                    OneNoteSyncManager.SyncResult.NoPermission -> getString(R.string.settings_onenote_no_permission)
+                }
+                prefs.lastOneNoteSyncSummary = summary
+                binding.tvOneNoteSyncStatus.text = summary
+            }
+        }
+
+        binding.switchOneNoteAutoSync.isChecked = prefs.autoOneNoteSyncEnabled
+        binding.tvAutoOneNoteSyncInterval.text =
+            getString(R.string.settings_auto_onenote_sync_interval, prefs.autoOneNoteSyncIntervalHours)
+        binding.switchOneNoteAutoSync.setOnCheckedChangeListener { _, checked ->
+            prefs.autoOneNoteSyncEnabled = checked
+            if (checked) scheduleOneNoteSync(prefs) else cancelOneNoteSync()
+        }
+    }
+
+    private fun updateOneNoteSection(prefs: com.rendy.classnote.data.AppPreferences) {
+        val enabled = prefs.oneNoteSyncEnabled
+        binding.cardOneNoteSync.visibility = if (enabled) View.VISIBLE else View.GONE
+        if (enabled) {
+            binding.tvOneNoteSyncStatus.text = prefs.lastOneNoteSyncSummary.ifEmpty {
+                getString(R.string.settings_onenote_no_sync)
+            }
+        }
+    }
+
+    private fun scheduleOneNoteSync(prefs: com.rendy.classnote.data.AppPreferences) {
+        val request = PeriodicWorkRequestBuilder<OneNoteSyncWorker>(
+            prefs.autoOneNoteSyncIntervalHours.toLong(), TimeUnit.HOURS
+        ).setConstraints(
+            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        ).build()
+        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+            "onenote_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+        )
+    }
+
+    private fun cancelOneNoteSync() {
+        WorkManager.getInstance(requireContext()).cancelUniqueWork("onenote_auto_sync")
     }
 
     override fun onDestroyView() {
