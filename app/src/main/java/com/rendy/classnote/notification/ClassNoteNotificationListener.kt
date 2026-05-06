@@ -281,8 +281,18 @@ class ClassNoteNotificationListener : NotificationListenerService() {
             val base = LocalDate.parse(dueDate).atTime(prefs.defaultRemindHour, prefs.defaultRemindMinute)
             listOf(base.atZone(zone).toInstant().toEpochMilli())
         }
+        // 若所有 offset trigger 都已過期（例如「6:35」被解為 AM 但已是下午），
+        // 補一個「due time 本身」作 fallback；若 due time 也過了，用 now+2min
+        val dueMillis = LocalDateTime.of(LocalDate.parse(dueDate), LocalTime.of(
+            dueTime?.split(":")?.getOrNull(0)?.toIntOrNull() ?: 8,
+            dueTime?.split(":")?.getOrNull(1)?.toIntOrNull() ?: 0
+        )).atZone(zone).toInstant().toEpochMilli()
+        val effectiveTriggers = if (triggerTimes.none { it > now }) {
+            listOf(if (dueMillis > now) dueMillis else now + 2 * 60_000L)
+        } else triggerTimes
+
         val pendingTimes = notificationDao.getAllPendingNotifications().map { it.triggerAt }.toMutableSet()
-        triggerTimes.map { ReminderScheduler.clampToQuietHours(it, prefs, zone) }.filter { it > now }.forEach { millis ->
+        effectiveTriggers.map { ReminderScheduler.clampToQuietHours(it, prefs, zone) }.filter { it > now }.forEach { millis ->
             var adjustedMillis = millis
             while (pendingTimes.contains(adjustedMillis)) adjustedMillis += 60_000L
             pendingTimes.add(adjustedMillis)
