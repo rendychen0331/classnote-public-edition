@@ -1,15 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Google Keep logo — Apache 2.0, Google LLC. Viewport normalised to 88×88 (content shifted +12 X). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="17.5dp"
+    android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="64"
+    android:viewportWidth="88"
     android:viewportHeight="88">
+    <!-- folded corner flap -->
     <path
         android:fillColor="#f29900"
-        android:pathData="M42,22 L54.065,24.28 L64,22 L42,0 L38.965,10.43 Z"/>
+        android:pathData="M54,22 L66.065,24.28 L76,22 L54,0 L50.965,10.43 Z" />
+    <!-- notepad body -->
     <path
         android:fillColor="#fbbc04"
-        android:pathData="M42,22 V0 H6 C2.685,0 0,2.685 0,6 V82 C0,85.315 2.685,88 6,88 H58 C61.315,88 64,85.315 64,82 V22 Z"/>
+        android:pathData="M54,22 V0 H18 C14.685,0 12,2.685 12,6 V82 C12,85.315 14.685,88 18,88 H70 C73.315,88 76,85.315 76,82 V22 Z" />
+    <!-- lightbulb (bar + bulb outline) -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M39,64 H25 V59 H39 Z M38.925,54 H25.075 C21.425,51.7 19,47.635 19,43 C19,35.82 24.82,30 32,30 C39.18,30 45,35.82 45,43 C45,47.635 42.575,51.7 38.925,54 Z"/>
+        android:pathData="M51,64 H37 V59 H51 Z M50.925,54 H37.075 C33.425,51.7 31,47.635 31,43 C31,35.82 36.82,30 44,30 C51.18,30 57,35.82 57,43 C57,47.635 54.575,51.7 50.925,54 Z" />
 </vector>
