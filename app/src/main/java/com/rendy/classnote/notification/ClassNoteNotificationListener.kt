@@ -205,7 +205,6 @@ class ClassNoteNotificationListener : NotificationListenerService() {
                     return@launch
                 }
 
-                val db = ClassNoteDatabase.getDatabase(applicationContext)
                 val dao = db.reminderDao()
                 val notifDao = db.reminderNotificationDao()
 
