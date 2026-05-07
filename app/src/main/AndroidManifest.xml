@@ -17,6 +17,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
 
@@ -122,6 +123,30 @@
             android:name=".ui.classrecord.AudioRecordService"
             android:exported="false"
             android:foregroundServiceType="microphone" />
+
+        <!-- 控制中心快捷鍵：助手模式懸浮覆層 -->
+        <service
+            android:name=".notification.QuickAddTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_quick_add_tile"
+            android:label="@string/tile_quick_add"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.ACTIVE_TILE"
+                android:value="true" />
+        </service>
+
+        <service
+            android:name=".notification.FloatingQuickAddService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <meta-data
+                android:name="android.app.FOREGROUND_SERVICE_SPECIAL_USE"
+                android:value="overlay" />
+        </service>
 
         <!-- AI 通知解析：監聽所有通知並用 Gemini 自動辨識作業/活動 -->
         <service

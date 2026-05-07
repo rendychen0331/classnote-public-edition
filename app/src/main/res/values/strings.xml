@@ -401,4 +401,9 @@
     <string name="settings_ai_keyword_blacklist_empty">（空白）</string>
     <string name="settings_ai_default_remind_time_title">無時間事件的預設提醒時間</string>
     <string name="settings_ai_default_remind_time_desc">辨識出日期但無時間的事件（如「明天游泳」），在此時間提醒</string>
+    <string name="tile_quick_add">助手模式</string>
+    <string name="tile_quick_add_desc">快速新增提醒或筆記</string>
+    <string name="attach_camera">拍照</string>
+    <string name="attach_gallery">相片</string>
+    <string name="attach_audio">錄音</string>
 </resources>

@@ -139,6 +139,32 @@ class MainActivity : AppCompatActivity() {
         when (intent?.getStringExtra("navigate_to")) {
             "reminders" -> binding.bottomNavigation.selectedItemId = R.id.reminderListFragment
             "schedule"  -> binding.bottomNavigation.selectedItemId = R.id.scheduleFragment
+            "new_reminder" -> {
+                binding.bottomNavigation.selectedItemId = R.id.reminderListFragment
+                navController.navigate(
+                    R.id.reminderEditFragment,
+                    android.os.Bundle().apply { putLong("reminderId", -1L) }
+                )
+            }
+            "new_classrecord",
+            "new_classrecord_camera",
+            "new_classrecord_gallery",
+            "new_classrecord_audio" -> {
+                binding.bottomNavigation.selectedItemId = R.id.classRecordListFragment
+                val noteType = when (intent.getStringExtra("navigate_to")) {
+                    "new_classrecord_camera" -> "camera"
+                    "new_classrecord_gallery" -> "gallery"
+                    "new_classrecord_audio" -> "audio"
+                    else -> "text"
+                }
+                navController.navigate(
+                    R.id.classRecordEditFragment,
+                    android.os.Bundle().apply {
+                        putLong("recordId", -1L)
+                        putString("noteType", noteType)
+                    }
+                )
+            }
         }
     }
 

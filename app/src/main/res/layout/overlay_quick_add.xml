@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/overlay_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:id="@+id/bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="36dp"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true">
+
+        <!-- Left circle: 新增提醒 -->
+        <FrameLayout
+            android:id="@+id/btn_reminder_wrap"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_circle_surface"
+            android:elevation="6dp"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:id="@+id/btn_reminder_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_reminder"
+                android:tint="#4ECCA3" />
+        </FrameLayout>
+
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
+
+        <!-- Center capsule -->
+        <LinearLayout
+            android:id="@+id/capsule"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_capsule_surface"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:elevation="6dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageButton
+                android:id="@+id/btn_add_attachment"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_quick_add_plus"
+                android:padding="12dp"
+                android:scaleType="fitCenter" />
+
+            <TextView
+                android:id="@+id/hint_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="輸入或說些什麼…"
+                android:textColor="#88AAA8C3"
+                android:textSize="14sp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <ImageButton
+                android:id="@+id/btn_model"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:layout_marginEnd="2dp" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
+
+        <!-- Right circle: 新增筆記 -->
+        <FrameLayout
+            android:id="@+id/btn_classrecord_wrap"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_circle_surface"
+            android:elevation="6dp"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:id="@+id/btn_classrecord_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_class_record"
+                android:tint="#4ECCA3" />
+        </FrameLayout>
+
+    </LinearLayout>
+</FrameLayout>
