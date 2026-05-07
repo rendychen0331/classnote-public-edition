@@ -143,6 +143,13 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/actionSettingsToPermissions"
+            app:destination="@id/permissionsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -150,6 +157,12 @@
         android:name="com.rendy.classnote.ui.settings.AlarmPermSheet"
         android:label="提醒與鬧鐘"
         tools:layout="@layout/sheet_alarm_perm" />
+
+    <fragment
+        android:id="@+id/permissionsFragment"
+        android:name="com.rendy.classnote.ui.settings.PermissionsSheet"
+        android:label="權限設定"
+        tools:layout="@layout/sheet_permissions" />
 
     <fragment
         android:id="@+id/syncFragment"

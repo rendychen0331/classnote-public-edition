@@ -58,6 +58,10 @@ class SettingsFragment : Fragment() {
             findNavController().navigate(R.id.actionSettingsToAlarmPerm)
         }
 
+        binding.cardMenuPermissions.setOnClickListener {
+            findNavController().navigate(R.id.actionSettingsToPermissions)
+        }
+
         binding.cardMenuSync.setOnClickListener {
             findNavController().navigate(R.id.actionSettingsToSync)
         }
