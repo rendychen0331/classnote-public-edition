@@ -146,29 +146,31 @@ class ClassNoteNotificationListener : NotificationListenerService() {
             try {
                 val prefs = AppPreferences(applicationContext)
                 val provider = prefs.preferredNotifProvider
+                val db = ClassNoteDatabase.getDatabase(applicationContext)
+                val periodTimes = db.periodTimeDao().getAllPeriodTimesOnce()
                 val results: List<List<GeminiApi.EventInfo>> = when {
                     provider == "mimo"   && prefs.mimoEnabled   && prefs.mimoApiKey.isNotBlank()   ->
-                        MimoApi.analyzeNotifications(prefs.mimoApiKey, batch)
+                        MimoApi.analyzeNotifications(prefs.mimoApiKey, batch, periodTimes)
                     provider == "claude" && prefs.claudeEnabled && prefs.claudeApiKey.isNotBlank() ->
-                        ClaudeApi.analyzeNotifications(prefs.claudeApiKey, batch)
+                        ClaudeApi.analyzeNotifications(prefs.claudeApiKey, batch, periodTimes)
                     provider == "openai" && prefs.openaiEnabled && prefs.openaiApiKey.isNotBlank() ->
-                        OpenAiApi.analyzeNotifications(prefs.openaiApiKey, batch)
+                        OpenAiApi.analyzeNotifications(prefs.openaiApiKey, batch, periodTimes)
                     provider == "groq"      && prefs.groqEnabled      && prefs.groqApiKey.isNotBlank()      ->
-                        GroqApi.analyzeNotifications(prefs.groqApiKey, batch)
+                        GroqApi.analyzeNotifications(prefs.groqApiKey, batch, periodTimes)
                     provider == "deepseek" && prefs.deepseekEnabled  && prefs.deepseekApiKey.isNotBlank() ->
-                        DeepSeekApi.analyzeNotifications(prefs.deepseekApiKey, batch)
+                        DeepSeekApi.analyzeNotifications(prefs.deepseekApiKey, batch, periodTimes)
                     prefs.geminiEnabled  && prefs.geminiApiKey.isNotBlank()                        ->
-                        GeminiApi.analyzeNotifications(prefs.geminiApiKey, batch)
+                        GeminiApi.analyzeNotifications(prefs.geminiApiKey, batch, periodTimes)
                     prefs.mimoEnabled    && prefs.mimoApiKey.isNotBlank()                          ->
-                        MimoApi.analyzeNotifications(prefs.mimoApiKey, batch)
+                        MimoApi.analyzeNotifications(prefs.mimoApiKey, batch, periodTimes)
                     prefs.claudeEnabled  && prefs.claudeApiKey.isNotBlank()                        ->
-                        ClaudeApi.analyzeNotifications(prefs.claudeApiKey, batch)
+                        ClaudeApi.analyzeNotifications(prefs.claudeApiKey, batch, periodTimes)
                     prefs.openaiEnabled  && prefs.openaiApiKey.isNotBlank()                        ->
-                        OpenAiApi.analyzeNotifications(prefs.openaiApiKey, batch)
+                        OpenAiApi.analyzeNotifications(prefs.openaiApiKey, batch, periodTimes)
                     prefs.groqEnabled     && prefs.groqApiKey.isNotBlank()                           ->
-                        GroqApi.analyzeNotifications(prefs.groqApiKey, batch)
+                        GroqApi.analyzeNotifications(prefs.groqApiKey, batch, periodTimes)
                     prefs.deepseekEnabled && prefs.deepseekApiKey.isNotBlank()                     ->
-                        DeepSeekApi.analyzeNotifications(prefs.deepseekApiKey, batch)
+                        DeepSeekApi.analyzeNotifications(prefs.deepseekApiKey, batch, periodTimes)
                     else -> { NotificationHelper.cancelAiStatus(applicationContext); return@launch }
                 }
 

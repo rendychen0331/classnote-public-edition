@@ -2,6 +2,7 @@ package com.rendy.classnote.data.remote
 
 import android.util.Base64
 import android.util.Log
+import com.rendy.classnote.data.local.entity.PeriodTimeEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -51,10 +52,11 @@ object GeminiApi {
      */
     suspend fun analyzeNotifications(
         apiKey: String,
-        inputs: List<NotificationInput>
+        inputs: List<NotificationInput>,
+        periodTimes: List<PeriodTimeEntity> = emptyList()
     ): List<List<EventInfo>> = withContext(Dispatchers.IO) {
         if (apiKey.isBlank() || inputs.isEmpty()) return@withContext emptyList()
-        val prompt = buildBatchPrompt(inputs)
+        val prompt = buildBatchPrompt(inputs, periodTimes)
         var responseJson: String? = null
         var success = false
         val duration = measureTimeMillis {
@@ -73,7 +75,10 @@ object GeminiApi {
         }
     }
 
-    internal fun buildBatchPrompt(inputs: List<NotificationInput>): String {
+    internal fun buildBatchPrompt(
+        inputs: List<NotificationInput>,
+        periodTimes: List<PeriodTimeEntity> = emptyList()
+    ): String {
         val now = java.time.LocalDateTime.now()
         val today = now.toLocalDate().toString()  // YYYY-MM-DD
         val currentTime = now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
@@ -81,10 +86,19 @@ object GeminiApi {
             "通知 ${i + 1}｜來源：${n.appLabel}\n<notification_content>\n發送者/群組：${n.title}\n內容：${n.text}\n</notification_content>"
         }.joinToString("\n\n")
 
+        val periodSection = if (periodTimes.isNotEmpty()) {
+            val table = periodTimes.joinToString("\n") { p ->
+                val sh = p.startMinute / 60
+                val sm = p.startMinute % 60
+                "  第${p.period}節：%02d:%02d".format(sh, sm)
+            }
+            "\n節次時間對照表（使用者設定）：\n$table\n"
+        } else ""
+
         return """
 今天日期：$today
 現在時間：$currentTime
-
+$periodSection
 以下是 ${inputs.size} 則手機通知，請逐一判斷是否包含需要記錄的提醒事項（作業截止、考試、繳費期限、活動、集合、吃藥、約會、任何有時間性的待辦等）。
 
 $notifList
@@ -104,6 +118,7 @@ category 值：HOMEWORK（作業）、EXAM（考試）、PAYMENT（繳費）、E
 - 「明天」「下週X」等相對日期 → 換算為絕對日期 YYYY-MM-DD
 - 「今天下午X點」「晚上X點」等 → 換算為 HH:MM 24小時制
 - 時間無法確定 AM/PM 時（如「6:35去接我」），選擇最近的未來時間：若 06:35 已過，則用 18:35；若 18:35 也過了，則用明天 06:35，dueDate 對應更新
+- 「第X節」→ 查上方節次時間對照表，dueTime 填入該節的開始時間（HH:MM）；若無對照表則填 null
 
 示例（2 則通知，第一則有 2 個事件，第二則沒有）：
 [

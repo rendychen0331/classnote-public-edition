@@ -8,6 +8,7 @@ import org.json.JSONObject
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import com.rendy.classnote.data.local.entity.PeriodTimeEntity
 import kotlin.system.measureTimeMillis
 
 object ClaudeApi {
@@ -19,10 +20,11 @@ object ClaudeApi {
 
     suspend fun analyzeNotifications(
         apiKey: String,
-        inputs: List<GeminiApi.NotificationInput>
+        inputs: List<GeminiApi.NotificationInput>,
+        periodTimes: List<PeriodTimeEntity> = emptyList()
     ): List<List<GeminiApi.EventInfo>> = withContext(Dispatchers.IO) {
         if (apiKey.isBlank() || inputs.isEmpty()) return@withContext emptyList()
-        val prompt = GeminiApi.buildBatchPrompt(inputs)
+        val prompt = GeminiApi.buildBatchPrompt(inputs, periodTimes)
         var responseText: String? = null
         var success = false
         val duration = measureTimeMillis {
