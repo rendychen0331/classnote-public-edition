@@ -65,6 +65,22 @@ Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
   | AI 筆記摘要與問答 | 由AI總結課堂筆記，可進行進一步對話 |
   | Google Keep、Microsoft OneNote筆記辨識 | 由AI辨識筆記內容是否為待辦事項，如果是則自動加入提醒事項中 |
 - 自動更新 : 可自動由Github抓取APK
+- 支援的AI : (✅支援且已測試，❓支援但未測試，❌不支援)
+  | 支援狀態 | AI |
+  |---|---|
+  | ✅ | Google Gemini |
+  | ❓ | Anthropic Claude |
+  | ❓ | OpenAI Chatgpt |
+  | ❓ | Xiaomi MiMo (OpenAI API) |
+  | ✅ | Groq (llama-3.3-70b-versatile) |
+  | ❓ | DeepSeek |
+  | ❌ | xAI Grok |
+  | ❌ | Microsoft Copilot |
+  | ❌ | Github Copilot |
+  | ❌ | ByteDance Doubao / Dola |
+  | ❌ | Alibaba Qwen |
+  | ❌ | Perplexity |
+  | ❌ | Meta AI |
   
 
 
