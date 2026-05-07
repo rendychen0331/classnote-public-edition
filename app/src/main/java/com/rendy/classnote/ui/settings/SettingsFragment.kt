@@ -174,9 +174,13 @@ class SettingsFragment : Fragment() {
             .setTitle("發現新版本 ${info.tagName}")
             .setMessage("目前版本：${BuildConfig.VERSION_NAME}\n\n是否立即下載並安裝？")
             .setPositiveButton("下載安裝") { _, _ ->
-                binding.tvUpdateStatus.text = "下載中... 0%"
                 val downloadId = UpdateChecker.downloadAndInstall(requireContext(), info.apkUrl, info.tagName)
-                trackDownloadProgress(downloadId)
+                if (downloadId == UpdateChecker.DOWNLOAD_ID_CACHED) {
+                    binding.tvUpdateStatus.text = "已從快取安裝"
+                } else {
+                    binding.tvUpdateStatus.text = "下載中... 0%"
+                    trackDownloadProgress(downloadId)
+                }
             }
             .setNegativeButton("稍後", null)
             .show()

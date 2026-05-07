@@ -9,10 +9,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.Log
+import androidx.core.content.FileProvider
 import com.rendy.classnote.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -79,9 +81,18 @@ object UpdateChecker {
         return false
     }
 
+    /** Return value -2L means APK was already cached — install triggered directly, no progress to track. */
+    const val DOWNLOAD_ID_CACHED = -2L
+
     fun downloadAndInstall(context: Context, apkUrl: String, tagName: String): Long {
-        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val filename = "classnote-$tagName.apk"
+        val cachedFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), filename)
+        if (cachedFile.exists() && cachedFile.length() > 0) {
+            triggerInstallFromFile(context, cachedFile)
+            return DOWNLOAD_ID_CACHED
+        }
+
+        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
         val request = DownloadManager.Request(Uri.parse(apkUrl)).apply {
             setTitle("ClassNote 更新")
@@ -112,9 +123,7 @@ object UpdateChecker {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
                     putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
                 }
-                try {
-                    ctx.startActivity(installIntent)
-                } catch (e: Exception) {
+                try { ctx.startActivity(installIntent) } catch (e: Exception) {
                     Log.e(TAG, "triggerInstall error", e)
                 }
             }
@@ -128,6 +137,19 @@ object UpdateChecker {
         }
 
         return downloadId
+    }
+
+    private fun triggerInstallFromFile(context: Context, apkFile: File) {
+        try {
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apkFile)
+            context.startActivity(Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
+                data = uri
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+            })
+        } catch (e: Exception) {
+            Log.e(TAG, "triggerInstallFromFile error", e)
+        }
     }
 
     fun queryProgress(context: Context, downloadId: Long): Int {
