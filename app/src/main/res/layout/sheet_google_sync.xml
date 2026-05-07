@@ -1198,12 +1198,10 @@
                     android:orientation="vertical"
                     android:layout_marginBottom="8dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <com.google.android.gms.common.SignInButton
                     android:id="@+id/btnKeepAuth"
-                    style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_add_account" />
+                    android:layout_height="wrap_content" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
