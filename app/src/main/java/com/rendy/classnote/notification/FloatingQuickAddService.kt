@@ -19,6 +19,7 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.PopupMenu
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.rendy.classnote.R
 import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.ui.MainActivity
@@ -149,19 +150,29 @@ class FloatingQuickAddService : Service() {
     private fun showModelMenu(anchor: ImageButton) {
         val prefs = AppPreferences(this)
         val providers = buildList {
-            if (prefs.geminiEnabled && prefs.geminiApiKey.isNotBlank()) add("gemini" to "Gemini")
-            if (prefs.mimoEnabled && prefs.mimoApiKey.isNotBlank()) add("mimo" to "Mimo")
-            if (prefs.claudeEnabled && prefs.claudeApiKey.isNotBlank()) add("claude" to "Claude")
-            if (prefs.openaiEnabled && prefs.openaiApiKey.isNotBlank()) add("openai" to "OpenAI")
-            if (prefs.groqEnabled && prefs.groqApiKey.isNotBlank()) add("groq" to "Groq")
-            if (prefs.deepseekEnabled && prefs.deepseekApiKey.isNotBlank()) add("deepseek" to "DeepSeek")
+            if (prefs.geminiEnabled && prefs.geminiApiKey.isNotBlank()) add(Triple("gemini", "Gemini", R.drawable.ic_ai_gemini))
+            if (prefs.mimoEnabled && prefs.mimoApiKey.isNotBlank()) add(Triple("mimo", "Mimo", R.drawable.ic_ai_mimo))
+            if (prefs.claudeEnabled && prefs.claudeApiKey.isNotBlank()) add(Triple("claude", "Claude", R.drawable.ic_ai_claude))
+            if (prefs.openaiEnabled && prefs.openaiApiKey.isNotBlank()) add(Triple("openai", "GPT", R.drawable.ic_ai_openai))
+            if (prefs.groqEnabled && prefs.groqApiKey.isNotBlank()) add(Triple("groq", "Groq", R.drawable.ic_ai_groq))
+            if (prefs.deepseekEnabled && prefs.deepseekApiKey.isNotBlank()) add(Triple("deepseek", "DS", R.drawable.ic_ai_deepseek))
         }
         if (providers.isEmpty()) return
 
-        val popup = PopupMenu(themedCtx, anchor)
-        providers.forEachIndexed { i, (_, name) -> popup.menu.add(0, i, i, name) }
+        val popup = PopupMenu(themedCtx, anchor, android.view.Gravity.TOP)
+        providers.forEachIndexed { i, (_, name, iconRes) ->
+            popup.menu.add(0, i, i, name).icon = ContextCompat.getDrawable(themedCtx, iconRes)
+        }
+        try {
+            val f = popup::class.java.getDeclaredField("mPopup")
+            f.isAccessible = true
+            val helper = f.get(popup)
+            val m = helper::class.java.getDeclaredMethod("setForceShowIcon", Boolean::class.java)
+            m.isAccessible = true
+            m.invoke(helper, true)
+        } catch (_: Exception) {}
         popup.setOnMenuItemClickListener { item ->
-            val (id, _) = providers[item.itemId]
+            val (id) = providers[item.itemId]
             prefs.preferredChatProvider = id
             prefs.preferredNotifProvider = id
             updateModelIcon(anchor)
