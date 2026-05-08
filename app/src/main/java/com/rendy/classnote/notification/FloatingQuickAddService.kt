@@ -1,5 +1,6 @@
 package com.rendy.classnote.notification
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,6 +14,7 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.PathInterpolator
@@ -58,6 +60,7 @@ class FloatingQuickAddService : Service() {
     private var reminderSelectedDate: LocalDate = LocalDate.now()
     private val chatMessages = mutableListOf<OverlayChatAdapter.ChatMessage>()
     private var chatAdapter: OverlayChatAdapter? = null
+    private var isChatFullScreen = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -266,8 +269,52 @@ class FloatingQuickAddService : Service() {
             inputEt.setText("")
             sendChat(msg, rv, panel.findViewById(R.id.pb_chat))
         }
+
+        setupDragHandle(panel)
+
         inputEt.requestFocus()
         showKeyboard(inputEt)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupDragHandle(panel: LinearLayout) {
+        var dragStartY = 0f
+        panel.findViewById<View>(R.id.drag_handle_area).setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> { dragStartY = event.rawY; true }
+                MotionEvent.ACTION_UP -> {
+                    val delta = dragStartY - event.rawY
+                    when {
+                        delta > 80 && !isChatFullScreen -> expandChat(panel)
+                        delta < -80 && isChatFullScreen -> collapseChat(panel)
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun expandChat(panel: LinearLayout) {
+        val displayHeight = resources.displayMetrics.heightPixels
+        animateChatHeight(panel, panel.height, displayHeight)
+        isChatFullScreen = true
+    }
+
+    private fun collapseChat(panel: LinearLayout) {
+        animateChatHeight(panel, panel.height, dpToPx(400f).toInt())
+        isChatFullScreen = false
+    }
+
+    private fun animateChatHeight(panel: LinearLayout, from: Int, to: Int) {
+        ValueAnimator.ofInt(from, to).apply {
+            duration = 280
+            interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
+            addUpdateListener {
+                panel.layoutParams = panel.layoutParams.also { lp -> lp.height = it.animatedValue as Int }
+            }
+            start()
+        }
     }
 
     private fun hideChatPanel() {
@@ -276,6 +323,7 @@ class FloatingQuickAddService : Service() {
         view.findViewById<View>(R.id.bottom_bar).visibility = View.VISIBLE
         chatMessages.clear()
         chatAdapter = null
+        isChatFullScreen = false
         hideKeyboard()
     }
 
