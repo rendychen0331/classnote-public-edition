@@ -87,6 +87,7 @@ Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
   | ❌ | Perplexity |
   | ❌ | Meta AI |
   
-
+## 授權
+**MIT**
 
 
