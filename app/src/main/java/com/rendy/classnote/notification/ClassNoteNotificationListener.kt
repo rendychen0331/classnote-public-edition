@@ -54,10 +54,18 @@ class ClassNoteNotificationListener : NotificationListenerService() {
         val messagingStyle = NotificationCompat.MessagingStyle
             .extractMessagingStyleFromNotification(sbn.notification)
 
+        // Gmail 摘要通知（「2封新郵件」等）開頭為數字，不含任何作業資訊，直接忽略
+        if (sbn.packageName == "com.google.android.gm" &&
+            title.firstOrNull()?.isDigit() == true) return
+
         // 群組聊天（LINE、WhatsApp 等）的 conversationTitle 是群組名，不含「：發送者」後綴
         // 用它作頻道 key，避免同一群組多人發言被記成不同頻道
-        val channelName = messagingStyle?.conversationTitle?.toString()?.trim()
-            ?.takeIf { it.isNotBlank() } ?: title
+        // Gmail 個別郵件 title 為寄件人，統一以 "Gmail" 為頻道，避免每位寄件人變獨立頻道
+        val channelName = when {
+            sbn.packageName == "com.google.android.gm" -> "Gmail"
+            else -> messagingStyle?.conversationTitle?.toString()?.trim()
+                ?.takeIf { it.isNotBlank() } ?: title
+        }
 
         // 頻道黑名單過濾（優先於白名單，黑名單內的頻道直接忽略）
         val channelBlacklist = prefs.getBlacklistedChannels()[sbn.packageName]
