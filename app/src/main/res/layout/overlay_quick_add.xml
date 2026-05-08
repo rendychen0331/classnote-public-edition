@@ -206,38 +206,32 @@
     <LinearLayout
         android:id="@+id/chat_panel"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="400dp"
+        android:layout_gravity="bottom"
         android:orientation="vertical"
-        android:background="?attr/colorSurface"
+        android:background="@drawable/bg_chat_panel"
+        android:elevation="12dp"
         android:clickable="true"
         android:focusable="true"
         android:visibility="gone">
+
+        <!-- drag handle -->
+        <View
+            android:layout_width="36dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp"
+            android:background="#44FFFFFF"
+            android:id="@+id/chat_drag_handle" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:padding="8dp">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_chat_close"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="✕"
-                android:textSize="18sp"
-                android:minWidth="0dp"
-                android:paddingHorizontal="12dp" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="AI 助手"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorOnSurface"
-                android:gravity="center" />
+            android:paddingHorizontal="4dp"
+            android:paddingBottom="4dp">
 
             <ImageButton
                 android:id="@+id/btn_chat_model_panel"
@@ -245,8 +239,22 @@
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:scaleType="fitCenter"
-                android:padding="8dp"
-                android:layout_marginEnd="4dp" />
+                android:padding="8dp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_chat_close"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="✕"
+                android:textSize="16sp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="12dp" />
 
         </LinearLayout>
 
