@@ -29,6 +29,7 @@ class KeepSyncWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 }
                 is KeepSyncManager.SyncResult.Error -> hasError = true
                 KeepSyncManager.SyncResult.NoPermission -> {}
+                is KeepSyncManager.SyncResult.AuthRequired -> hasError = true
             }
         }
 

@@ -30,6 +30,7 @@ class GmailSyncWorker(context: Context, params: WorkerParameters) : CoroutineWor
                 }
                 is GmailSyncManager.SyncResult.Error -> hasError = true
                 GmailSyncManager.SyncResult.NoPermission -> {}
+                is GmailSyncManager.SyncResult.AuthRequired -> hasError = true
             }
         }
 
