@@ -1,4 +1,6 @@
 # ClassNote
+>[!NOTE]
+>因為敝人的懶散，README更新速度比不上App更新速度，所以直接看App比較準確
 
 歡迎，這是一個高中**牲**用 愛 + AI 做的Android App，是首個能持續更新到現在並公開的專案。
 
@@ -19,9 +21,12 @@ Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 - [lobehub](https://github.com/lobehub/lobe-icons) ([官網](https://lobehub.com)) - 提供icon
 - [Wikimedia Commons](https://commons.wikimedia.org)  - 提供icon原圖
 - [Material Design 3](https://m3.material.io) - UI & icon
+
+## 接下來的計劃
+
+請看[Issues](https://github.com/rendychen0331/classnote-public-edition/issues)
+
 ## 說明
->[!NOTE]
->因為敝人的懶散，README更新速度比不上App更新速度，所以直接看App比較準確
 
 目前不打算上 Google Play Store ，因為 $25 真的暫時付不起
 
