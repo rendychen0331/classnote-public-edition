@@ -14,8 +14,10 @@ class QuickAddTileService : TileService() {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onClick() {
         super.onClick()
+        collapseStatusBar()
         val intent = Intent(this, FloatingQuickAddService::class.java).apply {
             action = FloatingQuickAddService.ACTION_SHOW
         }
