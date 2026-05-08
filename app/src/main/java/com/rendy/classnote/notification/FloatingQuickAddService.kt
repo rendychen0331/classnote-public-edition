@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Handler
@@ -15,14 +16,29 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.PathInterpolator
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.PopupMenu
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.chip.ChipGroup
+import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.R
 import com.rendy.classnote.data.AppPreferences
+import com.rendy.classnote.data.local.entity.ClassRecordEntity
+import com.rendy.classnote.data.local.entity.ReminderEntity
 import com.rendy.classnote.ui.MainActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class FloatingQuickAddService : Service() {
 
@@ -30,6 +46,8 @@ class FloatingQuickAddService : Service() {
     private var overlayView: View? = null
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var themedCtx: ContextThemeWrapper
+    private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var reminderSelectedDate: LocalDate = LocalDate.now()
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -51,6 +69,7 @@ class FloatingQuickAddService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         removeOverlay()
+        serviceScope.cancel()
     }
 
     @SuppressLint("InflateParams")
@@ -75,10 +94,10 @@ class FloatingQuickAddService : Service() {
         val btnModel = view.findViewById<ImageButton>(R.id.btn_model)
 
         view.findViewById<View>(R.id.overlay_root).setOnClickListener { dismiss() }
-        leftWrap.setOnClickListener { openActivity("new_reminder") }
+        leftWrap.setOnClickListener { showReminderForm() }
         capsule.setOnClickListener { openActivity("new_reminder") }
         view.findViewById<View>(R.id.hint_text).setOnClickListener { openActivity("new_reminder") }
-        rightWrap.setOnClickListener { openActivity("new_classrecord") }
+        rightWrap.setOnClickListener { showClassRecordForm() }
         view.findViewById<ImageButton>(R.id.btn_add_attachment).setOnClickListener {
             showAttachmentMenu(it)
         }
@@ -208,6 +227,113 @@ class FloatingQuickAddService : Service() {
             .setOngoing(true)
             .build()
         startForeground(NOTIF_ID, notification)
+    }
+
+    // ── 提醒 mini form ────────────────────────────────────────────────────────
+
+    private fun showReminderForm() {
+        val view = overlayView ?: return
+        view.findViewById<View>(R.id.bottom_bar).visibility = View.GONE
+        val form = view.findViewById<LinearLayout>(R.id.form_reminder)
+        reminderSelectedDate = LocalDate.now()
+        val titleEt = form.findViewById<EditText>(R.id.et_reminder_title)
+        titleEt.setText("")
+        view.findViewById<com.google.android.material.chip.Chip>(R.id.chip_today).isChecked = true
+        form.visibility = View.VISIBLE
+        titleEt.requestFocus()
+        showKeyboard(titleEt)
+
+        form.findViewById<com.google.android.material.chip.ChipGroup>(R.id.chip_group_date)
+            .setOnCheckedStateChangeListener { _, checkedIds ->
+                reminderSelectedDate = when (checkedIds.firstOrNull()) {
+                    R.id.chip_today -> LocalDate.now()
+                    R.id.chip_tomorrow -> LocalDate.now().plusDays(1)
+                    R.id.chip_day_after -> LocalDate.now().plusDays(2)
+                    else -> LocalDate.now()
+                }
+            }
+        form.findViewById<View>(R.id.btn_reminder_cancel).setOnClickListener { hideReminderForm() }
+        form.findViewById<View>(R.id.btn_reminder_save).setOnClickListener {
+            val title = titleEt.text.toString().trim()
+            if (title.isEmpty()) return@setOnClickListener
+            saveReminder(title)
+        }
+    }
+
+    private fun hideReminderForm() {
+        val view = overlayView ?: return
+        view.findViewById<View>(R.id.form_reminder).visibility = View.GONE
+        view.findViewById<View>(R.id.bottom_bar).visibility = View.VISIBLE
+        hideKeyboard()
+    }
+
+    private fun saveReminder(title: String) {
+        val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val entity = ReminderEntity(
+            title = title,
+            dueDate = reminderSelectedDate.format(fmt),
+            category = "REMINDER"
+        )
+        serviceScope.launch {
+            (application as ClassNoteApplication).reminderRepository.insertReminder(entity)
+            withContext(Dispatchers.Main) { dismiss() }
+        }
+    }
+
+    // ── 上課筆記 mini form ───────────────────────────────────────────────────
+
+    private fun showClassRecordForm() {
+        val view = overlayView ?: return
+        view.findViewById<View>(R.id.bottom_bar).visibility = View.GONE
+        val form = view.findViewById<LinearLayout>(R.id.form_classrecord)
+        val titleEt = form.findViewById<EditText>(R.id.et_record_title)
+        titleEt.setText("")
+        form.findViewById<EditText>(R.id.et_record_note).setText("")
+        form.visibility = View.VISIBLE
+        titleEt.requestFocus()
+        showKeyboard(titleEt)
+
+        form.findViewById<View>(R.id.btn_record_cancel).setOnClickListener { hideClassRecordForm() }
+        form.findViewById<View>(R.id.btn_record_save).setOnClickListener {
+            val title = titleEt.text.toString().trim()
+            val note = form.findViewById<EditText>(R.id.et_record_note).text.toString().trim()
+            saveClassRecord(title, note)
+        }
+    }
+
+    private fun hideClassRecordForm() {
+        val view = overlayView ?: return
+        view.findViewById<View>(R.id.form_classrecord).visibility = View.GONE
+        view.findViewById<View>(R.id.bottom_bar).visibility = View.VISIBLE
+        hideKeyboard()
+    }
+
+    private fun saveClassRecord(title: String, note: String) {
+        val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        val entity = ClassRecordEntity(
+            date = today,
+            timeLabel = "",
+            title = title.ifEmpty { "上課筆記" },
+            textNote = note,
+            aiSummary = "",
+            createdAt = System.currentTimeMillis()
+        )
+        serviceScope.launch {
+            (application as ClassNoteApplication).classRecordRepository.insert(entity)
+            withContext(Dispatchers.Main) { dismiss() }
+        }
+    }
+
+    // ── IME helpers ──────────────────────────────────────────────────────────
+
+    private fun showKeyboard(et: EditText) {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        handler.postDelayed({ imm.showSoftInput(et, InputMethodManager.SHOW_IMPLICIT) }, 200)
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        overlayView?.windowToken?.let { imm.hideSoftInputFromWindow(it, 0) }
     }
 
     private fun dpToPx(dp: Float) = dp * resources.displayMetrics.density
