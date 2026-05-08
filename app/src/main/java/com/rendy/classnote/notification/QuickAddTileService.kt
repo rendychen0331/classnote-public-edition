@@ -1,5 +1,6 @@
 package com.rendy.classnote.notification
 
+import android.app.PendingIntent
 import android.content.Intent
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
@@ -14,13 +15,12 @@ class QuickAddTileService : TileService() {
         }
     }
 
-    @Suppress("DEPRECATION")
     override fun onClick() {
         super.onClick()
-        collapseStatusBar()
-        val intent = Intent(this, FloatingQuickAddService::class.java).apply {
-            action = FloatingQuickAddService.ACTION_SHOW
+        val intent = Intent(this, DismissShadeActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        startForegroundService(intent)
+        val pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        startActivityAndCollapse(pi)
     }
 }

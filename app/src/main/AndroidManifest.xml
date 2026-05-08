@@ -139,6 +139,12 @@
                 android:value="true" />
         </service>
 
+        <activity
+            android:name=".notification.DismissShadeActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:exported="false" />
+
         <service
             android:name=".notification.FloatingQuickAddService"
             android:exported="false"
