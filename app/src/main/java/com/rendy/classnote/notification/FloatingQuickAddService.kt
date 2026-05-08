@@ -23,7 +23,6 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import android.widget.PopupMenu
 import androidx.core.app.NotificationCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -106,8 +105,13 @@ class FloatingQuickAddService : Service() {
         val btnModel = view.findViewById<ImageButton>(R.id.btn_model)
 
         view.findViewById<View>(R.id.overlay_root).setOnClickListener {
-            val picker = view.findViewById<View>(R.id.model_picker_panel)
-            if (picker.visibility == View.VISIBLE) picker.visibility = View.GONE else dismiss()
+            val modelPicker = view.findViewById<View>(R.id.model_picker_panel)
+            val attachPicker = view.findViewById<View>(R.id.attachment_picker_panel)
+            when {
+                modelPicker.visibility == View.VISIBLE -> modelPicker.visibility = View.GONE
+                attachPicker.visibility == View.VISIBLE -> attachPicker.visibility = View.GONE
+                else -> dismiss()
+            }
         }
         leftWrap.setOnClickListener { showReminderForm() }
         capsule.setOnClickListener { showChatPanel() }
@@ -164,21 +168,37 @@ class FloatingQuickAddService : Service() {
     }
 
     private fun showAttachmentMenu(anchor: View) {
-        val popup = PopupMenu(themedCtx, anchor)
-        popup.menu.add(0, 0, 0, getString(R.string.attach_camera))
-        popup.menu.add(0, 1, 1, getString(R.string.attach_gallery))
-        popup.menu.add(0, 2, 2, getString(R.string.attach_audio))
-        popup.setOnMenuItemClickListener { item ->
-            val type = when (item.itemId) {
-                0 -> "new_classrecord_camera"
-                1 -> "new_classrecord_gallery"
-                2 -> "new_classrecord_audio"
-                else -> return@setOnMenuItemClickListener false
+        val view = overlayView ?: return
+        val panel = view.findViewById<LinearLayout>(R.id.attachment_picker_panel)
+        if (panel.visibility == View.VISIBLE) { panel.visibility = View.GONE; return }
+
+        val items = listOf(
+            Pair("camera", getString(R.string.attach_camera)),
+            Pair("gallery", getString(R.string.attach_gallery)),
+            Pair("audio", getString(R.string.attach_audio))
+        )
+
+        panel.removeAllViews()
+        val padH = dpToPx(16f).toInt()
+        val padV = dpToPx(12f).toInt()
+        items.forEach { (type, label) ->
+            val tv = android.widget.TextView(themedCtx).apply {
+                text = label
+                textSize = 14f
+                setPadding(padH, padV, padH, padV)
+                isClickable = true
+                isFocusable = true
+                val ta = themedCtx.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
+                background = ta.getDrawable(0)
+                ta.recycle()
+                setOnClickListener {
+                    panel.visibility = View.GONE
+                    openActivity("new_classrecord_$type")
+                }
             }
-            openActivity(type)
-            true
+            panel.addView(tv)
         }
-        popup.show()
+        panel.visibility = View.VISIBLE
     }
 
     private fun showModelMenu(anchor: ImageButton) {
@@ -223,6 +243,10 @@ class FloatingQuickAddService : Service() {
         overlayView?.findViewById<View>(R.id.model_picker_panel)?.visibility = View.GONE
     }
 
+    private fun hideAttachmentPicker() {
+        overlayView?.findViewById<View>(R.id.attachment_picker_panel)?.visibility = View.GONE
+    }
+
     private fun updateModelIcon(button: ImageButton) {
         val iconRes = when (AppPreferences(this).preferredChatProvider) {
             "claude" -> R.drawable.ic_ai_claude
@@ -257,6 +281,7 @@ class FloatingQuickAddService : Service() {
     private fun showChatPanel() {
         val view = overlayView ?: return
         hideModelPicker()
+        hideAttachmentPicker()
         view.findViewById<View>(R.id.bottom_bar).visibility = View.GONE
         val panel = view.findViewById<LinearLayout>(R.id.chat_panel)
         chatMessages.clear()
@@ -370,6 +395,7 @@ class FloatingQuickAddService : Service() {
     private fun showReminderForm() {
         val view = overlayView ?: return
         hideModelPicker()
+        hideAttachmentPicker()
         view.findViewById<View>(R.id.bottom_bar).visibility = View.GONE
         val form = view.findViewById<LinearLayout>(R.id.form_reminder)
         reminderSelectedDate = LocalDate.now()
@@ -422,6 +448,7 @@ class FloatingQuickAddService : Service() {
     private fun showClassRecordForm() {
         val view = overlayView ?: return
         hideModelPicker()
+        hideAttachmentPicker()
         view.findViewById<View>(R.id.bottom_bar).visibility = View.GONE
         val form = view.findViewById<LinearLayout>(R.id.form_classrecord)
         val titleEt = form.findViewById<EditText>(R.id.et_record_title)

@@ -109,6 +109,23 @@
 
     </LinearLayout>
 
+    <!-- + 附件選擇浮動面板（膠囊左上方） -->
+    <LinearLayout
+        android:id="@+id/attachment_picker_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="100dp"
+        android:background="@drawable/bg_capsule_surface"
+        android:elevation="14dp"
+        android:orientation="vertical"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="6dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone" />
+
     <!-- AI 模型選擇浮動面板（固定在膠囊上方） -->
     <LinearLayout
         android:id="@+id/model_picker_panel"
