@@ -160,8 +160,8 @@ class FloatingQuickAddService : Service() {
         if (providers.isEmpty()) return
 
         val popup = PopupMenu(themedCtx, anchor, android.view.Gravity.TOP)
-        providers.forEachIndexed { i, (_, name, iconRes) ->
-            popup.menu.add(0, i, i, name).icon = ContextCompat.getDrawable(themedCtx, iconRes)
+        providers.forEachIndexed { i, (_, _, iconRes) ->
+            popup.menu.add(0, i, i, "").icon = ContextCompat.getDrawable(themedCtx, iconRes)
         }
         try {
             val f = popup::class.java.getDeclaredField("mPopup")
