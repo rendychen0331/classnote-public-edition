@@ -26,6 +26,7 @@ object CalendarSyncManager {
         data class Success(val imported: Int, val skipped: Int) : SyncResult()
         data class Error(val message: String) : SyncResult()
         object NoPermission : SyncResult()
+        data class AuthRequired(val intent: android.content.Intent) : SyncResult()
     }
 
     private const val TAG = "CalendarSyncManager"
@@ -123,6 +124,8 @@ object CalendarSyncManager {
 
             Log.d(TAG, "sync done: imported=$imported, skipped=$skipped")
             SyncResult.Success(imported, skipped)
+        } catch (e: com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException) {
+            SyncResult.AuthRequired(e.intent)
         } catch (e: Exception) {
             Log.e(TAG, "sync error", e)
             SyncResult.Error(e.message ?: "同步失敗")

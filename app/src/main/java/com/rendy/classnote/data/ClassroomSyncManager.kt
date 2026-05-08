@@ -27,6 +27,7 @@ object ClassroomSyncManager {
         data class Success(val imported: Int, val skipped: Int) : SyncResult()
         data class Error(val message: String) : SyncResult()
         object NoPermission : SyncResult()
+        data class AuthRequired(val intent: android.content.Intent) : SyncResult()
     }
 
     private const val TAG = "ClassroomSyncManager"
@@ -138,6 +139,8 @@ object ClassroomSyncManager {
                 ApiLogger.log("Classroom(同步)", "sync", "匯入$imported 略過$skipped", 0, true)
                 if (imported > 0) com.rendy.classnote.widget.ClassNoteWidget.refreshAll(context)
                 SyncResult.Success(imported, skipped)
+            } catch (e: com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException) {
+                SyncResult.AuthRequired(e.intent)
             } catch (e: Exception) {
                 Log.e(TAG, "Classroom sync failed", e)
                 ApiLogger.log("Classroom(同步)", "sync", e.message ?: "同步失敗", 0, false)

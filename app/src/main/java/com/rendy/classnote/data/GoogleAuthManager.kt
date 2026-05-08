@@ -1,5 +1,6 @@
 package com.rendy.classnote.data
 
+import android.accounts.AccountManager
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -15,6 +16,9 @@ import com.google.api.services.gmail.GmailScopes
 import com.google.api.services.tasks.TasksScopes
 
 object GoogleAuthManager {
+
+    fun getAccountPickerIntent(): android.content.Intent =
+        AccountManager.newChooseAccountIntent(null, null, arrayOf("com.google"), null, null, null, null)
 
     private const val PREFS_NAME = "classnote_prefs"
     private const val KEY_CLASSROOM_ACCOUNT_EMAIL = "classroom_account_email"
@@ -176,16 +180,6 @@ object GoogleAuthManager {
         client.revokeAccess().addOnCompleteListener {
             client.signOut().addOnCompleteListener { onDone() }
         }
-    }
-
-    fun signOutGmail(context: Context, onDone: () -> Unit = {}) {
-        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestScopes(Scope(GmailScopes.GMAIL_READONLY))
-            .build()
-        GoogleSignIn.getClient(context.applicationContext, options)
-            .signOut()
-            .addOnCompleteListener { onDone() }
     }
 
     // ── Gmail 多帳號 ──────────────────────────────────────────────────────

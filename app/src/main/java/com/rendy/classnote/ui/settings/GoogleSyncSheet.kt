@@ -80,74 +80,48 @@ class GoogleSyncSheet : Fragment() {
         }
     }
 
-    private val gmailSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val account = GoogleAuthManager.handleSignInResult(result.data)
-            if (account?.email != null) {
-                GoogleAuthManager.addGmailAccountEmail(requireContext(), account.email!!)
-            } else {
-                Toast.makeText(requireContext(), getString(R.string.settings_gmail_permission_denied), Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(requireContext(), getString(R.string.settings_gmail_permission_denied), Toast.LENGTH_SHORT).show()
+    private val gmailAccountPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val email = result.data?.getStringExtra(android.accounts.AccountManager.KEY_ACCOUNT_NAME)
+        if (!email.isNullOrBlank()) {
+            GoogleAuthManager.addGmailAccountEmail(requireContext(), email)
         }
         updateGmailSection()
     }
 
-    private val classroomSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val account = GoogleAuthManager.handleSignInResult(result.data)
-            if (account?.email != null) {
-                GoogleAuthManager.addClassroomAccountEmail(requireContext(), account.email!!)
-            } else {
-                Toast.makeText(requireContext(), getString(R.string.settings_classroom_permission_denied), Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(requireContext(), getString(R.string.settings_classroom_permission_denied), Toast.LENGTH_SHORT).show()
+    private val classroomAccountPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val email = result.data?.getStringExtra(android.accounts.AccountManager.KEY_ACCOUNT_NAME)
+        if (!email.isNullOrBlank()) {
+            GoogleAuthManager.addClassroomAccountEmail(requireContext(), email)
         }
         updateClassroomSection()
     }
 
-    private val calendarSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val account = GoogleAuthManager.handleSignInResult(result.data)
-            if (account?.email != null) {
-                GoogleAuthManager.addCalendarAccountEmail(requireContext(), account.email!!)
-            } else {
-                Toast.makeText(requireContext(), getString(R.string.settings_calendar_permission_denied), Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(requireContext(), getString(R.string.settings_calendar_permission_denied), Toast.LENGTH_SHORT).show()
+    private val calendarAccountPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val email = result.data?.getStringExtra(android.accounts.AccountManager.KEY_ACCOUNT_NAME)
+        if (!email.isNullOrBlank()) {
+            GoogleAuthManager.addCalendarAccountEmail(requireContext(), email)
         }
         updateCalendarSection()
     }
 
-    private val tasksSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val account = GoogleAuthManager.handleSignInResult(result.data)
-            if (account?.email != null) {
-                GoogleAuthManager.addTasksAccountEmail(requireContext(), account.email!!)
-            } else {
-                Toast.makeText(requireContext(), getString(R.string.settings_tasks_permission_denied), Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(requireContext(), getString(R.string.settings_tasks_permission_denied), Toast.LENGTH_SHORT).show()
+    private val tasksAccountPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val email = result.data?.getStringExtra(android.accounts.AccountManager.KEY_ACCOUNT_NAME)
+        if (!email.isNullOrBlank()) {
+            GoogleAuthManager.addTasksAccountEmail(requireContext(), email)
         }
         updateTasksSection()
     }
 
-    private val keepSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val account = GoogleAuthManager.handleSignInResult(result.data)
-            if (account?.email != null) {
-                GoogleAuthManager.addKeepAccountEmail(requireContext(), account.email!!)
-            } else {
-                Toast.makeText(requireContext(), getString(R.string.settings_keep_no_permission), Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(requireContext(), getString(R.string.settings_keep_no_permission), Toast.LENGTH_SHORT).show()
+    private val keepAccountPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val email = result.data?.getStringExtra(android.accounts.AccountManager.KEY_ACCOUNT_NAME)
+        if (!email.isNullOrBlank()) {
+            GoogleAuthManager.addKeepAccountEmail(requireContext(), email)
         }
         updateKeepSection()
+    }
+
+    private val authRecoveryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
+        // After user grants permission, they can retry sync
     }
 
     override fun onCreateView(
@@ -456,13 +430,7 @@ class GoogleSyncSheet : Fragment() {
 
         binding.btnGmailSignIn.setSize(SignInButton.SIZE_WIDE)
         binding.btnGmailSignIn.setOnClickListener {
-            GoogleAuthManager.signOutGmail(requireContext()) {
-                requireActivity().runOnUiThread {
-                    gmailSignInLauncher.launch(
-                        GoogleAuthManager.getSignInIntentWithGmail(requireContext())
-                    )
-                }
-            }
+            gmailAccountPickerLauncher.launch(GoogleAuthManager.getAccountPickerIntent())
         }
 
         binding.switchGmailForward.isChecked = prefs.gmailClassroomForwardEnabled
@@ -490,6 +458,9 @@ class GoogleSyncSheet : Fragment() {
                         is GmailSyncManager.SyncResult.Success -> {
                             totalImported += result.imported
                             totalSkipped += result.skipped
+                        }
+                        is GmailSyncManager.SyncResult.AuthRequired -> {
+                            authRecoveryLauncher.launch(result.intent)
                         }
                         else -> {}
                     }
@@ -565,13 +536,7 @@ class GoogleSyncSheet : Fragment() {
 
         binding.btnClassroomAuth.setSize(SignInButton.SIZE_WIDE)
         binding.btnClassroomAuth.setOnClickListener {
-            GoogleAuthManager.signOutClassroom(requireContext()) {
-                requireActivity().runOnUiThread {
-                    classroomSignInLauncher.launch(
-                        GoogleAuthManager.getSignInIntentForClassroom(requireContext())
-                    )
-                }
-            }
+            classroomAccountPickerLauncher.launch(GoogleAuthManager.getAccountPickerIntent())
         }
 
         setupClassroomAutoSync()
@@ -593,6 +558,9 @@ class GoogleSyncSheet : Fragment() {
                         is ClassroomSyncManager.SyncResult.Success -> {
                             totalImported += result.imported
                             totalSkipped += result.skipped
+                        }
+                        is ClassroomSyncManager.SyncResult.AuthRequired -> {
+                            authRecoveryLauncher.launch(result.intent)
                         }
                         else -> {}
                     }
@@ -668,13 +636,7 @@ class GoogleSyncSheet : Fragment() {
 
         binding.btnCalendarSignIn.setSize(SignInButton.SIZE_WIDE)
         binding.btnCalendarSignIn.setOnClickListener {
-            GoogleAuthManager.signOutCalendar(requireContext()) {
-                requireActivity().runOnUiThread {
-                    calendarSignInLauncher.launch(
-                        GoogleAuthManager.getSignInIntentForCalendar(requireContext())
-                    )
-                }
-            }
+            calendarAccountPickerLauncher.launch(GoogleAuthManager.getAccountPickerIntent())
         }
 
         binding.switchCalendarAutoSync.isChecked = prefs.autoCalendarSyncEnabled
@@ -703,6 +665,9 @@ class GoogleSyncSheet : Fragment() {
                         is CalendarSyncManager.SyncResult.Success -> {
                             totalImported += result.imported
                             totalSkipped += result.skipped
+                        }
+                        is CalendarSyncManager.SyncResult.AuthRequired -> {
+                            authRecoveryLauncher.launch(result.intent)
                         }
                         else -> {}
                     }
@@ -766,13 +731,7 @@ class GoogleSyncSheet : Fragment() {
 
         binding.btnTasksSignIn.setSize(SignInButton.SIZE_WIDE)
         binding.btnTasksSignIn.setOnClickListener {
-            GoogleAuthManager.signOutTasks(requireContext()) {
-                requireActivity().runOnUiThread {
-                    tasksSignInLauncher.launch(
-                        GoogleAuthManager.getSignInIntentForTasks(requireContext())
-                    )
-                }
-            }
+            tasksAccountPickerLauncher.launch(GoogleAuthManager.getAccountPickerIntent())
         }
 
         binding.switchTasksAutoSync.isChecked = prefs.autoTasksSyncEnabled
@@ -801,6 +760,9 @@ class GoogleSyncSheet : Fragment() {
                         is TasksSyncManager.SyncResult.Success -> {
                             totalImported += result.imported
                             totalSkipped += result.skipped
+                        }
+                        is TasksSyncManager.SyncResult.AuthRequired -> {
+                            authRecoveryLauncher.launch(result.intent)
                         }
                         else -> {}
                     }
@@ -863,13 +825,7 @@ class GoogleSyncSheet : Fragment() {
         }
 
         binding.btnKeepAuth.setOnClickListener {
-            GoogleAuthManager.signOutKeep(requireContext()) {
-                requireActivity().runOnUiThread {
-                    keepSignInLauncher.launch(
-                        GoogleAuthManager.getSignInIntentForKeep(requireContext())
-                    )
-                }
-            }
+            keepAccountPickerLauncher.launch(GoogleAuthManager.getAccountPickerIntent())
         }
 
         binding.switchKeepAutoSync.isChecked = prefs.autoKeepSyncEnabled
@@ -901,6 +857,9 @@ class GoogleSyncSheet : Fragment() {
                             totalSkipped += result.skipped
                         }
                         is KeepSyncManager.SyncResult.NoPermission -> noPermission = true
+                        is KeepSyncManager.SyncResult.AuthRequired -> {
+                            authRecoveryLauncher.launch(result.intent)
+                        }
                         else -> {}
                     }
                 }
