@@ -24,8 +24,16 @@ import android.widget.LinearLayout
 import android.widget.PopupMenu
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.ChipGroup
 import com.rendy.classnote.ClassNoteApplication
+import com.rendy.classnote.data.remote.ClaudeApi
+import com.rendy.classnote.data.remote.DeepSeekApi
+import com.rendy.classnote.data.remote.GeminiApi
+import com.rendy.classnote.data.remote.GroqApi
+import com.rendy.classnote.data.remote.MimoApi
+import com.rendy.classnote.data.remote.OpenAiApi
 import com.rendy.classnote.R
 import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.local.entity.ClassRecordEntity
@@ -48,6 +56,8 @@ class FloatingQuickAddService : Service() {
     private lateinit var themedCtx: ContextThemeWrapper
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var reminderSelectedDate: LocalDate = LocalDate.now()
+    private val chatMessages = mutableListOf<OverlayChatAdapter.ChatMessage>()
+    private var chatAdapter: OverlayChatAdapter? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -95,7 +105,7 @@ class FloatingQuickAddService : Service() {
 
         view.findViewById<View>(R.id.overlay_root).setOnClickListener { dismiss() }
         leftWrap.setOnClickListener { showReminderForm() }
-        capsule.setOnClickListener { openActivity("new_reminder") }
+        capsule.setOnClickListener { showChatPanel() }
         view.findViewById<View>(R.id.hint_text).setOnClickListener { openActivity("new_reminder") }
         rightWrap.setOnClickListener { showClassRecordForm() }
         view.findViewById<ImageButton>(R.id.btn_add_attachment).setOnClickListener {
@@ -227,6 +237,73 @@ class FloatingQuickAddService : Service() {
             .setOngoing(true)
             .build()
         startForeground(NOTIF_ID, notification)
+    }
+
+    // ── AI 對話面板 ──────────────────────────────────────────────────────────
+
+    private fun showChatPanel() {
+        val view = overlayView ?: return
+        view.findViewById<View>(R.id.bottom_bar).visibility = View.GONE
+        val panel = view.findViewById<LinearLayout>(R.id.chat_panel)
+        chatMessages.clear()
+        chatAdapter = OverlayChatAdapter(chatMessages)
+        val rv = panel.findViewById<RecyclerView>(R.id.rv_chat)
+        rv.layoutManager = LinearLayoutManager(this).apply { stackFromEnd = true }
+        rv.adapter = chatAdapter
+        panel.visibility = View.VISIBLE
+
+        val modelBtn = panel.findViewById<ImageButton>(R.id.btn_chat_model_panel)
+        updateModelIcon(modelBtn)
+        modelBtn.setOnClickListener { showModelMenu(it as ImageButton) }
+
+        panel.findViewById<View>(R.id.btn_chat_close).setOnClickListener { hideChatPanel() }
+
+        val inputEt = panel.findViewById<EditText>(R.id.et_chat_input)
+        inputEt.setText("")
+        panel.findViewById<View>(R.id.btn_chat_send).setOnClickListener {
+            val msg = inputEt.text.toString().trim()
+            if (msg.isEmpty()) return@setOnClickListener
+            inputEt.setText("")
+            sendChat(msg, rv, panel.findViewById(R.id.pb_chat))
+        }
+        inputEt.requestFocus()
+        showKeyboard(inputEt)
+    }
+
+    private fun hideChatPanel() {
+        val view = overlayView ?: return
+        view.findViewById<View>(R.id.chat_panel).visibility = View.GONE
+        view.findViewById<View>(R.id.bottom_bar).visibility = View.VISIBLE
+        chatMessages.clear()
+        chatAdapter = null
+        hideKeyboard()
+    }
+
+    private fun sendChat(message: String, rv: RecyclerView, pb: View) {
+        val prefs = AppPreferences(this)
+        chatMessages.add(OverlayChatAdapter.ChatMessage(message, true))
+        chatAdapter?.notifyItemInserted(chatMessages.size - 1)
+        rv.scrollToPosition(chatMessages.size - 1)
+        pb.visibility = View.VISIBLE
+
+        val history = chatMessages.dropLast(1).map { Pair(it.text, it.isUser) }
+
+        serviceScope.launch(Dispatchers.IO) {
+            val response: String? = when (prefs.preferredChatProvider) {
+                "openai"    -> OpenAiApi.chatWithContext(prefs.openaiApiKey, "", history, message)
+                "claude"    -> ClaudeApi.chatWithContext(prefs.claudeApiKey, "", history, message)
+                "groq"      -> GroqApi.chatWithContext(prefs.groqApiKey, "", history, message)
+                "deepseek"  -> DeepSeekApi.chatWithContext(prefs.deepseekApiKey, "", history, message)
+                "mimo"      -> MimoApi.chatWithContext(prefs.mimoApiKey, "", history, message)
+                else        -> GeminiApi.chatWithContext(prefs.geminiApiKey, "", history, message)
+            }
+            withContext(Dispatchers.Main) {
+                pb.visibility = View.GONE
+                chatMessages.add(OverlayChatAdapter.ChatMessage(response ?: "（發生錯誤，請稍後再試）", false))
+                chatAdapter?.notifyItemInserted(chatMessages.size - 1)
+                rv.scrollToPosition(chatMessages.size - 1)
+            }
+        }
     }
 
     // ── 提醒 mini form ────────────────────────────────────────────────────────
