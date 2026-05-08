@@ -109,6 +109,22 @@
 
     </LinearLayout>
 
+    <!-- AI 模型選擇浮動面板（固定在膠囊上方） -->
+    <LinearLayout
+        android:id="@+id/model_picker_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="100dp"
+        android:background="@drawable/bg_capsule_surface"
+        android:elevation="14dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="6dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone" />
+
     <!-- 新增提醒 mini form -->
     <LinearLayout
         android:id="@+id/form_reminder"

@@ -25,7 +25,6 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.ChipGroup
@@ -106,7 +105,10 @@ class FloatingQuickAddService : Service() {
         val rightWrap = view.findViewById<FrameLayout>(R.id.btn_classrecord_wrap)
         val btnModel = view.findViewById<ImageButton>(R.id.btn_model)
 
-        view.findViewById<View>(R.id.overlay_root).setOnClickListener { dismiss() }
+        view.findViewById<View>(R.id.overlay_root).setOnClickListener {
+            val picker = view.findViewById<View>(R.id.model_picker_panel)
+            if (picker.visibility == View.VISIBLE) picker.visibility = View.GONE else dismiss()
+        }
         leftWrap.setOnClickListener { showReminderForm() }
         capsule.setOnClickListener { showChatPanel() }
         view.findViewById<View>(R.id.hint_text).setOnClickListener { showChatPanel() }
@@ -180,37 +182,45 @@ class FloatingQuickAddService : Service() {
     }
 
     private fun showModelMenu(anchor: ImageButton) {
+        val view = overlayView ?: return
+        val panel = view.findViewById<LinearLayout>(R.id.model_picker_panel)
+        if (panel.visibility == View.VISIBLE) { panel.visibility = View.GONE; return }
+
         val prefs = AppPreferences(this)
         val providers = buildList {
-            if (prefs.geminiEnabled && prefs.geminiApiKey.isNotBlank()) add(Triple("gemini", "Gemini", R.drawable.ic_ai_gemini))
-            if (prefs.mimoEnabled && prefs.mimoApiKey.isNotBlank()) add(Triple("mimo", "Mimo", R.drawable.ic_ai_mimo))
-            if (prefs.claudeEnabled && prefs.claudeApiKey.isNotBlank()) add(Triple("claude", "Claude", R.drawable.ic_ai_claude))
-            if (prefs.openaiEnabled && prefs.openaiApiKey.isNotBlank()) add(Triple("openai", "GPT", R.drawable.ic_ai_openai))
-            if (prefs.groqEnabled && prefs.groqApiKey.isNotBlank()) add(Triple("groq", "Groq", R.drawable.ic_ai_groq))
-            if (prefs.deepseekEnabled && prefs.deepseekApiKey.isNotBlank()) add(Triple("deepseek", "DS", R.drawable.ic_ai_deepseek))
+            if (prefs.geminiEnabled && prefs.geminiApiKey.isNotBlank()) add(Pair("gemini", R.drawable.ic_ai_gemini))
+            if (prefs.mimoEnabled && prefs.mimoApiKey.isNotBlank()) add(Pair("mimo", R.drawable.ic_ai_mimo))
+            if (prefs.claudeEnabled && prefs.claudeApiKey.isNotBlank()) add(Pair("claude", R.drawable.ic_ai_claude))
+            if (prefs.openaiEnabled && prefs.openaiApiKey.isNotBlank()) add(Pair("openai", R.drawable.ic_ai_openai))
+            if (prefs.groqEnabled && prefs.groqApiKey.isNotBlank()) add(Pair("groq", R.drawable.ic_ai_groq))
+            if (prefs.deepseekEnabled && prefs.deepseekApiKey.isNotBlank()) add(Pair("deepseek", R.drawable.ic_ai_deepseek))
         }
         if (providers.isEmpty()) return
 
-        val popup = PopupMenu(themedCtx, anchor, android.view.Gravity.TOP)
-        providers.forEachIndexed { i, (_, _, iconRes) ->
-            popup.menu.add(0, i, i, "").icon = ContextCompat.getDrawable(themedCtx, iconRes)
+        panel.removeAllViews()
+        val size = dpToPx(44f).toInt()
+        val pad = dpToPx(8f).toInt()
+        providers.forEach { (id, iconRes) ->
+            val btn = ImageButton(themedCtx).apply {
+                layoutParams = LinearLayout.LayoutParams(size, size)
+                setImageResource(iconRes)
+                background = null
+                scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                setPadding(pad, pad, pad, pad)
+                setOnClickListener {
+                    prefs.preferredChatProvider = id
+                    prefs.preferredNotifProvider = id
+                    updateModelIcon(anchor)
+                    panel.visibility = View.GONE
+                }
+            }
+            panel.addView(btn)
         }
-        try {
-            val f = popup::class.java.getDeclaredField("mPopup")
-            f.isAccessible = true
-            val helper = f.get(popup)
-            val m = helper::class.java.getDeclaredMethod("setForceShowIcon", Boolean::class.java)
-            m.isAccessible = true
-            m.invoke(helper, true)
-        } catch (_: Exception) {}
-        popup.setOnMenuItemClickListener { item ->
-            val (id) = providers[item.itemId]
-            prefs.preferredChatProvider = id
-            prefs.preferredNotifProvider = id
-            updateModelIcon(anchor)
-            true
-        }
-        popup.show()
+        panel.visibility = View.VISIBLE
+    }
+
+    private fun hideModelPicker() {
+        overlayView?.findViewById<View>(R.id.model_picker_panel)?.visibility = View.GONE
     }
 
     private fun updateModelIcon(button: ImageButton) {
@@ -246,6 +256,7 @@ class FloatingQuickAddService : Service() {
 
     private fun showChatPanel() {
         val view = overlayView ?: return
+        hideModelPicker()
         view.findViewById<View>(R.id.bottom_bar).visibility = View.GONE
         val panel = view.findViewById<LinearLayout>(R.id.chat_panel)
         chatMessages.clear()
@@ -358,6 +369,7 @@ class FloatingQuickAddService : Service() {
 
     private fun showReminderForm() {
         val view = overlayView ?: return
+        hideModelPicker()
         view.findViewById<View>(R.id.bottom_bar).visibility = View.GONE
         val form = view.findViewById<LinearLayout>(R.id.form_reminder)
         reminderSelectedDate = LocalDate.now()
@@ -409,6 +421,7 @@ class FloatingQuickAddService : Service() {
 
     private fun showClassRecordForm() {
         val view = overlayView ?: return
+        hideModelPicker()
         view.findViewById<View>(R.id.bottom_bar).visibility = View.GONE
         val form = view.findViewById<LinearLayout>(R.id.form_classrecord)
         val titleEt = form.findViewById<EditText>(R.id.et_record_title)
