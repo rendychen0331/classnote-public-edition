@@ -109,7 +109,7 @@ class FloatingQuickAddService : Service() {
         view.findViewById<View>(R.id.overlay_root).setOnClickListener { dismiss() }
         leftWrap.setOnClickListener { showReminderForm() }
         capsule.setOnClickListener { showChatPanel() }
-        view.findViewById<View>(R.id.hint_text).setOnClickListener { openActivity("new_reminder") }
+        view.findViewById<View>(R.id.hint_text).setOnClickListener { showChatPanel() }
         rightWrap.setOnClickListener { showClassRecordForm() }
         view.findViewById<ImageButton>(R.id.btn_add_attachment).setOnClickListener {
             showAttachmentMenu(it)
