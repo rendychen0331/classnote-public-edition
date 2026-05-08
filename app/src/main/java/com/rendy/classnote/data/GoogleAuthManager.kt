@@ -178,6 +178,16 @@ object GoogleAuthManager {
         }
     }
 
+    fun signOutGmail(context: Context, onDone: () -> Unit = {}) {
+        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestScopes(Scope(GmailScopes.GMAIL_READONLY))
+            .build()
+        GoogleSignIn.getClient(context.applicationContext, options)
+            .signOut()
+            .addOnCompleteListener { onDone() }
+    }
+
     // ── Gmail 多帳號 ──────────────────────────────────────────────────────
 
     private const val KEY_GMAIL_ACCOUNT_EMAILS = "gmail_account_emails"

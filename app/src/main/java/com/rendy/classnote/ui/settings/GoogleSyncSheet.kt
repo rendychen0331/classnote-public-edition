@@ -456,7 +456,13 @@ class GoogleSyncSheet : Fragment() {
 
         binding.btnGmailSignIn.setSize(SignInButton.SIZE_WIDE)
         binding.btnGmailSignIn.setOnClickListener {
-            gmailSignInLauncher.launch(GoogleAuthManager.getSignInIntentWithGmail(requireContext()))
+            GoogleAuthManager.signOutGmail(requireContext()) {
+                requireActivity().runOnUiThread {
+                    gmailSignInLauncher.launch(
+                        GoogleAuthManager.getSignInIntentWithGmail(requireContext())
+                    )
+                }
+            }
         }
 
         binding.switchGmailForward.isChecked = prefs.gmailClassroomForwardEnabled
