@@ -3,22 +3,22 @@ package com.rendy.classnote.data
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.rendy.classnote.data.local.ClassNoteDatabase
+import com.rendy.classnote.feature.SyncOutcome
 
 class TeamsAssignmentSyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val token = OneDriveAuthManager.acquireTokenSilentForTeams(applicationContext) ?: return Result.failure()
-        val prefs = AppPreferences(applicationContext)
-        val db = ClassNoteDatabase.getDatabase(applicationContext)
-        val result = TeamsAssignmentSyncManager.sync(applicationContext, token, db.reminderDao(), db.reminderNotificationDao())
-        return when (result) {
-            is TeamsAssignmentSyncManager.SyncResult.Success -> {
-                prefs.lastTeamsAssignmentSyncSummary = "已自動匯入 ${result.imported} 筆，略過 ${result.skipped} 筆"
+        val bridge = SyncBridgeImpl(applicationContext)
+        val sync = FeatureManager.getSync(applicationContext, "microsoft") ?: return Result.failure()
+        return when (val r = sync.sync("teams", bridge)) {
+            is SyncOutcome.Success -> {
+                AppPreferences(applicationContext).lastTeamsAssignmentSyncSummary =
+                    "已自動匯入 ${r.imported} 筆，略過 ${r.skipped} 筆"
                 Result.success()
             }
-            is TeamsAssignmentSyncManager.SyncResult.Error -> Result.retry()
-            TeamsAssignmentSyncManager.SyncResult.NoPermission -> Result.failure()
+            is SyncOutcome.AuthRequired -> Result.retry()
+            is SyncOutcome.Error       -> Result.retry()
+            is SyncOutcome.NoPermission -> Result.failure()
         }
     }
 }

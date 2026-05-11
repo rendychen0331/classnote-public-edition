@@ -3,20 +3,20 @@ package com.rendy.classnote.data
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.rendy.classnote.feature.BackupOutcome
 
 class OneDriveBackupWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val token = OneDriveAuthManager.acquireTokenSilent(applicationContext)
-            ?: return Result.failure()
-
-        val prefs = AppPreferences(applicationContext)
-        return when (val result = OneDriveBackupManager.backup(applicationContext, token)) {
-            is OneDriveBackupManager.Result.Success -> {
-                prefs.lastOneDriveSyncSummary = "自動備份成功"
+        val bridge = SyncBridgeImpl(applicationContext)
+        val backup = FeatureManager.getBackup(applicationContext, "microsoft") ?: return Result.failure()
+        return when (backup.backup(bridge)) {
+            is BackupOutcome.Success -> {
+                AppPreferences(applicationContext).lastOneDriveSyncSummary = "自動備份成功"
                 Result.success()
             }
-            is OneDriveBackupManager.Result.Error -> Result.retry()
+            is BackupOutcome.AuthRequired -> Result.failure()
+            is BackupOutcome.Error       -> Result.retry()
         }
     }
 }

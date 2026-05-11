@@ -9,11 +9,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
-import com.google.api.services.calendar.CalendarScopes
-import com.google.api.services.classroom.ClassroomScopes
-import com.google.api.services.drive.DriveScopes
-import com.google.api.services.gmail.GmailScopes
-import com.google.api.services.tasks.TasksScopes
 
 object GoogleAuthManager {
 
@@ -28,8 +23,8 @@ object GoogleAuthManager {
     private fun buildOptions(includeGmail: Boolean = false): GoogleSignInOptions {
         val builder = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
-            .requestScopes(Scope(DriveScopes.DRIVE_APPDATA))
-        if (includeGmail) builder.requestScopes(Scope(GmailScopes.GMAIL_READONLY))
+            .requestScopes(Scope("https://www.googleapis.com/auth/drive.appdata"))
+        if (includeGmail) builder.requestScopes(Scope("https://www.googleapis.com/auth/gmail.readonly"))
         return builder.build()
     }
 
@@ -44,8 +39,8 @@ object GoogleAuthManager {
     fun getSignInIntentForExport(context: Context): Intent {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
-            .requestScopes(Scope(DriveScopes.DRIVE_APPDATA))
-            .requestScopes(Scope(DriveScopes.DRIVE_FILE))
+            .requestScopes(Scope("https://www.googleapis.com/auth/drive.appdata"))
+            .requestScopes(Scope("https://www.googleapis.com/auth/drive.file"))
             .build()
         return GoogleSignIn.getClient(context, options).signInIntent
     }
@@ -53,14 +48,14 @@ object GoogleAuthManager {
     /** 檢查帳號是否已有 DRIVE_FILE scope 授權。 */
     fun hasDriveFileScope(context: Context): Boolean {
         val account = getAccount(context) ?: return false
-        return GoogleSignIn.hasPermissions(account, Scope(DriveScopes.DRIVE_FILE))
+        return GoogleSignIn.hasPermissions(account, Scope("https://www.googleapis.com/auth/drive.file"))
     }
 
     /** 取得 Google 日曆專屬登入 Intent（獨立帳號，含 CALENDAR_READONLY scope）。 */
     fun getSignInIntentForCalendar(context: Context): Intent {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
-            .requestScopes(Scope(CalendarScopes.CALENDAR_READONLY))
+            .requestScopes(Scope("https://www.googleapis.com/auth/calendar.readonly"))
             .build()
         return GoogleSignIn.getClient(context, options).signInIntent
     }
@@ -69,7 +64,7 @@ object GoogleAuthManager {
     fun getSignInIntentForTasks(context: Context): Intent {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
-            .requestScopes(Scope(TasksScopes.TASKS_READONLY))
+            .requestScopes(Scope("https://www.googleapis.com/auth/tasks.readonly"))
             .build()
         return GoogleSignIn.getClient(context, options).signInIntent
     }
@@ -89,7 +84,7 @@ object GoogleAuthManager {
     fun signOutCalendar(context: Context, onDone: () -> Unit = {}) {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
-            .requestScopes(Scope(CalendarScopes.CALENDAR_READONLY))
+            .requestScopes(Scope("https://www.googleapis.com/auth/calendar.readonly"))
             .build()
         GoogleSignIn.getClient(context.applicationContext, options)
             .signOut()
@@ -111,7 +106,7 @@ object GoogleAuthManager {
     fun signOutTasks(context: Context, onDone: () -> Unit = {}) {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
-            .requestScopes(Scope(TasksScopes.TASKS_READONLY))
+            .requestScopes(Scope("https://www.googleapis.com/auth/tasks.readonly"))
             .build()
         GoogleSignIn.getClient(context.applicationContext, options)
             .signOut()
@@ -123,8 +118,8 @@ object GoogleAuthManager {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .requestScopes(
-                Scope(ClassroomScopes.CLASSROOM_COURSES_READONLY),
-                Scope(ClassroomScopes.CLASSROOM_COURSEWORK_ME_READONLY)
+                Scope("https://www.googleapis.com/auth/classroom.courses.readonly"),
+                Scope("https://www.googleapis.com/auth/classroom.coursework.me.readonly")
             )
             .build()
         return GoogleSignIn.getClient(context, options).signInIntent
@@ -150,8 +145,8 @@ object GoogleAuthManager {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .requestScopes(
-                Scope(ClassroomScopes.CLASSROOM_COURSES_READONLY),
-                Scope(ClassroomScopes.CLASSROOM_COURSEWORK_ME_READONLY)
+                Scope("https://www.googleapis.com/auth/classroom.courses.readonly"),
+                Scope("https://www.googleapis.com/auth/classroom.coursework.me.readonly")
             )
             .build()
         GoogleSignIn.getClient(context.applicationContext, options)

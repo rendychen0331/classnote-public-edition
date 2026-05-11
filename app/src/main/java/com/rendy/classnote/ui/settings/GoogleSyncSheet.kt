@@ -12,27 +12,24 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.SignInButton
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.R
 import com.rendy.classnote.data.AppPreferences
-import com.rendy.classnote.data.CalendarSyncManager
 import com.rendy.classnote.data.CalendarSyncWorker
-import com.rendy.classnote.data.ClassroomSyncManager
 import com.rendy.classnote.data.ClassroomSyncWorker
-import com.rendy.classnote.data.DriveBackupManager
 import com.rendy.classnote.data.DriveBackupWorker
-import com.rendy.classnote.data.GmailSyncManager
+import com.rendy.classnote.data.FeatureManager
 import com.rendy.classnote.data.GmailSyncWorker
 import com.rendy.classnote.data.GoogleAuthManager
-import com.rendy.classnote.data.KeepSyncManager
 import com.rendy.classnote.data.KeepSyncWorker
-import com.rendy.classnote.data.TasksSyncManager
 import com.rendy.classnote.data.TasksSyncWorker
 import com.rendy.classnote.databinding.SheetGoogleSyncBinding
+import com.rendy.classnote.feature.BackupOutcome
+import com.rendy.classnote.feature.SyncBridgeImpl
+import com.rendy.classnote.feature.SyncOutcome
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -58,9 +55,7 @@ class GoogleSyncSheet : Fragment() {
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val account = GoogleAuthManager.handleSignInResult(result.data)
-            if (account != null) {
-                loadLastBackupTime(account)
-            } else {
+            if (account == null) {
                 Toast.makeText(requireContext(), "登入失敗", Toast.LENGTH_SHORT).show()
             }
         } else {
@@ -72,9 +67,7 @@ class GoogleSyncSheet : Fragment() {
     private val exportSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val account = GoogleAuthManager.handleSignInResult(result.data)
-            if (account != null) {
-                doSyncNotes(account)
-            } else {
+            if (account == null) {
                 Toast.makeText(requireContext(), "授權失敗", Toast.LENGTH_SHORT).show()
             }
         }
@@ -118,10 +111,6 @@ class GoogleSyncSheet : Fragment() {
             GoogleAuthManager.addKeepAccountEmail(requireContext(), email)
         }
         updateKeepSection()
-    }
-
-    private val authRecoveryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
-        // After user grants permission, they can retry sync
     }
 
     override fun onCreateView(
@@ -204,19 +193,29 @@ class GoogleSyncSheet : Fragment() {
         }
 
         binding.btnGoogleBackup.setOnClickListener {
-            val acc = GoogleAuthManager.getAccount(requireContext()) ?: return@setOnClickListener
             binding.btnGoogleBackup.isEnabled = false
             Toast.makeText(requireContext(), getString(R.string.settings_google_backup_in_progress), Toast.LENGTH_SHORT).show()
             viewLifecycleOwner.lifecycleScope.launch {
-                val result = DriveBackupManager.backup(requireContext(), acc, prefs.backupNetworkType)
+                val feature = FeatureManager.getBackup(requireContext(), "google")
+                if (feature == null) {
+                    binding.btnGoogleBackup.isEnabled = true
+                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                val bridge = SyncBridgeImpl(requireContext())
+                val result = feature.backup(bridge)
                 binding.btnGoogleBackup.isEnabled = true
                 when (result) {
-                    is DriveBackupManager.Result.Success -> {
+                    is BackupOutcome.Success ->
                         Toast.makeText(requireContext(), getString(R.string.settings_google_backup_success), Toast.LENGTH_SHORT).show()
-                        loadLastBackupTime(acc)
+                    is BackupOutcome.AuthRequired -> {
+                        if (result.intent != null) {
+                            reAuthLauncher.launch(result.intent)
+                        } else {
+                            Toast.makeText(requireContext(), "帳號授權已過期", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                    is DriveBackupManager.Result.AuthRequired -> reAuthLauncher.launch(result.intent)
-                    is DriveBackupManager.Result.Error ->
+                    is BackupOutcome.Error ->
                         Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
                 }
             }
@@ -227,20 +226,28 @@ class GoogleSyncSheet : Fragment() {
                 .setTitle(getString(R.string.settings_google_restore_confirm_title))
                 .setMessage(getString(R.string.settings_google_restore_confirm_msg))
                 .setPositiveButton("還原") { _, _ ->
-                    val acc = GoogleAuthManager.getAccount(requireContext()) ?: return@setPositiveButton
                     binding.btnGoogleRestore.isEnabled = false
                     viewLifecycleOwner.lifecycleScope.launch {
-                        val result = DriveBackupManager.restore(requireContext(), acc, prefs.backupNetworkType)
+                        val feature = FeatureManager.getBackup(requireContext(), "google")
+                        if (feature == null) {
+                            binding.btnGoogleRestore.isEnabled = true
+                            Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                            return@launch
+                        }
+                        val bridge = SyncBridgeImpl(requireContext())
+                        val result = feature.restore(bridge)
+                        binding.btnGoogleRestore.isEnabled = true
                         when (result) {
-                            is DriveBackupManager.Result.Success -> restartApp()
-                            is DriveBackupManager.Result.AuthRequired -> {
-                                binding.btnGoogleRestore.isEnabled = true
-                                reAuthLauncher.launch(result.intent)
+                            is BackupOutcome.Success -> restartApp()
+                            is BackupOutcome.AuthRequired -> {
+                                if (result.intent != null) {
+                                    reAuthLauncher.launch(result.intent)
+                                } else {
+                                    Toast.makeText(requireContext(), "帳號授權已過期", Toast.LENGTH_SHORT).show()
+                                }
                             }
-                            is DriveBackupManager.Result.Error -> {
-                                binding.btnGoogleRestore.isEnabled = true
+                            is BackupOutcome.Error ->
                                 Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
-                            }
                         }
                     }
                 }
@@ -249,53 +256,11 @@ class GoogleSyncSheet : Fragment() {
         }
 
         binding.btnSyncNotes.setOnClickListener {
-            if (!GoogleAuthManager.hasDriveFileScope(requireContext())) {
-                exportSignInLauncher.launch(GoogleAuthManager.getSignInIntentForExport(requireContext()))
-            } else {
-                val acc = GoogleAuthManager.getAccount(requireContext()) ?: return@setOnClickListener
-                doSyncNotes(acc)
-            }
+            Toast.makeText(requireContext(), "此功能在功能模組版本暫不支援", Toast.LENGTH_SHORT).show()
         }
 
         binding.btnGoogleExport.setOnClickListener {
-            if (!GoogleAuthManager.hasDriveFileScope(requireContext())) {
-                exportSignInLauncher.launch(GoogleAuthManager.getSignInIntentForExport(requireContext()))
-            } else {
-                val acc = GoogleAuthManager.getAccount(requireContext()) ?: return@setOnClickListener
-                doSyncNotes(acc)
-            }
-        }
-    }
-
-    private fun doExport(account: GoogleSignInAccount) {
-        binding.btnGoogleExport.isEnabled = false
-        Toast.makeText(requireContext(), getString(R.string.settings_google_export_in_progress), Toast.LENGTH_SHORT).show()
-        viewLifecycleOwner.lifecycleScope.launch {
-            val result = DriveBackupManager.exportToVisibleDrive(requireContext(), account)
-            binding.btnGoogleExport.isEnabled = true
-            when (result) {
-                is DriveBackupManager.Result.Success ->
-                    Toast.makeText(requireContext(), getString(R.string.settings_google_export_success), Toast.LENGTH_LONG).show()
-                is DriveBackupManager.Result.AuthRequired -> reAuthLauncher.launch(result.intent)
-                is DriveBackupManager.Result.Error ->
-                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
-            }
-        }
-    }
-
-    private fun doSyncNotes(account: GoogleSignInAccount) {
-        binding.btnSyncNotes.isEnabled = false
-        Toast.makeText(requireContext(), "同步中...", Toast.LENGTH_SHORT).show()
-        viewLifecycleOwner.lifecycleScope.launch {
-            val result = DriveBackupManager.syncNotesToDrive(requireContext(), account)
-            binding.btnSyncNotes.isEnabled = true
-            when (result) {
-                is DriveBackupManager.Result.Success ->
-                    Toast.makeText(requireContext(), "同步完成", Toast.LENGTH_LONG).show()
-                is DriveBackupManager.Result.AuthRequired -> reAuthLauncher.launch(result.intent)
-                is DriveBackupManager.Result.Error ->
-                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
-            }
+            Toast.makeText(requireContext(), "此功能在功能模組版本暫不支援", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -404,15 +369,9 @@ class GoogleSyncSheet : Fragment() {
 
         binding.layoutUseGmailAccount.visibility =
             if (!signedIn && prefs.gmailSyncEnabled) View.VISIBLE else View.GONE
-    }
 
-    private fun loadLastBackupTime(account: GoogleSignInAccount) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            val time = DriveBackupManager.getLastBackupTime(requireContext(), account)
-            binding.tvGoogleLastBackup.text = if (time != null)
-                getString(R.string.settings_google_last_backup, time)
-            else
-                getString(R.string.settings_google_no_backup)
+        if (signedIn) {
+            binding.tvGoogleLastBackup.text = getString(R.string.settings_google_no_backup)
         }
     }
 
@@ -443,26 +402,29 @@ class GoogleSyncSheet : Fragment() {
         binding.btnGmailSyncNow.setOnClickListener {
             val emails = GoogleAuthManager.getGmailAccountEmails(requireContext())
             if (emails.isEmpty()) return@setOnClickListener
-            val db = (requireActivity().application as ClassNoteApplication).database
             binding.btnGmailSyncNow.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
+                val feature = FeatureManager.getSync(requireContext(), "google")
+                if (feature == null) {
+                    binding.btnGmailSyncNow.isEnabled = true
+                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                val bridge = SyncBridgeImpl(requireContext())
                 var totalImported = 0
                 var totalSkipped = 0
                 for (email in emails) {
-                    val result = GmailSyncManager.sync(
-                        requireContext(), email,
-                        db.reminderDao(), db.reminderNotificationDao(),
-                        prefs.gmailClassroomForwardEnabled
-                    )
-                    when (result) {
-                        is GmailSyncManager.SyncResult.Success -> {
+                    when (val result = feature.sync("gmail", bridge)) {
+                        is SyncOutcome.Success -> {
                             totalImported += result.imported
                             totalSkipped += result.skipped
                         }
-                        is GmailSyncManager.SyncResult.AuthRequired -> {
-                            authRecoveryLauncher.launch(result.intent)
-                        }
-                        else -> {}
+                        is SyncOutcome.AuthRequired ->
+                            Toast.makeText(requireContext(), "Google 帳號授權已過期，請重新登入", Toast.LENGTH_SHORT).show()
+                        is SyncOutcome.Error ->
+                            Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
+                        is SyncOutcome.NoPermission ->
+                            Toast.makeText(requireContext(), "Google 帳號授權已過期，請重新登入", Toast.LENGTH_SHORT).show()
                     }
                 }
                 binding.btnGmailSyncNow.isEnabled = true
@@ -544,25 +506,29 @@ class GoogleSyncSheet : Fragment() {
         binding.btnClassroomSyncNow.setOnClickListener {
             val emails = GoogleAuthManager.getClassroomAccountEmails(requireContext())
             if (emails.isEmpty()) return@setOnClickListener
-            val db = (requireActivity().application as ClassNoteApplication).database
             binding.btnClassroomSyncNow.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
+                val feature = FeatureManager.getSync(requireContext(), "google")
+                if (feature == null) {
+                    binding.btnClassroomSyncNow.isEnabled = true
+                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                val bridge = SyncBridgeImpl(requireContext())
                 var totalImported = 0
                 var totalSkipped = 0
                 for (email in emails) {
-                    val result = ClassroomSyncManager.sync(
-                        requireContext(), email,
-                        db.reminderDao(), db.reminderNotificationDao()
-                    )
-                    when (result) {
-                        is ClassroomSyncManager.SyncResult.Success -> {
+                    when (val result = feature.sync("classroom", bridge)) {
+                        is SyncOutcome.Success -> {
                             totalImported += result.imported
                             totalSkipped += result.skipped
                         }
-                        is ClassroomSyncManager.SyncResult.AuthRequired -> {
-                            authRecoveryLauncher.launch(result.intent)
-                        }
-                        else -> {}
+                        is SyncOutcome.AuthRequired ->
+                            Toast.makeText(requireContext(), "Google 帳號授權已過期，請重新登入", Toast.LENGTH_SHORT).show()
+                        is SyncOutcome.Error ->
+                            Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
+                        is SyncOutcome.NoPermission ->
+                            Toast.makeText(requireContext(), "Google 帳號授權已過期，請重新登入", Toast.LENGTH_SHORT).show()
                     }
                 }
                 binding.btnClassroomSyncNow.isEnabled = true
@@ -651,25 +617,29 @@ class GoogleSyncSheet : Fragment() {
         binding.btnCalendarSyncNow.setOnClickListener {
             val emails = GoogleAuthManager.getCalendarAccountEmails(requireContext())
             if (emails.isEmpty()) return@setOnClickListener
-            val db = (requireActivity().application as ClassNoteApplication).database
             binding.btnCalendarSyncNow.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
+                val feature = FeatureManager.getSync(requireContext(), "google")
+                if (feature == null) {
+                    binding.btnCalendarSyncNow.isEnabled = true
+                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                val bridge = SyncBridgeImpl(requireContext())
                 var totalImported = 0
                 var totalSkipped = 0
                 for (email in emails) {
-                    val result = CalendarSyncManager.sync(
-                        requireContext(), email,
-                        db.reminderDao(), db.reminderNotificationDao()
-                    )
-                    when (result) {
-                        is CalendarSyncManager.SyncResult.Success -> {
+                    when (val result = feature.sync("calendar", bridge)) {
+                        is SyncOutcome.Success -> {
                             totalImported += result.imported
                             totalSkipped += result.skipped
                         }
-                        is CalendarSyncManager.SyncResult.AuthRequired -> {
-                            authRecoveryLauncher.launch(result.intent)
-                        }
-                        else -> {}
+                        is SyncOutcome.AuthRequired ->
+                            Toast.makeText(requireContext(), "Google 帳號授權已過期，請重新登入", Toast.LENGTH_SHORT).show()
+                        is SyncOutcome.Error ->
+                            Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
+                        is SyncOutcome.NoPermission ->
+                            Toast.makeText(requireContext(), "Google 帳號授權已過期，請重新登入", Toast.LENGTH_SHORT).show()
                     }
                 }
                 binding.btnCalendarSyncNow.isEnabled = true
@@ -746,25 +716,29 @@ class GoogleSyncSheet : Fragment() {
         binding.btnTasksSyncNow.setOnClickListener {
             val emails = GoogleAuthManager.getTasksAccountEmails(requireContext())
             if (emails.isEmpty()) return@setOnClickListener
-            val db = (requireActivity().application as ClassNoteApplication).database
             binding.btnTasksSyncNow.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
+                val feature = FeatureManager.getSync(requireContext(), "google")
+                if (feature == null) {
+                    binding.btnTasksSyncNow.isEnabled = true
+                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                val bridge = SyncBridgeImpl(requireContext())
                 var totalImported = 0
                 var totalSkipped = 0
                 for (email in emails) {
-                    val result = TasksSyncManager.sync(
-                        requireContext(), email,
-                        db.reminderDao(), db.reminderNotificationDao()
-                    )
-                    when (result) {
-                        is TasksSyncManager.SyncResult.Success -> {
+                    when (val result = feature.sync("tasks", bridge)) {
+                        is SyncOutcome.Success -> {
                             totalImported += result.imported
                             totalSkipped += result.skipped
                         }
-                        is TasksSyncManager.SyncResult.AuthRequired -> {
-                            authRecoveryLauncher.launch(result.intent)
-                        }
-                        else -> {}
+                        is SyncOutcome.AuthRequired ->
+                            Toast.makeText(requireContext(), "Google 帳號授權已過期，請重新登入", Toast.LENGTH_SHORT).show()
+                        is SyncOutcome.Error ->
+                            Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
+                        is SyncOutcome.NoPermission ->
+                            Toast.makeText(requireContext(), "Google 帳號授權已過期，請重新登入", Toast.LENGTH_SHORT).show()
                     }
                 }
                 binding.btnTasksSyncNow.isEnabled = true
@@ -840,34 +814,33 @@ class GoogleSyncSheet : Fragment() {
         binding.btnKeepSyncNow.setOnClickListener {
             val emails = GoogleAuthManager.getKeepAccountEmails(requireContext())
             if (emails.isEmpty()) return@setOnClickListener
-            val db = (requireActivity().application as ClassNoteApplication).database
             binding.btnKeepSyncNow.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
+                val feature = FeatureManager.getSync(requireContext(), "google")
+                if (feature == null) {
+                    binding.btnKeepSyncNow.isEnabled = true
+                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                val bridge = SyncBridgeImpl(requireContext())
                 var totalImported = 0
                 var totalSkipped = 0
-                var noPermission = false
                 for (email in emails) {
-                    val result = KeepSyncManager.sync(
-                        requireContext(), email,
-                        db.reminderDao(), db.reminderNotificationDao()
-                    )
-                    when (result) {
-                        is KeepSyncManager.SyncResult.Success -> {
+                    when (val result = feature.sync("keep", bridge)) {
+                        is SyncOutcome.Success -> {
                             totalImported += result.imported
                             totalSkipped += result.skipped
                         }
-                        is KeepSyncManager.SyncResult.NoPermission -> noPermission = true
-                        is KeepSyncManager.SyncResult.AuthRequired -> {
-                            authRecoveryLauncher.launch(result.intent)
-                        }
-                        else -> {}
+                        is SyncOutcome.AuthRequired ->
+                            Toast.makeText(requireContext(), "Google 帳號授權已過期，請重新登入", Toast.LENGTH_SHORT).show()
+                        is SyncOutcome.Error ->
+                            Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
+                        is SyncOutcome.NoPermission ->
+                            Toast.makeText(requireContext(), "Google 帳號授權已過期，請重新登入", Toast.LENGTH_SHORT).show()
                     }
                 }
                 binding.btnKeepSyncNow.isEnabled = true
-                val summary = if (noPermission && totalImported == 0)
-                    getString(R.string.settings_keep_no_permission)
-                else
-                    getString(R.string.settings_keep_sync_result, totalImported, totalSkipped)
+                val summary = getString(R.string.settings_keep_sync_result, totalImported, totalSkipped)
                 prefs.lastKeepSyncSummary = summary
                 binding.tvKeepSyncStatus.text = summary
             }

@@ -3,37 +3,22 @@ package com.rendy.classnote.data
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.rendy.classnote.data.local.ClassNoteDatabase
+import com.rendy.classnote.feature.SyncOutcome
 
 class KeepSyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val emails = GoogleAuthManager.getKeepAccountEmails(applicationContext)
-        if (emails.isEmpty()) return Result.failure()
-
-        val prefs = AppPreferences(applicationContext)
-        val db = ClassNoteDatabase.getDatabase(applicationContext)
-        var totalImported = 0
-        var totalSkipped = 0
-        var hasError = false
-
-        for (email in emails) {
-            val result = KeepSyncManager.sync(
-                applicationContext, email,
-                db.reminderDao(), db.reminderNotificationDao()
-            )
-            when (result) {
-                is KeepSyncManager.SyncResult.Success -> {
-                    totalImported += result.imported
-                    totalSkipped += result.skipped
-                }
-                is KeepSyncManager.SyncResult.Error -> hasError = true
-                KeepSyncManager.SyncResult.NoPermission -> {}
-                is KeepSyncManager.SyncResult.AuthRequired -> hasError = true
+        val bridge = SyncBridgeImpl(applicationContext)
+        val sync = FeatureManager.getSync(applicationContext, "google") ?: return Result.failure()
+        return when (val r = sync.sync("keep", bridge)) {
+            is SyncOutcome.Success -> {
+                AppPreferences(applicationContext).lastKeepSyncSummary =
+                    "已自動匯入 ${r.imported} 筆，略過 ${r.skipped} 筆"
+                Result.success()
             }
+            is SyncOutcome.AuthRequired -> Result.retry()
+            is SyncOutcome.Error       -> Result.retry()
+            is SyncOutcome.NoPermission -> Result.failure()
         }
-
-        prefs.lastKeepSyncSummary = "已自動匯入 $totalImported 筆，略過 $totalSkipped 筆"
-        return if (hasError && totalImported == 0) Result.retry() else Result.success()
     }
 }

@@ -48,3 +48,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "ClassNote"
 include(":app")
+include(":feature-api")
+include(":feature-google")
+include(":feature-microsoft")
