@@ -51,31 +51,98 @@ jobs:
           echo "Keystore size: $(wc -c < $HOME/.android/debug.keystore) bytes"
           keytool -list -v -keystore $HOME/.android/debug.keystore -storepass android -alias androiddebugkey 2>&1 | grep -E "SHA1|SHA-1" || true
 
-      - name: Build debug APK
+      - name: Build base APK + feature .dex files
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --no-build-cache
+          ./gradlew assembleDebug \
+            :feature-google:bundleFeatureDex \
+            :feature-microsoft:bundleFeatureDex \
+            --no-daemon --no-build-cache
 
       - name: Show APK signing certificate SHA-1
         run: |
           APK=$(find app/build/outputs/apk/debug -name "*.apk" | head -1)
           $ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | tail -1)/apksigner verify --print-certs "$APK" | grep -E "SHA-1|SHA1"
 
-      - name: Rename APK
+      - name: Rename APK and collect artifacts
         run: |
           TAG=${GITHUB_REF_NAME:-build-${{ github.run_number }}}
           mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/classnote-${TAG}.apk
 
-      - name: Upload APK artifact
+          # Collect feature .dex files
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/classnote-${TAG}.apk dist/
+          cp feature-google/build/outputs/feature-dex/feature-google.dex dist/ || echo "feature-google.dex not found"
+          cp feature-microsoft/build/outputs/feature-dex/feature-microsoft.dex dist/ || echo "feature-microsoft.dex not found"
+
+      - name: Generate features.json manifest
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          REPO="${{ github.repository }}"
+          BASE_URL="https://github.com/${REPO}/releases/download/${TAG}"
+          VERSION_CODE=$(grep -oP 'versionCode\s*=\s*\K\d+' app/build/outputs/apk/debug/output-metadata.json 2>/dev/null || echo "0")
+
+          sha256_of() { sha256sum "$1" | awk '{print $1}'; }
+          size_of() { stat -c%s "$1"; }
+
+          GOOGLE_DEX="dist/feature-google.dex"
+          MS_DEX="dist/feature-microsoft.dex"
+
+          FEATURES="[]"
+          if [ -f "$GOOGLE_DEX" ]; then
+            FEATURES=$(echo "$FEATURES" | python3 -c "
+          import sys, json
+          features = json.load(sys.stdin)
+          features.append({
+            'id': 'google',
+            'displayName': 'Google 同步功能',
+            'description': 'Gmail、Google Classroom、Google 日曆、Tasks、Keep 同步與 Drive 備份',
+            'downloadUrl': '$BASE_URL/feature-google.dex',
+            'sha256': '$(sha256_of $GOOGLE_DEX)',
+            'sizeBytes': $(size_of $GOOGLE_DEX),
+            'minAppVersion': 0
+          })
+          print(json.dumps(features))
+          ")
+          fi
+
+          if [ -f "$MS_DEX" ]; then
+            FEATURES=$(echo "$FEATURES" | python3 -c "
+          import sys, json
+          features = json.load(sys.stdin)
+          features.append({
+            'id': 'microsoft',
+            'displayName': 'Microsoft 同步功能',
+            'description': 'Microsoft To Do、Outlook 行事曆、OneNote、Teams 作業、OneDrive 備份',
+            'downloadUrl': '$BASE_URL/feature-microsoft.dex',
+            'sha256': '$(sha256_of $MS_DEX)',
+            'sizeBytes': $(size_of $MS_DEX),
+            'minAppVersion': 0
+          })
+          print(json.dumps(features))
+          ")
+          fi
+
+          echo "{\"version\":1,\"features\":$FEATURES}" | python3 -m json.tool > dist/features.json
+          cat dist/features.json
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: classnote-${{ github.run_number }}
-          path: app/build/outputs/apk/debug/classnote-*.apk
+          path: |
+            dist/classnote-*.apk
+            dist/feature-*.dex
           retention-days: 30
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/debug/classnote-*.apk
+          files: |
+            dist/classnote-*.apk
+            dist/feature-google.dex
+            dist/feature-microsoft.dex
+            dist/features.json
           generate_release_notes: true

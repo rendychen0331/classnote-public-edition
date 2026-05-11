@@ -204,7 +204,20 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/actionBackupSyncToFeatureModules"
+            app:destination="@id/featureModuleFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
+
+    <fragment
+        android:id="@+id/featureModuleFragment"
+        android:name="com.rendy.classnote.ui.settings.FeatureModuleSheet"
+        android:label="功能模組管理"
+        tools:layout="@layout/fragment_feature_module" />
 
     <fragment
         android:id="@+id/localSyncFragment"
