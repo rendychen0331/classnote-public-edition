@@ -57,8 +57,9 @@ class SyncBridgeImpl(override val context: Context) : SyncBridge {
             sourceName = data.sourceName
         )
         val reminderId = db.reminderDao().insertReminder(entity)
-        if (data.dueDate != null) {
-            scheduleDefaultNotifications(reminderId, data.dueDate, data.dueTime)
+        val dueDate = data.dueDate
+        if (dueDate != null) {
+            scheduleDefaultNotifications(reminderId, dueDate, data.dueTime)
         }
         return reminderId
     }

@@ -101,8 +101,9 @@ class MicrosoftSyncSheet : Fragment() {
                         Toast.makeText(requireContext(),
                             getString(R.string.settings_onedrive_backup_success), Toast.LENGTH_SHORT).show()
                     is BackupOutcome.AuthRequired -> {
-                        if (result.intent != null) {
-                            startActivity(result.intent)
+                        val authIntent = result.intent
+                        if (authIntent != null) {
+                            startActivity(authIntent)
                         } else {
                             Toast.makeText(requireContext(), "帳號授權已過期", Toast.LENGTH_SHORT).show()
                         }
@@ -134,8 +135,9 @@ class MicrosoftSyncSheet : Fragment() {
                                 Toast.makeText(requireContext(),
                                     getString(R.string.settings_onedrive_restore_success), Toast.LENGTH_LONG).show()
                             is BackupOutcome.AuthRequired -> {
-                                if (result.intent != null) {
-                                    startActivity(result.intent)
+                                val restoreIntent = result.intent
+                                if (restoreIntent != null) {
+                                    startActivity(restoreIntent)
                                 } else {
                                     Toast.makeText(requireContext(), "帳號授權已過期", Toast.LENGTH_SHORT).show()
                                 }

@@ -54,7 +54,8 @@ object GmailSyncDelegate {
                     val externalId = "gmail:${msgRef.id}"
                     if (bridge.findByExternalId(externalId)) { skipped++; continue }
                     val msg = gmail.users().messages().get("me", msgRef.id).setFormat("full").execute()
-                    val parsed = parseMessage(msg) ?: run { skipped++; continue }
+                    val parsed = parseMessage(msg)
+                    if (parsed == null) { skipped++; continue }
                     bridge.insertReminderAndSchedule(ReminderInsert(
                         title = parsed.title,
                         note = parsed.bodyNote,

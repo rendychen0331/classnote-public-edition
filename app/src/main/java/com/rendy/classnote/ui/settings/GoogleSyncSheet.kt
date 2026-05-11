@@ -209,8 +209,9 @@ class GoogleSyncSheet : Fragment() {
                     is BackupOutcome.Success ->
                         Toast.makeText(requireContext(), getString(R.string.settings_google_backup_success), Toast.LENGTH_SHORT).show()
                     is BackupOutcome.AuthRequired -> {
-                        if (result.intent != null) {
-                            reAuthLauncher.launch(result.intent)
+                        val backupIntent = result.intent
+                        if (backupIntent != null) {
+                            reAuthLauncher.launch(backupIntent)
                         } else {
                             Toast.makeText(requireContext(), "帳號授權已過期", Toast.LENGTH_SHORT).show()
                         }
@@ -240,8 +241,9 @@ class GoogleSyncSheet : Fragment() {
                         when (result) {
                             is BackupOutcome.Success -> restartApp()
                             is BackupOutcome.AuthRequired -> {
-                                if (result.intent != null) {
-                                    reAuthLauncher.launch(result.intent)
+                                val restoreIntent = result.intent
+                                if (restoreIntent != null) {
+                                    reAuthLauncher.launch(restoreIntent)
                                 } else {
                                     Toast.makeText(requireContext(), "帳號授權已過期", Toast.LENGTH_SHORT).show()
                                 }

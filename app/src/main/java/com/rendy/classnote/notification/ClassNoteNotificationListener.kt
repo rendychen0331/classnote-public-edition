@@ -199,8 +199,9 @@ class ClassNoteNotificationListener : NotificationListenerService() {
 
                 allEvents.forEach { (event, input) ->
                     try {
-                        val duplicate = if (event.dueDate != null) {
-                            dao.findByTitleAndDueDate(event.title, event.dueDate) != null
+                        val eventDueDate = event.dueDate
+                        val duplicate = if (eventDueDate != null) {
+                            dao.findByTitleAndDueDate(event.title, eventDueDate) != null
                         } else {
                             dao.findByTitleWithNullDueDate(event.title) != null
                         }

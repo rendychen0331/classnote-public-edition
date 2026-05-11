@@ -74,7 +74,7 @@ object ClassroomSyncDelegate {
                         category = "HOMEWORK",
                         externalId = externalId,
                         syncSource = "classroom",
-                        sourceName = courseName.ifBlank { null }
+                        sourceName = courseName.ifBlank { "" }
                     ))
                     imported++
                 }
