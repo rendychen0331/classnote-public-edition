@@ -21,12 +21,7 @@ import com.google.android.material.R as MatR
 import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.R
 import com.rendy.classnote.data.AppPreferences
-import com.rendy.classnote.data.remote.ClaudeApi
-import com.rendy.classnote.data.remote.DeepSeekApi
-import com.rendy.classnote.data.remote.GeminiApi
-import com.rendy.classnote.data.remote.GroqApi
-import com.rendy.classnote.data.remote.MimoApi
-import com.rendy.classnote.data.remote.OpenAiApi
+import com.rendy.classnote.data.FeatureManager
 import com.rendy.classnote.databinding.FragmentClassRecordSummaryBinding
 import com.rendy.classnote.databinding.ItemChatBubbleBinding
 import io.noties.markwon.Markwon
@@ -104,6 +99,10 @@ class ClassRecordSummaryFragment : Fragment() {
             addMessage(ChatMessage("請先在設定頁輸入 Gemini API Key", isUser = false))
             return
         }
+        val ai = FeatureManager.getAi(requireContext()) ?: run {
+            addMessage(ChatMessage("請先下載 AI 功能模組", isUser = false))
+            return
+        }
 
         val recordIds = args.recordIds.split(",").mapNotNull { it.trim().toLongOrNull() }
         if (recordIds.isEmpty()) return
@@ -123,7 +122,7 @@ class ClassRecordSummaryFragment : Fragment() {
                     if (record.aiSummary.isNotBlank()) {
                         contentParts.add("【錄音摘要】\n${record.aiSummary}")
                     } else {
-                        GeminiApi.summarizeAudio(apiKey, audio.filePath)?.takeIf { it.isNotBlank() }
+                        ai.summarizeAudio(apiKey, audio.filePath)?.takeIf { it.isNotBlank() }
                             ?.let { contentParts.add("【錄音摘要】\n$it") }
                     }
                 }
@@ -132,7 +131,7 @@ class ClassRecordSummaryFragment : Fragment() {
                     if (photo.aiSummary.isNotBlank()) {
                         contentParts.add("【$label】\n${photo.aiSummary}")
                     } else {
-                        GeminiApi.summarizePhoto(apiKey, photo.filePath)?.takeIf { it.isNotBlank() }
+                        ai.summarizePhoto(apiKey, photo.filePath)?.takeIf { it.isNotBlank() }
                             ?.let {
                                 viewModel.updateMediaAiSummary(photo.id, it)
                                 contentParts.add("【$label】\n$it")
@@ -148,7 +147,7 @@ class ClassRecordSummaryFragment : Fragment() {
                 return@launch
             }
 
-            val summary = GeminiApi.summarizeSession(apiKey, contentParts.joinToString("\n\n"))
+            val summary = ai.summarizeSession(apiKey, contentParts.joinToString("\n\n"))
             binding.progressChat.visibility = View.GONE
             binding.btnSend.isEnabled = true
 
@@ -234,14 +233,8 @@ class ClassRecordSummaryFragment : Fragment() {
         val history = messages.dropLast(1).drop(1).map { it.text to it.isUser }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val reply = when (provider) {
-                "mimo"   -> MimoApi.chatWithContext(apiKey, noteContext, history, text)
-                "claude" -> ClaudeApi.chatWithContext(apiKey, noteContext, history, text)
-                "openai" -> OpenAiApi.chatWithContext(apiKey, noteContext, history, text)
-                "groq"      -> GroqApi.chatWithContext(apiKey, noteContext, history, text)
-                "deepseek"  -> DeepSeekApi.chatWithContext(apiKey, noteContext, history, text)
-                else        -> GeminiApi.chatWithContext(apiKey, noteContext, history, text)
-            }
+            val reply = FeatureManager.getAi(requireContext())
+                ?.chatWithContext(provider, apiKey, noteContext, history, text)
             binding.progressChat.visibility = View.GONE
             binding.btnSend.isEnabled = true
 

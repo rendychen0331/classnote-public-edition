@@ -10,16 +10,14 @@ import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import com.rendy.classnote.data.AppPreferences
+import com.rendy.classnote.data.FeatureManager
 import com.rendy.classnote.data.local.ClassNoteDatabase
 import com.rendy.classnote.data.local.dao.ReminderNotificationDao
 import com.rendy.classnote.data.local.entity.ReminderEntity
 import com.rendy.classnote.data.local.entity.ReminderNotificationEntity
-import com.rendy.classnote.data.remote.ClaudeApi
-import com.rendy.classnote.data.remote.DeepSeekApi
-import com.rendy.classnote.data.remote.GeminiApi
-import com.rendy.classnote.data.remote.GroqApi
-import com.rendy.classnote.data.remote.MimoApi
-import com.rendy.classnote.data.remote.OpenAiApi
+import com.rendy.classnote.feature.EventInfo
+import com.rendy.classnote.feature.NotificationInput
+import com.rendy.classnote.feature.PeriodTimeBridge
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -35,7 +33,7 @@ class ClassNoteNotificationListener : NotificationListenerService() {
     private val seenKeys = mutableSetOf<String>()
 
     private val handler = Handler(Looper.getMainLooper())
-    private val pendingBatch = mutableListOf<GeminiApi.NotificationInput>()
+    private val pendingBatch = mutableListOf<NotificationInput>()
     private val processBatchRunnable = Runnable { flushBatch() }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -131,7 +129,7 @@ class ClassNoteNotificationListener : NotificationListenerService() {
         } catch (_: Exception) { sbn.packageName }
 
         synchronized(pendingBatch) {
-            pendingBatch.add(GeminiApi.NotificationInput(appLabel, title, text))
+            pendingBatch.add(NotificationInput(appLabel, title, text))
         }
 
         // Reset debounce timer — flush 3 seconds after last notification arrives
@@ -153,37 +151,17 @@ class ClassNoteNotificationListener : NotificationListenerService() {
         scope.launch {
             try {
                 val prefs = AppPreferences(applicationContext)
-                val provider = prefs.preferredNotifProvider
+                val ai = FeatureManager.getAi(applicationContext)
+                if (ai == null) { NotificationHelper.cancelAiStatus(applicationContext); return@launch }
+                val (provider, apiKey) = resolveNotifProviderKey(prefs)
+                    ?: run { NotificationHelper.cancelAiStatus(applicationContext); return@launch }
                 val db = ClassNoteDatabase.getDatabase(applicationContext)
                 val periodTimes = db.periodTimeDao().getAllPeriodTimesOnce()
-                val results: List<List<GeminiApi.EventInfo>> = when {
-                    provider == "mimo"   && prefs.mimoEnabled   && prefs.mimoApiKey.isNotBlank()   ->
-                        MimoApi.analyzeNotifications(prefs.mimoApiKey, batch, periodTimes)
-                    provider == "claude" && prefs.claudeEnabled && prefs.claudeApiKey.isNotBlank() ->
-                        ClaudeApi.analyzeNotifications(prefs.claudeApiKey, batch, periodTimes)
-                    provider == "openai" && prefs.openaiEnabled && prefs.openaiApiKey.isNotBlank() ->
-                        OpenAiApi.analyzeNotifications(prefs.openaiApiKey, batch, periodTimes)
-                    provider == "groq"      && prefs.groqEnabled      && prefs.groqApiKey.isNotBlank()      ->
-                        GroqApi.analyzeNotifications(prefs.groqApiKey, batch, periodTimes)
-                    provider == "deepseek" && prefs.deepseekEnabled  && prefs.deepseekApiKey.isNotBlank() ->
-                        DeepSeekApi.analyzeNotifications(prefs.deepseekApiKey, batch, periodTimes)
-                    prefs.geminiEnabled  && prefs.geminiApiKey.isNotBlank()                        ->
-                        GeminiApi.analyzeNotifications(prefs.geminiApiKey, batch, periodTimes)
-                    prefs.mimoEnabled    && prefs.mimoApiKey.isNotBlank()                          ->
-                        MimoApi.analyzeNotifications(prefs.mimoApiKey, batch, periodTimes)
-                    prefs.claudeEnabled  && prefs.claudeApiKey.isNotBlank()                        ->
-                        ClaudeApi.analyzeNotifications(prefs.claudeApiKey, batch, periodTimes)
-                    prefs.openaiEnabled  && prefs.openaiApiKey.isNotBlank()                        ->
-                        OpenAiApi.analyzeNotifications(prefs.openaiApiKey, batch, periodTimes)
-                    prefs.groqEnabled     && prefs.groqApiKey.isNotBlank()                           ->
-                        GroqApi.analyzeNotifications(prefs.groqApiKey, batch, periodTimes)
-                    prefs.deepseekEnabled && prefs.deepseekApiKey.isNotBlank()                     ->
-                        DeepSeekApi.analyzeNotifications(prefs.deepseekApiKey, batch, periodTimes)
-                    else -> { NotificationHelper.cancelAiStatus(applicationContext); return@launch }
-                }
+                val bridges = periodTimes.map { PeriodTimeBridge(it.period, it.startMinute) }
+                val results = ai.analyzeNotifications(provider, apiKey, batch, bridges)
 
                 // Flatten results with source tracking
-                val allEvents = mutableListOf<Pair<GeminiApi.EventInfo, GeminiApi.NotificationInput>>()
+                val allEvents = mutableListOf<Pair<EventInfo, NotificationInput>>()
                 results.forEachIndexed { i, events ->
                     val input = batch.getOrNull(i) ?: return@forEachIndexed
                     events.forEach { event -> allEvents.add(event to input) }
@@ -315,6 +293,22 @@ class ClassNoteNotificationListener : NotificationListenerService() {
             val id = notificationDao.insertNotification(entity)
             ReminderScheduler.scheduleNotification(applicationContext, entity.copy(id = id))
         }
+    }
+
+    private fun resolveNotifProviderKey(prefs: AppPreferences): Pair<String, String>? {
+        val preferred = prefs.preferredNotifProvider
+        val candidates = listOf(
+            "gemini"   to (prefs.geminiEnabled   to prefs.geminiApiKey),
+            "mimo"     to (prefs.mimoEnabled     to prefs.mimoApiKey),
+            "claude"   to (prefs.claudeEnabled   to prefs.claudeApiKey),
+            "openai"   to (prefs.openaiEnabled   to prefs.openaiApiKey),
+            "groq"     to (prefs.groqEnabled     to prefs.groqApiKey),
+            "deepseek" to (prefs.deepseekEnabled to prefs.deepseekApiKey),
+        )
+        val prefMatch = candidates.firstOrNull { it.first == preferred && it.second.first && it.second.second.isNotBlank() }
+        if (prefMatch != null) return prefMatch.first to prefMatch.second.second
+        return candidates.firstOrNull { it.second.first && it.second.second.isNotBlank() }
+            ?.let { it.first to it.second.second }
     }
 
     companion object {

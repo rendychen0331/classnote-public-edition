@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.rendy.classnote.data.remote.ForecastItem
+import com.rendy.classnote.feature.ForecastItem
 import com.rendy.classnote.databinding.ItemForecastBinding
 
 class ForecastAdapter : ListAdapter<ForecastItem, ForecastAdapter.VH>(DIFF) {

@@ -17,9 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.R
+import com.rendy.classnote.data.FeatureManager
 import com.rendy.classnote.data.WeatherPreferences
-import com.rendy.classnote.data.remote.ForecastItem
-import com.rendy.classnote.data.remote.WeatherApi
+import com.rendy.classnote.feature.ForecastItem
 import com.rendy.classnote.databinding.FragmentWeatherBinding
 import kotlinx.coroutines.launch
 
@@ -108,12 +108,16 @@ class WeatherFragment : Fragment() {
     // ── 新增地區對話框 ────────────────────────────────────────────────────────
 
     private fun showAddLocationDialog() {
+        val weather = FeatureManager.getWeather(requireContext()) ?: run {
+            Toast.makeText(requireContext(), "請先下載天氣功能模組", Toast.LENGTH_SHORT).show()
+            return
+        }
         val savedLocs = weatherPrefs.savedLocations
-        val allNames = WeatherApi.LOCATIONS.map { it.displayName }
+        val allNames = weather.locations.map { it.displayName }
         val available = allNames.toSet()
 
         // 第一層：選縣市
-        val counties = WeatherApi.COUNTY_NAMES.toMutableList()
+        val counties = weather.countyNames.toMutableList()
         val dialogView = LayoutInflater.from(requireContext())
             .inflate(R.layout.dialog_location_picker, null)
         val etSearch = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etLocationSearch)
@@ -147,7 +151,7 @@ class WeatherFragment : Fragment() {
     }
 
     private fun showDistrictDialog(county: String, savedLocs: List<String>) {
-        val districts = WeatherApi.districtsOf(county).map { it.displayName }
+        val districts = FeatureManager.getWeather(requireContext())?.districtsOf(county)?.map { it.displayName } ?: emptyList()
         // 「整個 XXX」選項放最前面
         val options = mutableListOf(county) + districts
         val available = options.filter { it !in savedLocs }

@@ -28,12 +28,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.ChipGroup
 import com.rendy.classnote.ClassNoteApplication
-import com.rendy.classnote.data.remote.ClaudeApi
-import com.rendy.classnote.data.remote.DeepSeekApi
-import com.rendy.classnote.data.remote.GeminiApi
-import com.rendy.classnote.data.remote.GroqApi
-import com.rendy.classnote.data.remote.MimoApi
-import com.rendy.classnote.data.remote.OpenAiApi
+import com.rendy.classnote.data.FeatureManager
 import com.rendy.classnote.R
 import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.local.entity.ClassRecordEntity
@@ -373,14 +368,17 @@ class FloatingQuickAddService : Service() {
         val history = chatMessages.dropLast(1).map { Pair(it.text, it.isUser) }
 
         serviceScope.launch(Dispatchers.IO) {
-            val response: String? = when (prefs.preferredChatProvider) {
-                "openai"    -> OpenAiApi.chatWithContext(prefs.openaiApiKey, "", history, message)
-                "claude"    -> ClaudeApi.chatWithContext(prefs.claudeApiKey, "", history, message)
-                "groq"      -> GroqApi.chatWithContext(prefs.groqApiKey, "", history, message)
-                "deepseek"  -> DeepSeekApi.chatWithContext(prefs.deepseekApiKey, "", history, message)
-                "mimo"      -> MimoApi.chatWithContext(prefs.mimoApiKey, "", history, message)
-                else        -> GeminiApi.chatWithContext(prefs.geminiApiKey, "", history, message)
+            val provider = prefs.preferredChatProvider
+            val apiKey = when (provider) {
+                "openai"   -> prefs.openaiApiKey
+                "claude"   -> prefs.claudeApiKey
+                "groq"     -> prefs.groqApiKey
+                "deepseek" -> prefs.deepseekApiKey
+                "mimo"     -> prefs.mimoApiKey
+                else       -> prefs.geminiApiKey
             }
+            val response: String? = FeatureManager.getAi(this@FloatingQuickAddService)
+                ?.chatWithContext(provider, apiKey, "", history, message)
             withContext(Dispatchers.Main) {
                 pb.visibility = View.GONE
                 chatMessages.add(OverlayChatAdapter.ChatMessage(response ?: "（發生錯誤，請稍後再試）", false))

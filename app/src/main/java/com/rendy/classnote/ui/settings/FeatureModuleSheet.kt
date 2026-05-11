@@ -35,11 +35,17 @@ class FeatureModuleSheet : Fragment() {
         val ctx = requireContext()
         val googleInstalled = FeatureManager.isDownloaded(ctx, "google")
         val msInstalled = FeatureManager.isDownloaded(ctx, "microsoft")
+        val aiInstalled = FeatureManager.isDownloaded(ctx, "ai")
+        val weatherInstalled = FeatureManager.isDownloaded(ctx, "weather")
 
         binding.tvGoogleStatus.text = if (googleInstalled) "已安裝" else "未安裝"
         binding.tvMicrosoftStatus.text = if (msInstalled) "已安裝" else "未安裝"
+        binding.tvAiStatus.text = if (aiInstalled) "已安裝" else "未安裝"
+        binding.tvWeatherStatus.text = if (weatherInstalled) "已安裝" else "未安裝"
         binding.btnGoogleDownload.text = if (googleInstalled) "刪除" else "下載"
         binding.btnMicrosoftDownload.text = if (msInstalled) "刪除" else "下載"
+        binding.btnAiDownload.text = if (aiInstalled) "刪除" else "下載"
+        binding.btnWeatherDownload.text = if (weatherInstalled) "刪除" else "下載"
     }
 
     private fun setupButtons() {
@@ -61,6 +67,24 @@ class FeatureModuleSheet : Fragment() {
             }
         }
 
+        binding.btnAiDownload.setOnClickListener {
+            val ctx = requireContext()
+            if (FeatureManager.isDownloaded(ctx, "ai")) {
+                confirmDelete("AI 智能") { FeatureManager.delete(ctx, "ai"); refreshStatus() }
+            } else {
+                downloadFeature("ai", "AI 智能模組")
+            }
+        }
+
+        binding.btnWeatherDownload.setOnClickListener {
+            val ctx = requireContext()
+            if (FeatureManager.isDownloaded(ctx, "weather")) {
+                confirmDelete("天氣") { FeatureManager.delete(ctx, "weather"); refreshStatus() }
+            } else {
+                downloadFeature("weather", "天氣模組")
+            }
+        }
+
         binding.btnCheckUpdates.setOnClickListener {
             checkUpdates()
         }
@@ -68,8 +92,7 @@ class FeatureModuleSheet : Fragment() {
 
     private fun downloadFeature(featureId: String, displayName: String) {
         val ctx = requireContext()
-        binding.btnGoogleDownload.isEnabled = false
-        binding.btnMicrosoftDownload.isEnabled = false
+        setAllButtonsEnabled(false)
         binding.tvDownloadProgress.visibility = View.VISIBLE
         binding.tvDownloadProgress.text = "正在取得功能清單…"
 
@@ -106,7 +129,7 @@ class FeatureModuleSheet : Fragment() {
 
     private fun checkUpdates() {
         val ctx = requireContext()
-        binding.btnCheckUpdates.isEnabled = false
+        setAllButtonsEnabled(false)
         binding.tvDownloadProgress.visibility = View.VISIBLE
         binding.tvDownloadProgress.text = "檢查更新中…"
 
@@ -143,10 +166,16 @@ class FeatureModuleSheet : Fragment() {
             .show()
     }
 
+    private fun setAllButtonsEnabled(enabled: Boolean) {
+        binding.btnGoogleDownload.isEnabled = enabled
+        binding.btnMicrosoftDownload.isEnabled = enabled
+        binding.btnAiDownload.isEnabled = enabled
+        binding.btnWeatherDownload.isEnabled = enabled
+        binding.btnCheckUpdates.isEnabled = enabled
+    }
+
     private fun resetButtons() {
-        binding.btnGoogleDownload.isEnabled = true
-        binding.btnMicrosoftDownload.isEnabled = true
-        binding.btnCheckUpdates.isEnabled = true
+        setAllButtonsEnabled(true)
         binding.tvDownloadProgress.visibility = View.GONE
         refreshStatus()
     }

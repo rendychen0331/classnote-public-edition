@@ -6,7 +6,6 @@ import com.rendy.classnote.data.local.ClassNoteDatabase
 import com.rendy.classnote.data.local.entity.ReminderEntity
 import com.rendy.classnote.data.local.entity.ReminderNotificationEntity
 import com.rendy.classnote.data.remote.ApiLogger
-import com.rendy.classnote.data.remote.GeminiApi
 import com.rendy.classnote.feature.KeepEventInfo
 import com.rendy.classnote.feature.ReminderInsert
 import com.rendy.classnote.feature.SyncBridge
@@ -115,15 +114,7 @@ class SyncBridgeImpl(override val context: Context) : SyncBridge {
         val apiKey = prefs.geminiApiKey
         if (apiKey.isBlank()) return null
         return try {
-            GeminiApi.analyzeKeepNote(apiKey, title, text)?.let { info ->
-                KeepEventInfo(
-                    title    = info.title,
-                    dueDate  = info.dueDate,
-                    dueTime  = info.dueTime,
-                    category = info.category,
-                    note     = info.note
-                )
-            }
+            FeatureManager.getAi(context)?.analyzeKeepNote(apiKey, title, text)
         } catch (e: Exception) {
             Log.e("SyncBridgeImpl", "analyzeKeepNote failed", e)
             null

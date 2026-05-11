@@ -57,6 +57,8 @@ jobs:
           ./gradlew assembleDebug \
             :feature-google:bundleFeatureDex \
             :feature-microsoft:bundleFeatureDex \
+            :feature-ai:bundleFeatureDex \
+            :feature-weather:bundleFeatureDex \
             --no-daemon --no-build-cache
 
       - name: Show APK signing certificate SHA-1
@@ -74,6 +76,8 @@ jobs:
           cp app/build/outputs/apk/debug/classnote-${TAG}.apk dist/
           cp feature-google/build/outputs/feature-dex/feature-google.dex dist/ || echo "feature-google.dex not found"
           cp feature-microsoft/build/outputs/feature-dex/feature-microsoft.dex dist/ || echo "feature-microsoft.dex not found"
+          cp feature-ai/build/outputs/feature-dex/feature-ai.dex dist/ || echo "feature-ai.dex not found"
+          cp feature-weather/build/outputs/feature-dex/feature-weather.dex dist/ || echo "feature-weather.dex not found"
 
       - name: Generate features.json manifest
         if: startsWith(github.ref, 'refs/tags/')
@@ -88,6 +92,8 @@ jobs:
 
           GOOGLE_DEX="dist/feature-google.dex"
           MS_DEX="dist/feature-microsoft.dex"
+          AI_DEX="dist/feature-ai.dex"
+          WEATHER_DEX="dist/feature-weather.dex"
 
           FEATURES="[]"
           if [ -f "$GOOGLE_DEX" ]; then
@@ -124,6 +130,40 @@ jobs:
           ")
           fi
 
+          if [ -f "$AI_DEX" ]; then
+            FEATURES=$(echo "$FEATURES" | python3 -c "
+          import sys, json
+          features = json.load(sys.stdin)
+          features.append({
+            'id': 'ai',
+            'displayName': 'AI 智能功能',
+            'description': '通知辨識、課堂摘要、AI 對話（支援 Gemini、Claude、OpenAI、Groq、DeepSeek、Mimo）',
+            'downloadUrl': '$BASE_URL/feature-ai.dex',
+            'sha256': '$(sha256_of $AI_DEX)',
+            'sizeBytes': $(size_of $AI_DEX),
+            'minAppVersion': 0
+          })
+          print(json.dumps(features))
+          ")
+          fi
+
+          if [ -f "$WEATHER_DEX" ]; then
+            FEATURES=$(echo "$FEATURES" | python3 -c "
+          import sys, json
+          features = json.load(sys.stdin)
+          features.append({
+            'id': 'weather',
+            'displayName': '天氣功能',
+            'description': '中央氣象署 36 小時天氣預報，支援全台 22 縣市及各鄉鎮，每日天氣推播',
+            'downloadUrl': '$BASE_URL/feature-weather.dex',
+            'sha256': '$(sha256_of $WEATHER_DEX)',
+            'sizeBytes': $(size_of $WEATHER_DEX),
+            'minAppVersion': 0
+          })
+          print(json.dumps(features))
+          ")
+          fi
+
           echo "{\"version\":1,\"features\":$FEATURES}" | python3 -m json.tool > dist/features.json
           cat dist/features.json
 
@@ -144,5 +184,7 @@ jobs:
             dist/classnote-*.apk
             dist/feature-google.dex
             dist/feature-microsoft.dex
+            dist/feature-ai.dex
+            dist/feature-weather.dex
             dist/features.json
           generate_release_notes: true

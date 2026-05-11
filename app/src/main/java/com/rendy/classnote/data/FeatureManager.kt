@@ -2,10 +2,12 @@ package com.rendy.classnote.data
 
 import android.content.Context
 import android.util.Log
+import com.rendy.classnote.feature.AiFeature
 import com.rendy.classnote.feature.AuthFeature
 import com.rendy.classnote.feature.BackupFeature
 import com.rendy.classnote.feature.FeatureModule
 import com.rendy.classnote.feature.SyncFeature
+import com.rendy.classnote.feature.WeatherFeature
 import dalvik.system.DexClassLoader
 import java.io.File
 
@@ -17,7 +19,9 @@ object FeatureManager {
 
     private val featureClassNames = mapOf(
         "google"    to "com.rendy.classnote.feature.google.GoogleFeatureModule",
-        "microsoft" to "com.rendy.classnote.feature.microsoft.MicrosoftFeatureModule"
+        "microsoft" to "com.rendy.classnote.feature.microsoft.MicrosoftFeatureModule",
+        "ai"        to "com.rendy.classnote.feature.ai.AiFeatureModule",
+        "weather"   to "com.rendy.classnote.feature.weather.WeatherFeatureModule"
     )
 
     fun isDownloaded(context: Context, featureId: String): Boolean =
@@ -31,6 +35,12 @@ object FeatureManager {
 
     fun getAuth(context: Context, featureId: String): AuthFeature? =
         load(context, featureId)?.auth()
+
+    fun getAi(context: Context): AiFeature? =
+        load(context, "ai")?.ai()
+
+    fun getWeather(context: Context): WeatherFeature? =
+        load(context, "weather")?.weather()
 
     fun unload(featureId: String) {
         cache.remove(featureId)

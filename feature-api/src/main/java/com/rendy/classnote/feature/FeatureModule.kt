@@ -11,6 +11,8 @@ interface FeatureModule {
     fun sync(): SyncFeature?
     fun backup(): BackupFeature?
     fun auth(): AuthFeature? = null
+    fun ai(): AiFeature? = null
+    fun weather(): WeatherFeature? = null
 }
 
 interface SyncFeature {

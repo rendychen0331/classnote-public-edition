@@ -34,7 +34,7 @@ import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.R
 import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.local.entity.ClassRecordEntity
-import com.rendy.classnote.data.remote.GeminiApi
+import com.rendy.classnote.data.FeatureManager
 import com.rendy.classnote.data.local.entity.ClassRecordMediaEntity
 import com.rendy.classnote.databinding.FragmentClassRecordEditBinding
 import kotlinx.coroutines.launch
@@ -209,7 +209,7 @@ class ClassRecordEditFragment : Fragment() {
         if (apiKey.isBlank()) { Toast.makeText(requireContext(), "請先設定 Gemini API Key", Toast.LENGTH_SHORT).show(); return }
         binding.btnGenerateTitle.isEnabled = false
         viewLifecycleOwner.lifecycleScope.launch {
-            val title = GeminiApi.generateTitle(apiKey, content)
+            val title = FeatureManager.getAi(requireContext())?.generateTitle(apiKey, content)
             binding.btnGenerateTitle.isEnabled = true
             if (title != null) binding.etTitle.setText(title)
             else Toast.makeText(requireContext(), "生成失敗，請稍後再試", Toast.LENGTH_SHORT).show()
