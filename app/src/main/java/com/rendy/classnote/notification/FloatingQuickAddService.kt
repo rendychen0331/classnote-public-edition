@@ -98,6 +98,13 @@ class FloatingQuickAddService : Service() {
         val capsule = view.findViewById<View>(R.id.capsule)
         val rightWrap = view.findViewById<FrameLayout>(R.id.btn_classrecord_wrap)
         val btnModel = view.findViewById<ImageButton>(R.id.btn_model)
+        val aiAvailable = FeatureManager.isDownloaded(this, "ai")
+        if (!aiAvailable) {
+            capsule.visibility = View.GONE
+            view.findViewById<View>(R.id.hint_text).visibility = View.GONE
+            btnModel.visibility = View.GONE
+            view.findViewById<View>(R.id.btn_add_attachment).visibility = View.GONE
+        }
 
         view.findViewById<View>(R.id.overlay_root).setOnClickListener {
             val modelPicker = view.findViewById<View>(R.id.model_picker_panel)
