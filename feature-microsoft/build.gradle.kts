@@ -1,3 +1,5 @@
+import java.util.zip.ZipFile
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -58,7 +60,7 @@ tasks.register("bundleFeatureDex") {
                     "jar" -> jarFiles.add(artifact.file.absolutePath)
                     "aar" -> {
                         val extracted = File(tempDir, "${artifact.name}-${artifact.moduleVersion.id.version}-classes.jar")
-                        java.util.zip.ZipFile(artifact.file).use { zip ->
+                        ZipFile(artifact.file).use { zip ->
                             zip.getEntry("classes.jar")?.let { entry ->
                                 zip.getInputStream(entry).use { inp -> extracted.outputStream().use { inp.copyTo(it) } }
                             }
