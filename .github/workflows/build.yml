@@ -59,7 +59,7 @@ jobs:
             :feature-microsoft:bundleFeatureDex \
             :feature-ai:bundleFeatureDex \
             :feature-weather:bundleFeatureDex \
-            --no-daemon --no-build-cache
+            --no-daemon --no-build-cache --no-configuration-cache
 
       - name: Show APK signing certificate SHA-1
         run: |
