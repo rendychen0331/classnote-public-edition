@@ -28,7 +28,7 @@ import com.rendy.classnote.data.KeepSyncWorker
 import com.rendy.classnote.data.TasksSyncWorker
 import com.rendy.classnote.databinding.SheetGoogleSyncBinding
 import com.rendy.classnote.feature.BackupOutcome
-import com.rendy.classnote.feature.SyncBridgeImpl
+import com.rendy.classnote.data.SyncBridgeImpl
 import com.rendy.classnote.feature.SyncOutcome
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy

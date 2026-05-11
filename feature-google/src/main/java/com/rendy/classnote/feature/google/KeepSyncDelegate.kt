@@ -5,6 +5,7 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException
 import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.javanet.NetHttpTransport
+import com.rendy.classnote.feature.KeepEventInfo
 import com.rendy.classnote.feature.ReminderInsert
 import com.rendy.classnote.feature.SyncBridge
 import com.rendy.classnote.feature.SyncOutcome

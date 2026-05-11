@@ -20,7 +20,7 @@ import com.rendy.classnote.data.TeamsAssignmentSyncWorker
 import com.rendy.classnote.data.OneNoteSyncWorker
 import com.rendy.classnote.databinding.SheetMicrosoftSyncBinding
 import com.rendy.classnote.feature.BackupOutcome
-import com.rendy.classnote.feature.SyncBridgeImpl
+import com.rendy.classnote.data.SyncBridgeImpl
 import com.rendy.classnote.feature.SyncOutcome
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
