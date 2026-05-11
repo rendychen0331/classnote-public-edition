@@ -49,7 +49,8 @@ tasks.register("bundleFeatureDex") {
         if (classesJar.exists()) jarFiles.add(classesJar.absolutePath)
 
         configurations["releaseRuntimeClasspath"]
-            .resolvedConfiguration.resolvedArtifacts
+            .resolvedConfiguration.lenientConfiguration
+            .getArtifacts { true }
             .filter { a ->
                 a.file.exists() &&
                 !a.file.absolutePath.contains("android.jar") &&
