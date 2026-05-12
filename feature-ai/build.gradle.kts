@@ -9,6 +9,7 @@ plugins {
 android {
     namespace = "com.rendy.classnote.feature.ai"
     compileSdk = 35
+    buildToolsVersion = "35.0.0"
 
     defaultConfig {
         minSdk = 35

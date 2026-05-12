@@ -51,6 +51,9 @@ jobs:
           echo "Keystore size: $(wc -c < $HOME/.android/debug.keystore) bytes"
           keytool -list -v -keystore $HOME/.android/debug.keystore -storepass android -alias androiddebugkey 2>&1 | grep -E "SHA1|SHA-1" || true
 
+      - name: Install build-tools 35.0.0
+        run: $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
+
       - name: Build base APK + feature .dex files
         run: |
           chmod +x gradlew
