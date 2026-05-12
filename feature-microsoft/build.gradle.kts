@@ -53,8 +53,15 @@ tasks.register("bundleFeatureDex") {
             .resolvedConfiguration.lenientConfiguration
             .getArtifacts { dep -> dep !is ProjectDependency }
             .filter { a ->
+                val group = a.moduleVersion.id.group
                 a.file.exists() &&
-                !a.file.absolutePath.contains("android.jar")
+                !a.file.absolutePath.contains("android.jar") &&
+                group !in setOf(
+                    "com.google.errorprone",
+                    "org.checkerframework",
+                    "com.google.j2objc",
+                    "com.google.code.findbugs"
+                )
             }
             .forEach { artifact ->
                 when (artifact.extension) {
