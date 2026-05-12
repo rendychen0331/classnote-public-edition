@@ -27,6 +27,9 @@ object FeatureManager {
     fun isDownloaded(context: Context, featureId: String): Boolean =
         dexFile(context, featureId).exists()
 
+    fun getInstalledIds(context: Context): List<String> =
+        featureClassNames.keys.filter { isDownloaded(context, it) }
+
     fun getSync(context: Context, featureId: String): SyncFeature? =
         load(context, featureId)?.sync()
 

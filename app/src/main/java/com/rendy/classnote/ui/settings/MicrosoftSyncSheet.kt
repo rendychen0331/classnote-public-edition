@@ -115,40 +115,16 @@ class MicrosoftSyncSheet : Fragment() {
         }
 
         binding.btnOneDriveRestore.setOnClickListener {
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle(getString(R.string.settings_onedrive_restore_confirm_title))
-                .setMessage(getString(R.string.settings_onedrive_restore_confirm_msg))
-                .setPositiveButton("還原") { _, _ ->
-                    binding.btnOneDriveRestore.isEnabled = false
-                    viewLifecycleOwner.lifecycleScope.launch {
-                        val feature = FeatureManager.getBackup(requireContext(), "microsoft")
-                        if (feature == null) {
-                            binding.btnOneDriveRestore.isEnabled = true
-                            Toast.makeText(requireContext(), "Microsoft 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
-                            return@launch
-                        }
-                        val bridge = SyncBridgeImpl(requireContext())
-                        val result = feature.restore(bridge)
-                        binding.btnOneDriveRestore.isEnabled = true
-                        when (result) {
-                            is BackupOutcome.Success ->
-                                Toast.makeText(requireContext(),
-                                    getString(R.string.settings_onedrive_restore_success), Toast.LENGTH_LONG).show()
-                            is BackupOutcome.AuthRequired -> {
-                                val restoreIntent = result.intent
-                                if (restoreIntent != null) {
-                                    startActivity(restoreIntent)
-                                } else {
-                                    Toast.makeText(requireContext(), "帳號授權已過期", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                            is BackupOutcome.Error ->
-                                Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
-                        }
-                    }
+            viewLifecycleOwner.lifecycleScope.launch {
+                val feature = FeatureManager.getBackup(requireContext(), "microsoft")
+                if (feature == null) {
+                    Toast.makeText(requireContext(), "Microsoft 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    return@launch
                 }
-                .setNegativeButton(getString(R.string.cancel), null)
-                .show()
+                val bridge = SyncBridgeImpl(requireContext())
+                val meta = feature.fetchMeta(bridge)
+                showRestoreOptionsDialog(feature, bridge, meta)
+            }
         }
 
         binding.cardOneDriveNetwork.setOnClickListener { showOneDriveNetworkDialog(prefs) }
@@ -562,6 +538,77 @@ class MicrosoftSyncSheet : Fragment() {
 
     private fun cancelOneNoteSync() {
         WorkManager.getInstance(requireContext()).cancelUniqueWork("onenote_auto_sync")
+    }
+
+    private fun showRestoreOptionsDialog(
+        feature: com.rendy.classnote.feature.BackupFeature,
+        bridge: SyncBridgeImpl,
+        meta: com.rendy.classnote.feature.BackupMeta?
+    ) {
+        val items = mutableListOf<String>()
+        val checked = mutableListOf<Boolean>()
+
+        items.add("筆記 & 提醒事項")
+        checked.add(true)
+        if (meta?.hasAiSettings == true) { items.add("AI 設定（API 金鑰）"); checked.add(true) }
+        if (meta?.hasWeatherSettings == true) { items.add("天氣設定"); checked.add(true) }
+
+        val checkedArr = checked.toBooleanArray()
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("選擇要還原的項目")
+            .setMultiChoiceItems(items.toTypedArray(), checkedArr) { _, which, isChecked ->
+                checkedArr[which] = isChecked
+            }
+            .setPositiveButton("還原") { _, _ ->
+                val aiIdx = if (meta?.hasAiSettings == true) 1 else -1
+                val weatherIdx = when {
+                    meta?.hasAiSettings == true && meta.hasWeatherSettings -> 2
+                    meta?.hasAiSettings != true && meta?.hasWeatherSettings == true -> 1
+                    else -> -1
+                }
+                val options = com.rendy.classnote.feature.RestoreOptions(
+                    restoreNotes = checkedArr[0],
+                    restoreAiSettings = aiIdx >= 0 && checkedArr[aiIdx],
+                    restoreWeatherSettings = weatherIdx >= 0 && checkedArr[weatherIdx]
+                )
+                binding.btnOneDriveRestore.isEnabled = false
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val result = feature.restore(bridge, options)
+                    binding.btnOneDriveRestore.isEnabled = true
+                    when (result) {
+                        is BackupOutcome.Success -> {
+                            autoDownloadMissingFeatures(result.meta.installedFeatures)
+                            Toast.makeText(requireContext(),
+                                getString(R.string.settings_onedrive_restore_success), Toast.LENGTH_LONG).show()
+                        }
+                        is BackupOutcome.AuthRequired -> {
+                            val restoreIntent = result.intent
+                            if (restoreIntent != null) startActivity(restoreIntent)
+                            else Toast.makeText(requireContext(), "帳號授權已過期", Toast.LENGTH_SHORT).show()
+                        }
+                        is BackupOutcome.Error ->
+                            Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private suspend fun autoDownloadMissingFeatures(featureIds: List<String>) {
+        if (featureIds.isEmpty()) return
+        val ctx = requireContext()
+        val appVersion = try {
+            ctx.packageManager.getPackageInfo(ctx.packageName, 0).longVersionCode.toInt()
+        } catch (_: Exception) { 0 }
+        val manifest = com.rendy.classnote.data.FeatureDownloader.fetchManifest()
+        val infoMap = manifest.associateBy { it.id }
+        for (id in featureIds) {
+            if (FeatureManager.isDownloaded(ctx, id)) continue
+            val info = infoMap[id] ?: continue
+            com.rendy.classnote.data.FeatureDownloader.download(ctx, info, appVersion)
+        }
     }
 
     override fun onDestroyView() {

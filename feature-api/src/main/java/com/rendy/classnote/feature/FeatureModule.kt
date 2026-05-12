@@ -21,9 +21,23 @@ interface SyncFeature {
         syncAll(bridge)[service] ?: SyncOutcome.Error("service $service not handled")
 }
 
+data class BackupMeta(
+    val installedFeatures: List<String> = emptyList(),
+    val hasNotes: Boolean = true,
+    val hasAiSettings: Boolean = false,
+    val hasWeatherSettings: Boolean = false
+)
+
+data class RestoreOptions(
+    val restoreNotes: Boolean = true,
+    val restoreAiSettings: Boolean = false,
+    val restoreWeatherSettings: Boolean = false
+)
+
 interface BackupFeature {
     suspend fun backup(bridge: SyncBridge): BackupOutcome
-    suspend fun restore(bridge: SyncBridge): BackupOutcome
+    suspend fun fetchMeta(bridge: SyncBridge): BackupMeta? = null
+    suspend fun restore(bridge: SyncBridge, options: RestoreOptions = RestoreOptions()): BackupOutcome
 }
 
 interface AuthFeature {
@@ -40,6 +54,16 @@ interface SyncBridge {
     // ── Auth ───────────────────────────────────────────────────────────────
     /** Returns account emails for a service key: gmail, classroom, calendar, tasks, keep, drive. */
     fun googleAccountEmails(service: String): Set<String>
+
+    // ── Features ──────────────────────────────────────────────────────────
+    /** Returns IDs of feature modules currently installed on device. */
+    fun installedFeatureIds(): List<String>
+
+    // ── Settings snapshots (for backup/restore) ────────────────────────────
+    fun getAiSettings(): Map<String, String>
+    fun getWeatherSettings(): Map<String, String>
+    fun applyAiSettings(settings: Map<String, String>)
+    fun applyWeatherSettings(settings: Map<String, String>)
 
     // ── Database ──────────────────────────────────────────────────────────
     suspend fun findByExternalId(externalId: String): Boolean
@@ -94,7 +118,7 @@ sealed class SyncOutcome {
 }
 
 sealed class BackupOutcome {
-    object Success : BackupOutcome()
+    data class Success(val meta: BackupMeta = BackupMeta()) : BackupOutcome()
     data class Error(val message: String) : BackupOutcome()
     data class AuthRequired(val intent: android.content.Intent?) : BackupOutcome()
 }

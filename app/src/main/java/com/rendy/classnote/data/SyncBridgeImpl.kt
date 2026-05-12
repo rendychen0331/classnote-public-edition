@@ -122,6 +122,57 @@ class SyncBridgeImpl(override val context: Context) : SyncBridge {
         }
     }
 
+    // ── Features ──────────────────────────────────────────────────────────
+
+    override fun installedFeatureIds(): List<String> = FeatureManager.getInstalledIds(context)
+
+    // ── Settings snapshots ────────────────────────────────────────────────
+
+    override fun getAiSettings(): Map<String, String> = buildMap {
+        put("geminiApiKey", prefs.geminiApiKey)
+        put("claudeApiKey", prefs.claudeApiKey)
+        put("openaiApiKey", prefs.openaiApiKey)
+        put("groqApiKey", prefs.groqApiKey)
+        put("deepseekApiKey", prefs.deepseekApiKey)
+        put("mimoApiKey", prefs.mimoApiKey)
+    }
+
+    override fun getWeatherSettings(): Map<String, String> {
+        val wp = WeatherPreferences(context)
+        return buildMap {
+            put("cwaApiKey", prefs.cwaApiKey)
+            put("savedLocations", org.json.JSONArray(wp.savedLocations).toString())
+            put("notifLocation", wp.weatherNotifLocation)
+            put("notifEnabled", wp.weatherNotifEnabled.toString())
+            put("notifHour", wp.weatherNotifHour.toString())
+            put("notifMinute", wp.weatherNotifMinute.toString())
+        }
+    }
+
+    override fun applyAiSettings(settings: Map<String, String>) {
+        settings["geminiApiKey"]?.let { prefs.geminiApiKey = it }
+        settings["claudeApiKey"]?.let { prefs.claudeApiKey = it }
+        settings["openaiApiKey"]?.let { prefs.openaiApiKey = it }
+        settings["groqApiKey"]?.let { prefs.groqApiKey = it }
+        settings["deepseekApiKey"]?.let { prefs.deepseekApiKey = it }
+        settings["mimoApiKey"]?.let { prefs.mimoApiKey = it }
+    }
+
+    override fun applyWeatherSettings(settings: Map<String, String>) {
+        val wp = WeatherPreferences(context)
+        settings["cwaApiKey"]?.let { prefs.cwaApiKey = it }
+        settings["savedLocations"]?.let { json ->
+            try {
+                val arr = org.json.JSONArray(json)
+                wp.savedLocations = (0 until arr.length()).map { arr.getString(it) }
+            } catch (_: Exception) {}
+        }
+        settings["notifLocation"]?.let { wp.weatherNotifLocation = it }
+        settings["notifEnabled"]?.let { wp.weatherNotifEnabled = it.toBoolean() }
+        settings["notifHour"]?.toIntOrNull()?.let { wp.weatherNotifHour = it }
+        settings["notifMinute"]?.toIntOrNull()?.let { wp.weatherNotifMinute = it }
+    }
+
     // ── Preferences ───────────────────────────────────────────────────────
 
     override fun gmailClassroomForwardEnabled(): Boolean = prefs.gmailClassroomForwardEnabled
