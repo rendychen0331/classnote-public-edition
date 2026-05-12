@@ -1,4 +1,5 @@
 import java.util.zip.ZipFile
+import org.gradle.api.artifacts.ProjectDependency
 
 plugins {
     alias(libs.plugins.android.library)
@@ -50,11 +51,10 @@ tasks.register("bundleFeatureDex") {
 
         configurations["releaseRuntimeClasspath"]
             .resolvedConfiguration.lenientConfiguration
-            .getArtifacts { true }
+            .getArtifacts { dep -> dep !is ProjectDependency }
             .filter { a ->
                 a.file.exists() &&
-                !a.file.absolutePath.contains("android.jar") &&
-                a.moduleVersion.id.group != "com.rendy.classnote"
+                !a.file.absolutePath.contains("android.jar")
             }
             .forEach { artifact ->
                 when (artifact.extension) {
