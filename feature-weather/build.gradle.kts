@@ -56,6 +56,9 @@ tasks.register("bundleFeatureDex") {
                 val group = a.moduleVersion.id.group
                 a.file.exists() &&
                 !a.file.absolutePath.contains("android.jar") &&
+                !group.startsWith("androidx.") &&
+                !group.startsWith("org.jetbrains") &&
+                !group.startsWith("kotlinx.") &&
                 group !in setOf(
                     "com.google.errorprone",
                     "org.checkerframework",
