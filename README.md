@@ -24,7 +24,7 @@ Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 
 ## 接下來的計劃
 
-請看[Issues](https://github.com/rendychen0331/classnote-public-edition/issues)
+慶祝，終於成功build v3出來了（雖然已經是v3.12了）
 
 ## 說明
 
