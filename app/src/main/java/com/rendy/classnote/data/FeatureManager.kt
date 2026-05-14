@@ -62,6 +62,8 @@ object FeatureManager {
         cache[featureId]?.let { return it }
         val dex = dexFile(context, featureId)
         if (!dex.exists()) return null
+        // ensure read-only so Android 10+ allows loading from filesDir
+        if (dex.canWrite()) dex.setReadOnly()
         return tryLoad(context, featureId, dex)
             ?: run {
                 // stale odex can prevent load — clear and retry once

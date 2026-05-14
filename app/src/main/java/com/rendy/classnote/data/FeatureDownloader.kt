@@ -81,7 +81,10 @@ object FeatureDownloader {
                 FeatureManager.unload(info.id)
                 // clear stale odex so next load starts fresh
                 File(context.codeCacheDir, "features/opt-${info.id}").deleteRecursively()
+                destFile.delete()
                 tmp.renameTo(destFile)
+                // Android 10+ rejects dex files from writable paths
+                destFile.setReadOnly()
                 DownloadResult.Success
             } catch (e: Exception) {
                 Log.e(TAG, "download ${info.id} failed", e)
