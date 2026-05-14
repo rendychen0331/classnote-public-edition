@@ -341,6 +341,40 @@ class AppPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_DEEPSEEK_ENABLED, false)
         set(value) = prefs.edit { putBoolean(KEY_DEEPSEEK_ENABLED, value) }
 
+    // Custom Anthropic-format provider
+    var customAnthropicEndpoint: String
+        get() = prefs.getString(KEY_CUSTOM_ANTHROPIC_ENDPOINT, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_CUSTOM_ANTHROPIC_ENDPOINT, value) }
+
+    var customAnthropicModel: String
+        get() = prefs.getString(KEY_CUSTOM_ANTHROPIC_MODEL, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_CUSTOM_ANTHROPIC_MODEL, value) }
+
+    var customAnthropicKey: String
+        get() = prefs.getString(KEY_CUSTOM_ANTHROPIC_KEY, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_CUSTOM_ANTHROPIC_KEY, value) }
+
+    var customAnthropicEnabled: Boolean
+        get() = prefs.getBoolean(KEY_CUSTOM_ANTHROPIC_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_CUSTOM_ANTHROPIC_ENABLED, value) }
+
+    // Custom OpenAI-format provider
+    var customOpenaiEndpoint: String
+        get() = prefs.getString(KEY_CUSTOM_OPENAI_ENDPOINT, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_CUSTOM_OPENAI_ENDPOINT, value) }
+
+    var customOpenaiModel: String
+        get() = prefs.getString(KEY_CUSTOM_OPENAI_MODEL, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_CUSTOM_OPENAI_MODEL, value) }
+
+    var customOpenaiKey: String
+        get() = prefs.getString(KEY_CUSTOM_OPENAI_KEY, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_CUSTOM_OPENAI_KEY, value) }
+
+    var customOpenaiEnabled: Boolean
+        get() = prefs.getBoolean(KEY_CUSTOM_OPENAI_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_CUSTOM_OPENAI_ENABLED, value) }
+
     /** 勿擾模式穿透：提醒通知在勿擾模式下仍顯示。預設關閉。需搭配 ACCESS_NOTIFICATION_POLICY 授權。 */
     var bypassDndEnabled: Boolean
         get() = prefs.getBoolean(KEY_BYPASS_DND, false)
@@ -524,6 +558,14 @@ class AppPreferences(context: Context) {
         private const val KEY_GROQ_ENABLED = "groq_enabled"
         private const val KEY_DEEPSEEK_API_KEY = "deepseek_api_key"
         private const val KEY_DEEPSEEK_ENABLED = "deepseek_enabled"
+        private const val KEY_CUSTOM_ANTHROPIC_ENDPOINT = "custom_anthropic_endpoint"
+        private const val KEY_CUSTOM_ANTHROPIC_MODEL = "custom_anthropic_model"
+        private const val KEY_CUSTOM_ANTHROPIC_KEY = "custom_anthropic_key"
+        private const val KEY_CUSTOM_ANTHROPIC_ENABLED = "custom_anthropic_enabled"
+        private const val KEY_CUSTOM_OPENAI_ENDPOINT = "custom_openai_endpoint"
+        private const val KEY_CUSTOM_OPENAI_MODEL = "custom_openai_model"
+        private const val KEY_CUSTOM_OPENAI_KEY = "custom_openai_key"
+        private const val KEY_CUSTOM_OPENAI_ENABLED = "custom_openai_enabled"
         private const val KEY_NOTIF_LISTENER_AUTO_ADD = "notif_listener_auto_add"
         private const val KEY_BYPASS_DND = "bypass_dnd_enabled"
         private const val KEY_MONITORED_PACKAGES = "notif_monitored_packages"
@@ -587,5 +629,12 @@ class AppPreferences(context: Context) {
         const val NETWORK_WIFI = "wifi"
         const val NETWORK_MOBILE = "mobile"
         const val NETWORK_ANY = "any"
+
+        fun encodeCustomKey(endpoint: String, model: String, key: String) = "$endpoint $model $key"
+
+        fun decodeCustomKey(encoded: String): Triple<String, String, String>? {
+            val parts = encoded.split(" ", limit = 3)
+            return if (parts.size == 3) Triple(parts[0], parts[1], parts[2]) else null
+        }
     }
 }

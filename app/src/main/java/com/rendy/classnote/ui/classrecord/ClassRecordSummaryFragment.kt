@@ -162,13 +162,26 @@ class ClassRecordSummaryFragment : Fragment() {
 
     private fun setupProviderChips() {
         val prefs = AppPreferences(requireContext())
+        val customAnthropicKey = AppPreferences.encodeCustomKey(
+            prefs.customAnthropicEndpoint, prefs.customAnthropicModel, prefs.customAnthropicKey
+        )
+        val customAnthropicActive = prefs.customAnthropicEnabled &&
+            prefs.customAnthropicEndpoint.isNotBlank() && prefs.customAnthropicModel.isNotBlank() && prefs.customAnthropicKey.isNotBlank()
+        val customOpenaiKey = AppPreferences.encodeCustomKey(
+            prefs.customOpenaiEndpoint, prefs.customOpenaiModel, prefs.customOpenaiKey
+        )
+        val customOpenaiActive = prefs.customOpenaiEnabled &&
+            prefs.customOpenaiEndpoint.isNotBlank() && prefs.customOpenaiModel.isNotBlank()
+
         val chipMap = mapOf(
-            binding.chipGemini to ("gemini" to (prefs.geminiApiKey to prefs.geminiEnabled)),
-            binding.chipMimo   to ("mimo"   to (prefs.mimoApiKey   to prefs.mimoEnabled)),
-            binding.chipClaude to ("claude" to (prefs.claudeApiKey to prefs.claudeEnabled)),
-            binding.chipOpenai to ("openai" to (prefs.openaiApiKey to prefs.openaiEnabled)),
-            binding.chipGroq      to ("groq"      to (prefs.groqApiKey      to prefs.groqEnabled)),
-            binding.chipDeepseek  to ("deepseek"  to (prefs.deepseekApiKey  to prefs.deepseekEnabled))
+            binding.chipGemini        to ("gemini"           to (prefs.geminiApiKey   to prefs.geminiEnabled)),
+            binding.chipMimo          to ("mimo"             to (prefs.mimoApiKey     to prefs.mimoEnabled)),
+            binding.chipClaude        to ("claude"           to (prefs.claudeApiKey   to prefs.claudeEnabled)),
+            binding.chipOpenai        to ("openai"           to (prefs.openaiApiKey   to prefs.openaiEnabled)),
+            binding.chipGroq          to ("groq"             to (prefs.groqApiKey     to prefs.groqEnabled)),
+            binding.chipDeepseek      to ("deepseek"         to (prefs.deepseekApiKey to prefs.deepseekEnabled)),
+            binding.chipCustomAnthropic to ("custom-anthropic" to (customAnthropicKey to customAnthropicActive)),
+            binding.chipCustomOpenai    to ("custom-openai"    to (customOpenaiKey    to customOpenaiActive))
         )
 
         chipMap.forEach { (chip, pair) ->
@@ -193,12 +206,14 @@ class ClassRecordSummaryFragment : Fragment() {
     private fun selectedProvider(): String {
         val checkedId = binding.chipGroupProvider.checkedChipId
         return when (checkedId) {
-            R.id.chipMimo   -> "mimo"
-            R.id.chipClaude -> "claude"
-            R.id.chipOpenai -> "openai"
-            R.id.chipGroq      -> "groq"
-            R.id.chipDeepseek  -> "deepseek"
-            else               -> "gemini"
+            R.id.chipMimo           -> "mimo"
+            R.id.chipClaude         -> "claude"
+            R.id.chipOpenai         -> "openai"
+            R.id.chipGroq           -> "groq"
+            R.id.chipDeepseek       -> "deepseek"
+            R.id.chipCustomAnthropic -> "custom-anthropic"
+            R.id.chipCustomOpenai    -> "custom-openai"
+            else                     -> "gemini"
         }
     }
 
@@ -212,12 +227,18 @@ class ClassRecordSummaryFragment : Fragment() {
         val prefs = AppPreferences(requireContext())
         val provider = selectedProvider()
         val apiKey = when (provider) {
-            "mimo"   -> prefs.mimoApiKey
-            "claude" -> prefs.claudeApiKey
-            "openai" -> prefs.openaiApiKey
-            "groq"      -> prefs.groqApiKey
-            "deepseek"  -> prefs.deepseekApiKey
-            else        -> prefs.geminiApiKey
+            "mimo"             -> prefs.mimoApiKey
+            "claude"           -> prefs.claudeApiKey
+            "openai"           -> prefs.openaiApiKey
+            "groq"             -> prefs.groqApiKey
+            "deepseek"         -> prefs.deepseekApiKey
+            "custom-anthropic" -> AppPreferences.encodeCustomKey(
+                prefs.customAnthropicEndpoint, prefs.customAnthropicModel, prefs.customAnthropicKey
+            )
+            "custom-openai"    -> AppPreferences.encodeCustomKey(
+                prefs.customOpenaiEndpoint, prefs.customOpenaiModel, prefs.customOpenaiKey
+            )
+            else               -> prefs.geminiApiKey
         }
         if (apiKey.isBlank()) {
             Toast.makeText(requireContext(), "請先在設定頁輸入 API Key", Toast.LENGTH_SHORT).show()

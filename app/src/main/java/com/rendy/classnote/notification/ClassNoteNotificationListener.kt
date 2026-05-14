@@ -305,6 +305,22 @@ class ClassNoteNotificationListener : NotificationListenerService() {
             "openai"   to (prefs.openaiEnabled   to prefs.openaiApiKey),
             "groq"     to (prefs.groqEnabled     to prefs.groqApiKey),
             "deepseek" to (prefs.deepseekEnabled to prefs.deepseekApiKey),
+            "custom-anthropic" to (prefs.customAnthropicEnabled to
+                AppPreferences.encodeCustomKey(
+                    prefs.customAnthropicEndpoint,
+                    prefs.customAnthropicModel,
+                    prefs.customAnthropicKey
+                ).takeIf {
+                    prefs.customAnthropicEndpoint.isNotBlank() && prefs.customAnthropicModel.isNotBlank() && prefs.customAnthropicKey.isNotBlank()
+                }.orEmpty()),
+            "custom-openai" to (prefs.customOpenaiEnabled to
+                AppPreferences.encodeCustomKey(
+                    prefs.customOpenaiEndpoint,
+                    prefs.customOpenaiModel,
+                    prefs.customOpenaiKey
+                ).takeIf {
+                    prefs.customOpenaiEndpoint.isNotBlank() && prefs.customOpenaiModel.isNotBlank()
+                }.orEmpty()),
         )
         val prefMatch = candidates.firstOrNull { it.first == preferred && it.second.first && it.second.second.isNotBlank() }
         if (prefMatch != null) return prefMatch.first to prefMatch.second.second

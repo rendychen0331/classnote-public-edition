@@ -200,32 +200,144 @@ class AiSettingsSheet : Fragment() {
             savedMsg = "DeepSeek API Key 已儲存"
         )
 
+        setupCustomProviderCard(
+            switch = binding.switchCustomAnthropicEnabled,
+            keyLayout = binding.layoutCustomAnthropicKey,
+            getEnabled = { prefs.customAnthropicEnabled },
+            saveEnabled = { prefs.customAnthropicEnabled = it },
+            etEndpoint = binding.etCustomAnthropicEndpoint,
+            etModel = binding.etCustomAnthropicModel,
+            til = binding.tilCustomAnthropicApiKey,
+            etKey = binding.etCustomAnthropicApiKey,
+            btn = binding.btnSaveCustomAnthropicKey,
+            getEndpoint = { prefs.customAnthropicEndpoint },
+            saveEndpoint = { prefs.customAnthropicEndpoint = it },
+            getModel = { prefs.customAnthropicModel },
+            saveModel = { prefs.customAnthropicModel = it },
+            getKey = { prefs.customAnthropicKey },
+            saveKey = { prefs.customAnthropicKey = it },
+            savedMsg = "自訂 Anthropic API Key 已儲存"
+        )
+        setupCustomProviderCard(
+            switch = binding.switchCustomOpenaiEnabled,
+            keyLayout = binding.layoutCustomOpenaiKey,
+            getEnabled = { prefs.customOpenaiEnabled },
+            saveEnabled = { prefs.customOpenaiEnabled = it },
+            etEndpoint = binding.etCustomOpenaiEndpoint,
+            etModel = binding.etCustomOpenaiModel,
+            til = binding.tilCustomOpenaiApiKey,
+            etKey = binding.etCustomOpenaiApiKey,
+            btn = binding.btnSaveCustomOpenaiKey,
+            getEndpoint = { prefs.customOpenaiEndpoint },
+            saveEndpoint = { prefs.customOpenaiEndpoint = it },
+            getModel = { prefs.customOpenaiModel },
+            saveModel = { prefs.customOpenaiModel = it },
+            getKey = { prefs.customOpenaiKey },
+            saveKey = { prefs.customOpenaiKey = it },
+            savedMsg = "自訂 OpenAI API Key 已儲存"
+        )
+
         setupChatProviderChips()
         setupNotifProviderChips()
     }
 
+    private fun setupCustomProviderCard(
+        switch: com.google.android.material.materialswitch.MaterialSwitch,
+        keyLayout: android.view.View,
+        getEnabled: () -> Boolean,
+        saveEnabled: (Boolean) -> Unit,
+        etEndpoint: com.google.android.material.textfield.TextInputEditText,
+        etModel: com.google.android.material.textfield.TextInputEditText,
+        til: com.google.android.material.textfield.TextInputLayout,
+        etKey: com.google.android.material.textfield.TextInputEditText,
+        btn: com.google.android.material.button.MaterialButton,
+        getEndpoint: () -> String,
+        saveEndpoint: (String) -> Unit,
+        getModel: () -> String,
+        saveModel: (String) -> Unit,
+        getKey: () -> String,
+        saveKey: (String) -> Unit,
+        savedMsg: String
+    ) {
+        switch.isChecked = getEnabled()
+        keyLayout.visibility = if (getEnabled()) View.VISIBLE else View.GONE
+        switch.setOnCheckedChangeListener { _, checked ->
+            saveEnabled(checked)
+            keyLayout.visibility = if (checked) View.VISIBLE else View.GONE
+            refreshProviderChips()
+        }
+        etEndpoint.setText(getEndpoint())
+        etEndpoint.doAfterTextChanged { saveEndpoint(it?.toString()?.trim() ?: "") }
+        etModel.setText(getModel())
+        etModel.doAfterTextChanged { saveModel(it?.toString()?.trim() ?: "") }
+
+        val saved = getKey()
+        if (saved.isNotBlank()) etKey.setText(saved)
+        var visible = false
+        til.setEndIconOnClickListener {
+            if (visible) {
+                visible = false
+                etKey.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                til.setEndIconDrawable(R.drawable.ic_visibility_off)
+                etKey.setSelection(etKey.text?.length ?: 0)
+            } else {
+                BiometricHelper.authenticate(
+                    fragment = this,
+                    title = getString(R.string.biometric_title_monitor),
+                    subtitle = getString(R.string.biometric_subtitle_apikey),
+                    onSuccess = {
+                        visible = true
+                        etKey.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                        til.setEndIconDrawable(R.drawable.ic_visibility)
+                        etKey.setSelection(etKey.text?.length ?: 0)
+                    }
+                )
+            }
+        }
+        btn.setOnClickListener {
+            BiometricHelper.authenticate(
+                fragment = this,
+                title = getString(R.string.biometric_title_monitor),
+                subtitle = getString(R.string.biometric_subtitle_apikey),
+                onSuccess = {
+                    saveKey(etKey.text?.toString()?.trim() ?: "")
+                    Toast.makeText(requireContext(), savedMsg, Toast.LENGTH_SHORT).show()
+                    refreshProviderChips()
+                }
+            )
+        }
+    }
+
     private fun refreshProviderChips() {
         val states = mapOf(
-            "gemini" to (prefs.geminiApiKey.isNotBlank() && prefs.geminiEnabled),
-            "mimo"   to (prefs.mimoApiKey.isNotBlank()   && prefs.mimoEnabled),
-            "claude" to (prefs.claudeApiKey.isNotBlank() && prefs.claudeEnabled),
-            "openai" to (prefs.openaiApiKey.isNotBlank() && prefs.openaiEnabled),
-            "groq"      to (prefs.groqApiKey.isNotBlank()      && prefs.groqEnabled),
-            "deepseek"  to (prefs.deepseekApiKey.isNotBlank()  && prefs.deepseekEnabled)
+            "gemini"           to (prefs.geminiApiKey.isNotBlank() && prefs.geminiEnabled),
+            "mimo"             to (prefs.mimoApiKey.isNotBlank()   && prefs.mimoEnabled),
+            "claude"           to (prefs.claudeApiKey.isNotBlank() && prefs.claudeEnabled),
+            "openai"           to (prefs.openaiApiKey.isNotBlank() && prefs.openaiEnabled),
+            "groq"             to (prefs.groqApiKey.isNotBlank()      && prefs.groqEnabled),
+            "deepseek"         to (prefs.deepseekApiKey.isNotBlank()  && prefs.deepseekEnabled),
+            "custom-anthropic" to (prefs.customAnthropicEnabled && prefs.customAnthropicEndpoint.isNotBlank()
+                && prefs.customAnthropicModel.isNotBlank() && prefs.customAnthropicKey.isNotBlank()),
+            "custom-openai"    to (prefs.customOpenaiEnabled && prefs.customOpenaiEndpoint.isNotBlank()
+                && prefs.customOpenaiModel.isNotBlank())
         )
         listOf(
-            binding.chipChatGemini  to "gemini",
-            binding.chipChatMimo    to "mimo",
-            binding.chipChatClaude  to "claude",
-            binding.chipChatOpenai  to "openai",
-            binding.chipChatGroq      to "groq",
-            binding.chipChatDeepseek  to "deepseek",
-            binding.chipNotifGemini   to "gemini",
-            binding.chipNotifMimo   to "mimo",
-            binding.chipNotifClaude to "claude",
-            binding.chipNotifOpenai    to "openai",
-            binding.chipNotifGroq      to "groq",
-            binding.chipNotifDeepseek  to "deepseek"
+            binding.chipChatGemini         to "gemini",
+            binding.chipChatMimo           to "mimo",
+            binding.chipChatClaude         to "claude",
+            binding.chipChatOpenai         to "openai",
+            binding.chipChatGroq           to "groq",
+            binding.chipChatDeepseek       to "deepseek",
+            binding.chipChatCustomAnthropic to "custom-anthropic",
+            binding.chipChatCustomOpenai    to "custom-openai",
+            binding.chipNotifGemini         to "gemini",
+            binding.chipNotifMimo           to "mimo",
+            binding.chipNotifClaude         to "claude",
+            binding.chipNotifOpenai         to "openai",
+            binding.chipNotifGroq           to "groq",
+            binding.chipNotifDeepseek       to "deepseek",
+            binding.chipNotifCustomAnthropic to "custom-anthropic",
+            binding.chipNotifCustomOpenai    to "custom-openai"
         ).forEach { (chip, provider) ->
             val active = states[provider] == true
             chip.isEnabled = active
@@ -234,13 +346,23 @@ class AiSettingsSheet : Fragment() {
     }
 
     private fun setupChatProviderChips() {
+        val customAnthropicKey = AppPreferences.encodeCustomKey(
+            prefs.customAnthropicEndpoint, prefs.customAnthropicModel, prefs.customAnthropicKey
+        )
+        val customOpenaiKey = AppPreferences.encodeCustomKey(
+            prefs.customOpenaiEndpoint, prefs.customOpenaiModel, prefs.customOpenaiKey
+        )
         val chipMap = mapOf(
-            binding.chipChatGemini to ("gemini" to (prefs.geminiApiKey to prefs.geminiEnabled)),
-            binding.chipChatMimo   to ("mimo"   to (prefs.mimoApiKey   to prefs.mimoEnabled)),
-            binding.chipChatClaude to ("claude" to (prefs.claudeApiKey to prefs.claudeEnabled)),
-            binding.chipChatOpenai to ("openai" to (prefs.openaiApiKey to prefs.openaiEnabled)),
-            binding.chipChatGroq      to ("groq"      to (prefs.groqApiKey      to prefs.groqEnabled)),
-            binding.chipChatDeepseek  to ("deepseek"  to (prefs.deepseekApiKey  to prefs.deepseekEnabled))
+            binding.chipChatGemini          to ("gemini"           to (prefs.geminiApiKey   to prefs.geminiEnabled)),
+            binding.chipChatMimo            to ("mimo"             to (prefs.mimoApiKey     to prefs.mimoEnabled)),
+            binding.chipChatClaude          to ("claude"           to (prefs.claudeApiKey   to prefs.claudeEnabled)),
+            binding.chipChatOpenai          to ("openai"           to (prefs.openaiApiKey   to prefs.openaiEnabled)),
+            binding.chipChatGroq            to ("groq"             to (prefs.groqApiKey     to prefs.groqEnabled)),
+            binding.chipChatDeepseek        to ("deepseek"         to (prefs.deepseekApiKey to prefs.deepseekEnabled)),
+            binding.chipChatCustomAnthropic to ("custom-anthropic" to (customAnthropicKey   to (prefs.customAnthropicEnabled
+                && prefs.customAnthropicEndpoint.isNotBlank() && prefs.customAnthropicModel.isNotBlank() && prefs.customAnthropicKey.isNotBlank()))),
+            binding.chipChatCustomOpenai    to ("custom-openai"    to (customOpenaiKey      to (prefs.customOpenaiEnabled
+                && prefs.customOpenaiEndpoint.isNotBlank() && prefs.customOpenaiModel.isNotBlank())))
         )
         chipMap.forEach { (chip, pair) ->
             val (_, keyAndEnabled) = pair
@@ -262,13 +384,23 @@ class AiSettingsSheet : Fragment() {
     }
 
     private fun setupNotifProviderChips() {
+        val customAnthropicKey = AppPreferences.encodeCustomKey(
+            prefs.customAnthropicEndpoint, prefs.customAnthropicModel, prefs.customAnthropicKey
+        )
+        val customOpenaiKey = AppPreferences.encodeCustomKey(
+            prefs.customOpenaiEndpoint, prefs.customOpenaiModel, prefs.customOpenaiKey
+        )
         val chipMap = mapOf(
-            binding.chipNotifGemini to ("gemini" to (prefs.geminiApiKey to prefs.geminiEnabled)),
-            binding.chipNotifMimo   to ("mimo"   to (prefs.mimoApiKey   to prefs.mimoEnabled)),
-            binding.chipNotifClaude to ("claude" to (prefs.claudeApiKey to prefs.claudeEnabled)),
-            binding.chipNotifOpenai to ("openai" to (prefs.openaiApiKey to prefs.openaiEnabled)),
-            binding.chipNotifGroq      to ("groq"      to (prefs.groqApiKey      to prefs.groqEnabled)),
-            binding.chipNotifDeepseek  to ("deepseek"  to (prefs.deepseekApiKey  to prefs.deepseekEnabled))
+            binding.chipNotifGemini          to ("gemini"           to (prefs.geminiApiKey   to prefs.geminiEnabled)),
+            binding.chipNotifMimo            to ("mimo"             to (prefs.mimoApiKey     to prefs.mimoEnabled)),
+            binding.chipNotifClaude          to ("claude"           to (prefs.claudeApiKey   to prefs.claudeEnabled)),
+            binding.chipNotifOpenai          to ("openai"           to (prefs.openaiApiKey   to prefs.openaiEnabled)),
+            binding.chipNotifGroq            to ("groq"             to (prefs.groqApiKey     to prefs.groqEnabled)),
+            binding.chipNotifDeepseek        to ("deepseek"         to (prefs.deepseekApiKey to prefs.deepseekEnabled)),
+            binding.chipNotifCustomAnthropic to ("custom-anthropic" to (customAnthropicKey   to (prefs.customAnthropicEnabled
+                && prefs.customAnthropicEndpoint.isNotBlank() && prefs.customAnthropicModel.isNotBlank() && prefs.customAnthropicKey.isNotBlank()))),
+            binding.chipNotifCustomOpenai    to ("custom-openai"    to (customOpenaiKey      to (prefs.customOpenaiEnabled
+                && prefs.customOpenaiEndpoint.isNotBlank() && prefs.customOpenaiModel.isNotBlank())))
         )
         chipMap.forEach { (chip, pair) ->
             val (_, keyAndEnabled) = pair
@@ -297,6 +429,8 @@ class AiSettingsSheet : Fragment() {
         binding.cardOpenai.visibility = v
         binding.cardGroq.visibility = v
         binding.cardDeepseek.visibility = v
+        binding.cardCustomAnthropic.visibility = v
+        binding.cardCustomOpenai.visibility = v
         binding.cardChatProvider.visibility = v
         binding.cardNotifProvider.visibility = v
     }

@@ -79,6 +79,20 @@
                 android:layout_height="wrap_content"
                 android:text="DeepSeek" />
 
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCustomAnthropic"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="自訂 Anthropic" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCustomOpenai"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="自訂 OpenAI" />
+
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 
