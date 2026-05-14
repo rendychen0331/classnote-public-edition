@@ -60,6 +60,9 @@ tasks.register("bundleFeatureDex") {
                 !group.startsWith("androidx.") &&
                 !group.startsWith("org.jetbrains") &&
                 !group.startsWith("kotlinx.") &&
+                !group.startsWith("com.google.android.gms") &&
+                !group.startsWith("com.google.android.material") &&
+                !group.startsWith("com.google.guava") &&
                 group !in setOf(
                     "com.google.errorprone",
                     "org.checkerframework",

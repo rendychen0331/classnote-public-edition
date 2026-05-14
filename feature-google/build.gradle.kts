@@ -85,6 +85,13 @@ tasks.register("bundleFeatureDex") {
                 !group.startsWith("androidx.") &&
                 !group.startsWith("org.jetbrains") &&
                 !group.startsWith("kotlinx.") &&
+                // below are in main app dex — parent classloader provides them
+                !group.startsWith("com.google.api-client") &&
+                !group.startsWith("com.google.apis") &&
+                !group.startsWith("com.google.http-client") &&
+                !group.startsWith("com.google.guava") &&
+                !group.startsWith("com.google.android.gms") &&
+                !group.startsWith("com.google.android.material") &&
                 group !in setOf(
                     "com.google.errorprone",
                     "org.checkerframework",
