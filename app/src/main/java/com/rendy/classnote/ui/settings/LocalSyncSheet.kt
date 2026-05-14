@@ -33,6 +33,7 @@ class LocalSyncSheet : Fragment() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) {
                 prefs.localCalendarSyncEnabled = true
+                binding.switchLocalCalendarSync.isChecked = true
                 updateSection()
             } else {
                 binding.switchLocalCalendarSync.isChecked = false
