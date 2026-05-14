@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import android.database.sqlite.SQLiteDatabase
 import java.io.FileOutputStream
 
 class GoogleBackupFeature : BackupFeature {
@@ -42,6 +43,14 @@ class GoogleBackupFeature : BackupFeature {
             // upload DB
             val dbFile = ctx.getDatabasePath(DB_NAME)
             if (!dbFile.exists()) return@withContext BackupOutcome.Error("資料庫不存在")
+            // checkpoint WAL so all pending transactions are in the main file
+            try {
+                SQLiteDatabase.openDatabase(dbFile.absolutePath, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
+                    db.execSQL("PRAGMA wal_checkpoint(FULL)")
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "wal_checkpoint failed, proceeding anyway", e)
+            }
             val existing = drive.files().list()
                 .setSpaces("appDataFolder")
                 .setQ("name='$BACKUP_FILENAME'")
@@ -138,6 +147,9 @@ class GoogleBackupFeature : BackupFeature {
                 if (files.isNullOrEmpty()) return@withContext BackupOutcome.Error("Drive 上沒有備份檔")
                 val dbFile = ctx.getDatabasePath(DB_NAME)
                 drive.files().get(files[0].id).executeMediaAndDownloadTo(FileOutputStream(dbFile))
+                // remove stale WAL/SHM so restored DB opens cleanly
+                ctx.getDatabasePath("$DB_NAME-wal").delete()
+                ctx.getDatabasePath("$DB_NAME-shm").delete()
             }
 
             // restore AI settings if requested
