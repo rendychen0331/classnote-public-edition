@@ -12,7 +12,7 @@ import java.security.MessageDigest
 
 private const val TAG = "FeatureDownloader"
 private const val MANIFEST_URL =
-    "https://github.com/rendychen0331/classnote-no-gs.json/releases/latest/download/features.json"
+    "https://github.com/rendychen0331/classnote-public-edition/releases/latest/download/features.json"
 
 data class FeatureInfo(
     val id: String,
