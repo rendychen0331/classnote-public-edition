@@ -65,6 +65,13 @@ object FeatureManager {
                 optimizedDir(context, featureId).deleteRecursively()
                 tryLoad(context, featureId, dex)
             }
+            ?: run {
+                // dex is incompatible with current app — delete so user re-downloads fresh
+                Log.w(TAG, "Incompatible dex for $featureId, deleting for re-download")
+                dex.delete()
+                optimizedDir(context, featureId).deleteRecursively()
+                null
+            }
     }
 
     private fun tryLoad(context: Context, featureId: String, dex: File): FeatureModule? {
