@@ -24,7 +24,10 @@ class ApiLogAdapter(private val items: List<ApiLogEntity>) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val v = LayoutInflater.from(parent.context)
             .inflate(android.R.layout.simple_list_item_2, parent, false)
-        return VH(v)
+        return VH(v).also {
+            it.tvHeader.setTextIsSelectable(true)
+            it.tvDetail.setTextIsSelectable(true)
+        }
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
