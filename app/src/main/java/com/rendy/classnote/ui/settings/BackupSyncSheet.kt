@@ -38,6 +38,12 @@ class BackupSyncSheet : Fragment() {
         val ctx = requireContext()
         val google = FeatureManager.isDownloaded(ctx, "google")
         val ms = FeatureManager.isDownloaded(ctx, "microsoft")
+
+        binding.cardMenuGoogle.isEnabled = google
+        binding.cardMenuGoogle.alpha = if (google) 1f else 0.5f
+        binding.cardMenuMicrosoft.isEnabled = ms
+        binding.cardMenuMicrosoft.alpha = if (ms) 1f else 0.5f
+
         val installed = listOfNotNull(
             if (google) "Google" else null,
             if (ms) "Microsoft" else null
