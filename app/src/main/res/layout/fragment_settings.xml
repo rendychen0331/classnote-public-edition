@@ -97,7 +97,7 @@
                 <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_notification"
+                    android:src="@drawable/ic_security"
                     android:alpha="0.7"
                     app:tint="?attr/colorOnSurface" />
 
@@ -217,7 +217,7 @@
                 <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_cloud"
+                    android:src="@drawable/ic_extension"
                     android:alpha="0.7"
                     app:tint="?attr/colorOnSurface" />
 
