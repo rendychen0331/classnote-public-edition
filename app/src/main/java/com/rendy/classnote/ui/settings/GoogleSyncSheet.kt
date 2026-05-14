@@ -936,11 +936,13 @@ class GoogleSyncSheet : Fragment() {
     }
 
     private fun showFeatureNotLoadedToast(featureId: String, label: String) {
-        val msg = if (FeatureManager.isDownloaded(requireContext(), featureId))
-            "$label 功能模組載入失敗，請至功能模組管理重新下載"
-        else
+        val msg = if (FeatureManager.isDownloaded(requireContext(), featureId)) {
+            val err = FeatureManager.getLastLoadError(featureId)
+            if (err != null) "$label 載入失敗: $err" else "$label 功能模組載入失敗，請重新下載"
+        } else {
             "$label 功能模組未安裝，請下載"
-        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+        }
+        Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
     }
 
     private fun restartApp() {

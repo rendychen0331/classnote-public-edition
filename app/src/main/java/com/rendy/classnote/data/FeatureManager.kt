@@ -16,6 +16,9 @@ private const val TAG = "FeatureManager"
 object FeatureManager {
 
     private val cache = mutableMapOf<String, FeatureModule>()
+    private val loadErrors = mutableMapOf<String, String>()
+
+    fun getLastLoadError(featureId: String): String? = loadErrors[featureId]
 
     private val featureClassNames = mapOf(
         "google"    to "com.rendy.classnote.feature.google.GoogleFeatureModule",
@@ -65,13 +68,6 @@ object FeatureManager {
                 optimizedDir(context, featureId).deleteRecursively()
                 tryLoad(context, featureId, dex)
             }
-            ?: run {
-                // dex is incompatible with current app — delete so user re-downloads fresh
-                Log.w(TAG, "Incompatible dex for $featureId, deleting for re-download")
-                dex.delete()
-                optimizedDir(context, featureId).deleteRecursively()
-                null
-            }
     }
 
     private fun tryLoad(context: Context, featureId: String, dex: File): FeatureModule? {
@@ -91,7 +87,9 @@ object FeatureManager {
             cache[featureId] = module
             module
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to load feature $featureId", e)
+            val msg = "${e.javaClass.simpleName}: ${e.message}"
+            loadErrors[featureId] = msg
+            Log.e(TAG, "Failed to load feature $featureId: $msg", e)
             null
         }
     }
