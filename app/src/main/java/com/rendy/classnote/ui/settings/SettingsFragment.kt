@@ -77,6 +77,10 @@ class SettingsFragment : Fragment() {
         binding.cardMenuApiLog.setOnClickListener {
             findNavController().navigate(R.id.actionSettingsToApiLog)
         }
+
+        binding.cardMenuFeatureModules.setOnClickListener {
+            findNavController().navigate(R.id.actionSettingsToFeatureModules)
+        }
     }
 
     private fun setupAboutSection() {
