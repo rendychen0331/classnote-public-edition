@@ -29,6 +29,7 @@ swipeRefreshLayout = "1.1.0"
 biometric = "1.1.0"
 markwon = "4.6.2"
 msal = "5.3.0"
+guava = "33.4.8-android"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -62,6 +63,7 @@ androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "s
 androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 markwon-core = { group = "io.noties.markwon", name = "core", version.ref = "markwon" }
 msal = { group = "com.microsoft.identity.client", name = "msal", version.ref = "msal" }
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

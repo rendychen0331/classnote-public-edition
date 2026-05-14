@@ -102,6 +102,7 @@ dependencies {
     implementation(libs.androidx.viewpager2)
     implementation(project(":feature-api"))
     implementation(libs.play.services.auth)
+    implementation(libs.guava)
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.biometric)
     implementation(libs.markwon.core)
