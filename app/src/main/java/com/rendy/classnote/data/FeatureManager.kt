@@ -59,6 +59,15 @@ object FeatureManager {
         cache[featureId]?.let { return it }
         val dex = dexFile(context, featureId)
         if (!dex.exists()) return null
+        return tryLoad(context, featureId, dex)
+            ?: run {
+                // stale odex can prevent load — clear and retry once
+                optimizedDir(context, featureId).deleteRecursively()
+                tryLoad(context, featureId, dex)
+            }
+    }
+
+    private fun tryLoad(context: Context, featureId: String, dex: File): FeatureModule? {
         return try {
             val optDir = optimizedDir(context, featureId).also { it.mkdirs() }
             val loader = DexClassLoader(

@@ -90,7 +90,7 @@ class MicrosoftSyncSheet : Fragment() {
                 val feature = FeatureManager.getBackup(requireContext(), "microsoft")
                 if (feature == null) {
                     binding.btnOneDriveBackup.isEnabled = true
-                    Toast.makeText(requireContext(), "Microsoft 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("microsoft", "Microsoft")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -118,7 +118,7 @@ class MicrosoftSyncSheet : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 val feature = FeatureManager.getBackup(requireContext(), "microsoft")
                 if (feature == null) {
-                    Toast.makeText(requireContext(), "Microsoft 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("microsoft", "Microsoft")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -274,7 +274,7 @@ class MicrosoftSyncSheet : Fragment() {
                 val feature = FeatureManager.getSync(requireContext(), "microsoft")
                 if (feature == null) {
                     binding.btnMsTodoSyncNow.isEnabled = true
-                    Toast.makeText(requireContext(), "Microsoft 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("microsoft", "Microsoft")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -344,7 +344,7 @@ class MicrosoftSyncSheet : Fragment() {
                 val feature = FeatureManager.getSync(requireContext(), "microsoft")
                 if (feature == null) {
                     binding.btnOutlookCalendarSyncNow.isEnabled = true
-                    Toast.makeText(requireContext(), "Microsoft 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("microsoft", "Microsoft")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -414,7 +414,7 @@ class MicrosoftSyncSheet : Fragment() {
                 val feature = FeatureManager.getSync(requireContext(), "microsoft")
                 if (feature == null) {
                     binding.btnTeamsAssignmentSyncNow.isEnabled = true
-                    Toast.makeText(requireContext(), "Microsoft 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("microsoft", "Microsoft")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -485,7 +485,7 @@ class MicrosoftSyncSheet : Fragment() {
                 val feature = FeatureManager.getSync(requireContext(), "microsoft")
                 if (feature == null) {
                     binding.btnOneNoteSyncNow.isEnabled = true
-                    Toast.makeText(requireContext(), "Microsoft 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("microsoft", "Microsoft")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -594,6 +594,14 @@ class MicrosoftSyncSheet : Fragment() {
             }
             .setNegativeButton(getString(R.string.cancel), null)
             .show()
+    }
+
+    private fun showFeatureNotLoadedToast(featureId: String, label: String) {
+        val msg = if (FeatureManager.isDownloaded(requireContext(), featureId))
+            "$label 功能模組載入失敗，請至功能模組管理重新下載"
+        else
+            "$label 功能模組未安裝，請下載"
+        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
     }
 
     private suspend fun autoDownloadMissingFeatures(featureIds: List<String>) {

@@ -79,6 +79,8 @@ object FeatureDownloader {
                 }
 
                 FeatureManager.unload(info.id)
+                // clear stale odex so next load starts fresh
+                File(context.codeCacheDir, "features/opt-${info.id}").deleteRecursively()
                 tmp.renameTo(destFile)
                 DownloadResult.Success
             } catch (e: Exception) {

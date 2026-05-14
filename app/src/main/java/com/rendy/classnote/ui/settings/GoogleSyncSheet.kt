@@ -199,7 +199,7 @@ class GoogleSyncSheet : Fragment() {
                 val feature = FeatureManager.getBackup(requireContext(), "google")
                 if (feature == null) {
                     binding.btnGoogleBackup.isEnabled = true
-                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("google", "Google")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -226,7 +226,7 @@ class GoogleSyncSheet : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 val feature = FeatureManager.getBackup(requireContext(), "google")
                 if (feature == null) {
-                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("google", "Google")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -387,7 +387,7 @@ class GoogleSyncSheet : Fragment() {
                 val feature = FeatureManager.getSync(requireContext(), "google")
                 if (feature == null) {
                     binding.btnGmailSyncNow.isEnabled = true
-                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("google", "Google")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -491,7 +491,7 @@ class GoogleSyncSheet : Fragment() {
                 val feature = FeatureManager.getSync(requireContext(), "google")
                 if (feature == null) {
                     binding.btnClassroomSyncNow.isEnabled = true
-                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("google", "Google")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -602,7 +602,7 @@ class GoogleSyncSheet : Fragment() {
                 val feature = FeatureManager.getSync(requireContext(), "google")
                 if (feature == null) {
                     binding.btnCalendarSyncNow.isEnabled = true
-                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("google", "Google")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -701,7 +701,7 @@ class GoogleSyncSheet : Fragment() {
                 val feature = FeatureManager.getSync(requireContext(), "google")
                 if (feature == null) {
                     binding.btnTasksSyncNow.isEnabled = true
-                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("google", "Google")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -799,7 +799,7 @@ class GoogleSyncSheet : Fragment() {
                 val feature = FeatureManager.getSync(requireContext(), "google")
                 if (feature == null) {
                     binding.btnKeepSyncNow.isEnabled = true
-                    Toast.makeText(requireContext(), "Google 功能模組未安裝，請下載", Toast.LENGTH_SHORT).show()
+                    showFeatureNotLoadedToast("google", "Google")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
@@ -933,6 +933,14 @@ class GoogleSyncSheet : Fragment() {
             val info = infoMap[id] ?: continue
             com.rendy.classnote.data.FeatureDownloader.download(ctx, info, appVersion)
         }
+    }
+
+    private fun showFeatureNotLoadedToast(featureId: String, label: String) {
+        val msg = if (FeatureManager.isDownloaded(requireContext(), featureId))
+            "$label 功能模組載入失敗，請至功能模組管理重新下載"
+        else
+            "$label 功能模組未安裝，請下載"
+        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
     }
 
     private fun restartApp() {
