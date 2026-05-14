@@ -223,15 +223,26 @@ class GoogleSyncSheet : Fragment() {
         }
 
         binding.btnGoogleRestore.setOnClickListener {
+            binding.btnGoogleRestore.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
                 val feature = FeatureManager.getBackup(requireContext(), "google")
                 if (feature == null) {
+                    binding.btnGoogleRestore.isEnabled = true
                     showFeatureNotLoadedToast("google", "Google")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
-                val meta = feature.fetchMeta(bridge)
-                showRestoreOptionsDialog(feature, bridge, meta)
+                val allMeta = feature.fetchAllMeta(bridge)
+                binding.btnGoogleRestore.isEnabled = true
+                if (allMeta.isEmpty()) {
+                    Toast.makeText(requireContext(), "Drive 上沒有備份", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                if (allMeta.size == 1) {
+                    showRestoreOptionsDialog(feature, bridge, allMeta[0])
+                } else {
+                    showBackupVersionPickerDialog(feature, bridge, allMeta)
+                }
             }
         }
 
@@ -865,6 +876,36 @@ class GoogleSyncSheet : Fragment() {
         }
     }
 
+    private fun formatBackupTimestamp(ts: String): String {
+        // ts format: yyyyMMdd_HHmm → "2026/05/14 14:30"
+        return if (ts.length == 13 && ts[8] == '_') {
+            "${ts.substring(0, 4)}/${ts.substring(4, 6)}/${ts.substring(6, 8)} ${ts.substring(9, 11)}:${ts.substring(11, 13)}"
+        } else ts
+    }
+
+    private fun showBackupVersionPickerDialog(
+        feature: com.rendy.classnote.feature.BackupFeature,
+        bridge: SyncBridgeImpl,
+        allMeta: List<com.rendy.classnote.feature.BackupMeta>
+    ) {
+        val labels = allMeta.map { m ->
+            val time = formatBackupTimestamp(m.timestamp)
+            val parts = mutableListOf<String>()
+            if (m.hasNotes) parts.add("筆記")
+            if (m.hasAiSettings) parts.add("AI設定")
+            if (m.hasWeatherSettings) parts.add("天氣設定")
+            "$time（${parts.joinToString("、")}）"
+        }.toTypedArray()
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("選擇要還原的備份版本")
+            .setItems(labels) { _, which ->
+                showRestoreOptionsDialog(feature, bridge, allMeta[which])
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
     private fun showRestoreOptionsDialog(
         feature: com.rendy.classnote.feature.BackupFeature,
         bridge: SyncBridgeImpl,
@@ -879,9 +920,10 @@ class GoogleSyncSheet : Fragment() {
         if (meta?.hasWeatherSettings == true) { items.add("天氣設定"); checked.add(true) }
 
         val checkedArr = checked.toBooleanArray()
+        val titleSuffix = if (!meta?.timestamp.isNullOrEmpty()) "\n${formatBackupTimestamp(meta!!.timestamp)}" else ""
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("選擇要還原的項目")
+            .setTitle("選擇要還原的項目$titleSuffix")
             .setMultiChoiceItems(items.toTypedArray(), checkedArr) { _, which, isChecked ->
                 checkedArr[which] = isChecked
             }
@@ -895,7 +937,8 @@ class GoogleSyncSheet : Fragment() {
                 val options = com.rendy.classnote.feature.RestoreOptions(
                     restoreNotes = checkedArr[0],
                     restoreAiSettings = aiIdx >= 0 && checkedArr[aiIdx],
-                    restoreWeatherSettings = weatherIdx >= 0 && checkedArr[weatherIdx]
+                    restoreWeatherSettings = weatherIdx >= 0 && checkedArr[weatherIdx],
+                    backupId = meta?.backupId?.takeIf { it.isNotEmpty() }
                 )
                 binding.btnGoogleRestore.isEnabled = false
                 viewLifecycleOwner.lifecycleScope.launch {

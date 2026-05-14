@@ -25,18 +25,22 @@ data class BackupMeta(
     val installedFeatures: List<String> = emptyList(),
     val hasNotes: Boolean = true,
     val hasAiSettings: Boolean = false,
-    val hasWeatherSettings: Boolean = false
+    val hasWeatherSettings: Boolean = false,
+    val backupId: String = "",
+    val timestamp: String = ""
 )
 
 data class RestoreOptions(
     val restoreNotes: Boolean = true,
     val restoreAiSettings: Boolean = false,
-    val restoreWeatherSettings: Boolean = false
+    val restoreWeatherSettings: Boolean = false,
+    val backupId: String? = null
 )
 
 interface BackupFeature {
     suspend fun backup(bridge: SyncBridge): BackupOutcome
     suspend fun fetchMeta(bridge: SyncBridge): BackupMeta? = null
+    suspend fun fetchAllMeta(bridge: SyncBridge): List<BackupMeta> = listOfNotNull(fetchMeta(bridge))
     suspend fun restore(bridge: SyncBridge, options: RestoreOptions = RestoreOptions()): BackupOutcome
 }
 

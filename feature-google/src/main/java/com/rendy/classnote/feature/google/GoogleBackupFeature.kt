@@ -3,7 +3,6 @@ package com.rendy.classnote.feature.google
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
-import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
@@ -24,13 +23,19 @@ import org.json.JSONArray
 import org.json.JSONObject
 import android.database.sqlite.SQLiteDatabase
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class GoogleBackupFeature : BackupFeature {
 
     private val TAG = "GoogleBackupFeature"
-    private val BACKUP_FILENAME = "classnote_backup.db"
-    private val META_FILENAME = "classnote_meta.json"
     private val DB_NAME = "classnote_database"
+    private val MAX_BACKUPS = 3
+
+    private val tsFormat = SimpleDateFormat("yyyyMMdd_HHmm", Locale.US)
+    private fun dbFileName(id: String) = "classnote_backup_$id.db"
+    private fun metaFileName(id: String) = "classnote_meta_$id.json"
 
     override suspend fun backup(bridge: SyncBridge): BackupOutcome = withContext(Dispatchers.IO) {
         val ctx = bridge.context
@@ -39,11 +44,10 @@ class GoogleBackupFeature : BackupFeature {
             ?: return@withContext BackupOutcome.AuthRequired(null)
         try {
             val drive = buildDriveService(bridge, email)
+            val backupId = tsFormat.format(Date())
 
-            // upload DB
             val dbFile = ctx.getDatabasePath(DB_NAME)
             if (!dbFile.exists()) return@withContext BackupOutcome.Error("資料庫不存在")
-            // checkpoint WAL so all pending transactions are in the main file
             try {
                 SQLiteDatabase.openDatabase(dbFile.absolutePath, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
                     db.execSQL("PRAGMA wal_checkpoint(FULL)")
@@ -51,40 +55,27 @@ class GoogleBackupFeature : BackupFeature {
             } catch (e: Exception) {
                 Log.w(TAG, "wal_checkpoint failed, proceeding anyway", e)
             }
-            val existing = drive.files().list()
-                .setSpaces("appDataFolder")
-                .setQ("name='$BACKUP_FILENAME'")
-                .execute().files
+
+            // upload DB
             val dbMeta = com.google.api.services.drive.model.File().apply {
-                name = BACKUP_FILENAME
+                name = dbFileName(backupId)
                 parents = listOf("appDataFolder")
             }
-            val content = FileContent("application/octet-stream", dbFile)
-            if (existing.isNullOrEmpty()) {
-                drive.files().create(dbMeta, content).execute()
-            } else {
-                drive.files().update(existing[0].id, com.google.api.services.drive.model.File(), content).execute()
-            }
+            drive.files().create(dbMeta, FileContent("application/octet-stream", dbFile)).execute()
 
             // upload meta JSON
-            val metaJson = buildMetaJson(bridge)
-            val metaBytes = metaJson.toByteArray(Charsets.UTF_8)
-            val existingMeta = drive.files().list()
-                .setSpaces("appDataFolder")
-                .setQ("name='$META_FILENAME'")
-                .execute().files
-            val metaFileMeta = com.google.api.services.drive.model.File().apply {
-                name = META_FILENAME
+            val metaJson = buildMetaJson(bridge, backupId)
+            val metaMeta = com.google.api.services.drive.model.File().apply {
+                name = metaFileName(backupId)
                 parents = listOf("appDataFolder")
             }
-            val metaContent = ByteArrayContent("application/json", metaBytes)
-            if (existingMeta.isNullOrEmpty()) {
-                drive.files().create(metaFileMeta, metaContent).execute()
-            } else {
-                drive.files().update(existingMeta[0].id, com.google.api.services.drive.model.File(), metaContent).execute()
-            }
+            drive.files().create(metaMeta, ByteArrayContent("application/json", metaJson.toByteArray(Charsets.UTF_8))).execute()
 
-            bridge.logSync("DriveBackup", "backup", "成功", true)
+            // prune old backups — keep newest MAX_BACKUPS
+            pruneOldFiles(drive, "classnote_backup_", ".db")
+            pruneOldFiles(drive, "classnote_meta_", ".json")
+
+            bridge.logSync("DriveBackup", "backup", "成功 ($backupId)", true)
             BackupOutcome.Success()
         } catch (e: UserRecoverableAuthIOException) {
             BackupOutcome.AuthRequired(e.intent)
@@ -98,21 +89,50 @@ class GoogleBackupFeature : BackupFeature {
         }
     }
 
-    override suspend fun fetchMeta(bridge: SyncBridge): BackupMeta? = withContext(Dispatchers.IO) {
-        val email = bridge.googleSignedInAccountEmail() ?: return@withContext null
+    private fun pruneOldFiles(drive: Drive, prefix: String, suffix: String) {
+        val files = drive.files().list()
+            .setSpaces("appDataFolder")
+            .setQ("name contains '$prefix'")
+            .setFields("files(id, name)")
+            .execute().files ?: return
+        val sorted = files.filter { it.name.startsWith(prefix) && it.name.endsWith(suffix) }
+            .sortedBy { it.name } // yyyyMMdd_HHmm sorts lexicographically = chronologically
+        if (sorted.size > MAX_BACKUPS) {
+            sorted.take(sorted.size - MAX_BACKUPS).forEach { f ->
+                try { drive.files().delete(f.id).execute() } catch (e: Exception) {
+                    Log.w(TAG, "Failed to delete old backup: ${f.name}", e)
+                }
+            }
+        }
+    }
+
+    override suspend fun fetchMeta(bridge: SyncBridge): BackupMeta? =
+        fetchAllMeta(bridge).firstOrNull()
+
+    override suspend fun fetchAllMeta(bridge: SyncBridge): List<BackupMeta> = withContext(Dispatchers.IO) {
+        val email = bridge.googleSignedInAccountEmail() ?: return@withContext emptyList()
         try {
             val drive = buildDriveService(bridge, email)
             val files = drive.files().list()
                 .setSpaces("appDataFolder")
-                .setQ("name='$META_FILENAME'")
-                .execute().files
-            if (files.isNullOrEmpty()) return@withContext null
-            val json = drive.files().get(files[0].id).executeMediaAsInputStream()
-                .bufferedReader().readText()
-            parseBackupMeta(json)
+                .setQ("name contains 'classnote_meta_'")
+                .setFields("files(id, name)")
+                .execute().files ?: return@withContext emptyList()
+            files.filter { it.name.startsWith("classnote_meta_") && it.name.endsWith(".json") }
+                .sortedByDescending { it.name } // newest first
+                .mapNotNull { f ->
+                    try {
+                        val json = drive.files().get(f.id).executeMediaAsInputStream()
+                            .bufferedReader().readText()
+                        parseBackupMeta(json)
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to fetch meta ${f.name}", e)
+                        null
+                    }
+                }
         } catch (e: Exception) {
-            Log.e(TAG, "fetchMeta failed", e)
-            null
+            Log.e(TAG, "fetchAllMeta failed", e)
+            emptyList()
         }
     }
 
@@ -124,11 +144,25 @@ class GoogleBackupFeature : BackupFeature {
         try {
             val drive = buildDriveService(bridge, email)
 
-            // fetch meta first (for installed features + settings)
+            // resolve which backup version to use
+            val backupId: String = options.backupId ?: run {
+                drive.files().list()
+                    .setSpaces("appDataFolder")
+                    .setQ("name contains 'classnote_meta_'")
+                    .setFields("files(id, name)")
+                    .execute().files
+                    ?.filter { it.name.startsWith("classnote_meta_") && it.name.endsWith(".json") }
+                    ?.sortedByDescending { it.name }
+                    ?.firstOrNull()?.name
+                    ?.removePrefix("classnote_meta_")?.removeSuffix(".json")
+                    ?: return@withContext BackupOutcome.Error("Drive 上沒有備份")
+            }
+
+            // fetch meta for this version
             var meta = BackupMeta()
             val metaFiles = drive.files().list()
                 .setSpaces("appDataFolder")
-                .setQ("name='$META_FILENAME'")
+                .setQ("name='${metaFileName(backupId)}'")
                 .execute().files
             if (!metaFiles.isNullOrEmpty()) {
                 try {
@@ -140,61 +174,48 @@ class GoogleBackupFeature : BackupFeature {
 
             // restore DB if requested
             if (options.restoreNotes) {
-                val files = drive.files().list()
+                val dbFiles = drive.files().list()
                     .setSpaces("appDataFolder")
-                    .setQ("name='$BACKUP_FILENAME'")
+                    .setQ("name='${dbFileName(backupId)}'")
                     .execute().files
-                if (files.isNullOrEmpty()) return@withContext BackupOutcome.Error("Drive 上沒有備份檔")
+                if (dbFiles.isNullOrEmpty()) return@withContext BackupOutcome.Error("找不到備份檔 ($backupId)")
                 val dbFile = ctx.getDatabasePath(DB_NAME)
-                drive.files().get(files[0].id).executeMediaAndDownloadTo(FileOutputStream(dbFile))
-                // remove stale WAL/SHM so restored DB opens cleanly
+                drive.files().get(dbFiles[0].id).executeMediaAndDownloadTo(FileOutputStream(dbFile))
                 ctx.getDatabasePath("$DB_NAME-wal").delete()
                 ctx.getDatabasePath("$DB_NAME-shm").delete()
             }
 
             // restore AI settings if requested
-            if (options.restoreAiSettings && meta.hasAiSettings) {
-                val settingsFiles = drive.files().list()
-                    .setSpaces("appDataFolder")
-                    .setQ("name='$META_FILENAME'")
-                    .execute().files
-                if (!settingsFiles.isNullOrEmpty()) {
-                    try {
-                        val json = drive.files().get(settingsFiles[0].id).executeMediaAsInputStream()
-                            .bufferedReader().readText()
-                        val obj = JSONObject(json)
-                        val aiObj = obj.optJSONObject("aiSettings")
-                        if (aiObj != null) {
-                            val map = mutableMapOf<String, String>()
-                            aiObj.keys().forEach { k -> map[k] = aiObj.getString(k) }
-                            bridge.applyAiSettings(map)
-                        }
-                    } catch (_: Exception) {}
-                }
+            if (options.restoreAiSettings && meta.hasAiSettings && !metaFiles.isNullOrEmpty()) {
+                try {
+                    val json = drive.files().get(metaFiles[0].id).executeMediaAsInputStream()
+                        .bufferedReader().readText()
+                    val obj = JSONObject(json)
+                    val aiObj = obj.optJSONObject("aiSettings")
+                    if (aiObj != null) {
+                        val map = mutableMapOf<String, String>()
+                        aiObj.keys().forEach { k -> map[k] = aiObj.getString(k) }
+                        bridge.applyAiSettings(map)
+                    }
+                } catch (_: Exception) {}
             }
 
             // restore weather settings if requested
-            if (options.restoreWeatherSettings && meta.hasWeatherSettings) {
-                val settingsFiles = drive.files().list()
-                    .setSpaces("appDataFolder")
-                    .setQ("name='$META_FILENAME'")
-                    .execute().files
-                if (!settingsFiles.isNullOrEmpty()) {
-                    try {
-                        val json = drive.files().get(settingsFiles[0].id).executeMediaAsInputStream()
-                            .bufferedReader().readText()
-                        val obj = JSONObject(json)
-                        val weatherObj = obj.optJSONObject("weatherSettings")
-                        if (weatherObj != null) {
-                            val map = mutableMapOf<String, String>()
-                            weatherObj.keys().forEach { k -> map[k] = weatherObj.getString(k) }
-                            bridge.applyWeatherSettings(map)
-                        }
-                    } catch (_: Exception) {}
-                }
+            if (options.restoreWeatherSettings && meta.hasWeatherSettings && !metaFiles.isNullOrEmpty()) {
+                try {
+                    val json = drive.files().get(metaFiles[0].id).executeMediaAsInputStream()
+                        .bufferedReader().readText()
+                    val obj = JSONObject(json)
+                    val weatherObj = obj.optJSONObject("weatherSettings")
+                    if (weatherObj != null) {
+                        val map = mutableMapOf<String, String>()
+                        weatherObj.keys().forEach { k -> map[k] = weatherObj.getString(k) }
+                        bridge.applyWeatherSettings(map)
+                    }
+                } catch (_: Exception) {}
             }
 
-            bridge.logSync("DriveBackup", "restore", "成功", true)
+            bridge.logSync("DriveBackup", "restore", "成功 ($backupId)", true)
             BackupOutcome.Success(meta)
         } catch (e: UserRecoverableAuthIOException) {
             BackupOutcome.AuthRequired(e.intent)
@@ -204,8 +225,11 @@ class GoogleBackupFeature : BackupFeature {
         }
     }
 
-    private fun buildMetaJson(bridge: SyncBridge): String {
+    private fun buildMetaJson(bridge: SyncBridge, backupId: String): String {
         val obj = JSONObject()
+        obj.put("backupId", backupId)
+        obj.put("timestamp", backupId) // same value, kept for readability
+
         val featArr = JSONArray()
         bridge.installedFeatureIds().forEach { featArr.put(it) }
         obj.put("installedFeatures", featArr)
@@ -231,11 +255,14 @@ class GoogleBackupFeature : BackupFeature {
         } else emptyList()
         val aiObj = obj.optJSONObject("aiSettings")
         val weatherObj = obj.optJSONObject("weatherSettings")
+        val backupId = obj.optString("backupId", "")
         BackupMeta(
             installedFeatures = features,
             hasNotes = true,
             hasAiSettings = aiObj != null && aiObj.length() > 0,
-            hasWeatherSettings = weatherObj != null && weatherObj.length() > 0
+            hasWeatherSettings = weatherObj != null && weatherObj.length() > 0,
+            backupId = backupId,
+            timestamp = backupId
         )
     } catch (e: Exception) {
         Log.e(TAG, "parseBackupMeta failed", e)
