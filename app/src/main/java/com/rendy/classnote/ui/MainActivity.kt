@@ -49,7 +49,8 @@ class MainActivity : AppCompatActivity() {
             R.id.settingsFragment, R.id.alarmPermFragment, R.id.syncFragment,
             R.id.backupSyncFragment, R.id.googleSyncFragment, R.id.microsoftSyncFragment,
             R.id.localSyncFragment, R.id.weatherNotifFragment,
-            R.id.aiSettingsFragment, R.id.apiLogFragment
+            R.id.aiSettingsFragment, R.id.apiLogFragment,
+            R.id.permissionsFragment, R.id.featureModuleFragment
         )
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             if (navController.currentDestination?.id in settingsDestinations) {
