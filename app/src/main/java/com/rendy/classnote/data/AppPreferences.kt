@@ -271,6 +271,11 @@ class AppPreferences(context: Context) {
         get() = prefs.getString(KEY_CWA_API_KEY, "") ?: ""
         set(value) = prefs.edit { putString(KEY_CWA_API_KEY, value) }
 
+    /** WeatherAPI.com API Key。 */
+    var weatherApiComKey: String
+        get() = prefs.getString(KEY_WEATHER_API_COM_KEY, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_WEATHER_API_COM_KEY, value) }
+
     /** Xiaomi MiMo API Key，用於課堂筆記 AI 對話。 */
     var mimoApiKey: String
         get() = prefs.getString(KEY_MIMO_API_KEY, "") ?: ""
@@ -504,6 +509,7 @@ class AppPreferences(context: Context) {
         private const val KEY_AUTO_BACKUP_INTERVAL_HOURS = "auto_backup_interval_hours"
         private const val KEY_GEMINI_API_KEY = "gemini_api_key"
         private const val KEY_CWA_API_KEY = "cwa_api_key"
+        private const val KEY_WEATHER_API_COM_KEY = "weather_api_com_key"
         private const val KEY_MIMO_API_KEY = "mimo_api_key"
         private const val KEY_CLAUDE_API_KEY = "claude_api_key"
         private const val KEY_OPENAI_API_KEY = "openai_api_key"

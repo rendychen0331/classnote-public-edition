@@ -45,6 +45,11 @@ class WeatherPreferences(context: Context) {
         get() = prefs.getString(KEY_NOTIF_LOCATION, "") ?: ""
         set(value) = prefs.edit { putString(KEY_NOTIF_LOCATION, value) }
 
+    /** 天氣資料來源：cwa / open-meteo / weatherapi */
+    var weatherProvider: String
+        get() = prefs.getString(KEY_PROVIDER, "cwa") ?: "cwa"
+        set(value) = prefs.edit { putString(KEY_PROVIDER, value) }
+
     companion object {
         private const val PREFS_NAME = "weather_prefs"
         private const val KEY_LOCATIONS = "saved_locations"
@@ -52,5 +57,6 @@ class WeatherPreferences(context: Context) {
         private const val KEY_NOTIF_HOUR = "notif_hour"
         private const val KEY_NOTIF_MINUTE = "notif_minute"
         private const val KEY_NOTIF_LOCATION = "notif_location"
+        private const val KEY_PROVIDER = "weather_provider"
     }
 }

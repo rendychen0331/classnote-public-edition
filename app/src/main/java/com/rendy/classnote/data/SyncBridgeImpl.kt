@@ -146,6 +146,8 @@ class SyncBridgeImpl(override val context: Context) : SyncBridge {
             put("notifEnabled", wp.weatherNotifEnabled.toString())
             put("notifHour", wp.weatherNotifHour.toString())
             put("notifMinute", wp.weatherNotifMinute.toString())
+            put("weatherProvider", wp.weatherProvider)
+            put("weatherApiComKey", prefs.weatherApiComKey)
         }
     }
 
@@ -171,6 +173,8 @@ class SyncBridgeImpl(override val context: Context) : SyncBridge {
         settings["notifEnabled"]?.let { wp.weatherNotifEnabled = it.toBoolean() }
         settings["notifHour"]?.toIntOrNull()?.let { wp.weatherNotifHour = it }
         settings["notifMinute"]?.toIntOrNull()?.let { wp.weatherNotifMinute = it }
+        settings["weatherProvider"]?.let { wp.weatherProvider = it }
+        settings["weatherApiComKey"]?.let { prefs.weatherApiComKey = it }
     }
 
     // ── Preferences ───────────────────────────────────────────────────────

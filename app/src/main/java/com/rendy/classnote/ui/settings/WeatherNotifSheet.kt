@@ -34,6 +34,7 @@ class WeatherNotifSheet : Fragment() {
         prefs = (requireActivity().application as ClassNoteApplication).appPreferences
         weatherPrefs = WeatherPreferences(requireContext())
         setupCwaApiKey()
+        setupProviderSelector()
         setupWeatherNotificationSection()
     }
 
@@ -75,6 +76,69 @@ class WeatherNotifSheet : Fragment() {
                 }
             )
         }
+    }
+
+    private fun setupProviderSelector() {
+        val provider = weatherPrefs.weatherProvider
+        when (provider) {
+            "open-meteo" -> binding.chipOpenMeteo.isChecked = true
+            "weatherapi" -> binding.chipWeatherApi.isChecked = true
+            else -> binding.chipCwa.isChecked = true
+        }
+        updateProviderSections(provider)
+
+        binding.chipGroupProvider.setOnCheckedStateChangeListener { _, checkedIds ->
+            val selected = when {
+                checkedIds.contains(R.id.chipOpenMeteo) -> "open-meteo"
+                checkedIds.contains(R.id.chipWeatherApi) -> "weatherapi"
+                else -> "cwa"
+            }
+            weatherPrefs.weatherProvider = selected
+            updateProviderSections(selected)
+        }
+
+        // WeatherAPI.com key setup
+        val savedKey = prefs.weatherApiComKey
+        if (savedKey.isNotBlank()) binding.etWeatherApiKey.setText(savedKey)
+        var keyVisible = false
+        binding.tilWeatherApiKey.setEndIconOnClickListener {
+            if (keyVisible) {
+                keyVisible = false
+                binding.etWeatherApiKey.inputType =
+                    android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                binding.tilWeatherApiKey.setEndIconDrawable(R.drawable.ic_visibility_off)
+                binding.etWeatherApiKey.setSelection(binding.etWeatherApiKey.text?.length ?: 0)
+            } else {
+                BiometricHelper.authenticate(
+                    fragment = this,
+                    title = getString(R.string.biometric_title_monitor),
+                    subtitle = getString(R.string.biometric_subtitle_apikey),
+                    onSuccess = {
+                        keyVisible = true
+                        binding.etWeatherApiKey.inputType =
+                            android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                        binding.tilWeatherApiKey.setEndIconDrawable(R.drawable.ic_visibility)
+                        binding.etWeatherApiKey.setSelection(binding.etWeatherApiKey.text?.length ?: 0)
+                    }
+                )
+            }
+        }
+        binding.btnSaveWeatherApiKey.setOnClickListener {
+            BiometricHelper.authenticate(
+                fragment = this,
+                title = getString(R.string.biometric_title_monitor),
+                subtitle = getString(R.string.biometric_subtitle_apikey),
+                onSuccess = {
+                    prefs.weatherApiComKey = binding.etWeatherApiKey.text?.toString()?.trim() ?: ""
+                    Toast.makeText(requireContext(), "WeatherAPI.com Key 已儲存", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+
+    private fun updateProviderSections(provider: String) {
+        binding.cardCwaApiKey.visibility = if (provider == "cwa") View.VISIBLE else View.GONE
+        binding.cardWeatherApiKey.visibility = if (provider == "weatherapi") View.VISIBLE else View.GONE
     }
 
     private fun setupWeatherNotificationSection() {

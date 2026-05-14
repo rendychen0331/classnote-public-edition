@@ -33,7 +33,13 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                 _uiState.value = WeatherUiState.Error("請先下載天氣功能模組")
                 return@launch
             }
-            val result = weather.fetchForecast(locationName, prefs.cwaApiKey)
+            val weatherPrefs = com.rendy.classnote.data.WeatherPreferences(getApplication())
+            val config = com.rendy.classnote.feature.WeatherConfig(
+                provider = weatherPrefs.weatherProvider,
+                cwaKey = prefs.cwaApiKey,
+                weatherApiKey = prefs.weatherApiComKey
+            )
+            val result = weather.fetchForecast(locationName, config)
             _uiState.value = result.fold(
                 onSuccess = { WeatherUiState.Success(it) },
                 onFailure = { WeatherUiState.Error(it.message ?: "載入失敗") }
