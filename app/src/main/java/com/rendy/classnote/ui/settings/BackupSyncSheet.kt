@@ -28,10 +28,7 @@ class BackupSyncSheet : Fragment() {
         binding.cardMenuMicrosoft.setOnClickListener {
             findNavController().navigate(R.id.actionBackupSyncToMicrosoftSync)
         }
-        binding.cardMenuFeatureModules.setOnClickListener {
-            findNavController().navigate(R.id.actionBackupSyncToFeatureModules)
-        }
-    }
+}
 
     override fun onResume() {
         super.onResume()
@@ -44,14 +41,6 @@ class BackupSyncSheet : Fragment() {
         binding.cardMenuMicrosoft.isEnabled = ms
         binding.cardMenuMicrosoft.alpha = if (ms) 1f else 0.5f
 
-        val installed = listOfNotNull(
-            if (google) "Google" else null,
-            if (ms) "Microsoft" else null
-        )
-        binding.tvFeatureModuleStatus.text = if (installed.isEmpty())
-            "尚未下載任何功能模組"
-        else
-            "已安裝：${installed.joinToString("、")}"
     }
 
     override fun onDestroyView() {
