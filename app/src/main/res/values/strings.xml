@@ -200,6 +200,7 @@
     <string name="formula_edit">編輯公式</string>
     <string name="formula_title">公式名稱</string>
     <string name="formula_title_required">請輸入公式名稱</string>
+    <string name="formula_content_required">請輸入公式內容</string>
     <string name="formula_subject">科目（選填）</string>
     <string name="formula_latex_hint">LaTeX 公式（如 E=mc^2 或 \\frac{a}{b}）</string>
     <string name="formula_latex_required">請輸入公式</string>

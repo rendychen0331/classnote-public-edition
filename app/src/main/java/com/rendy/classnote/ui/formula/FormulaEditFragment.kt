@@ -249,6 +249,7 @@ class FormulaEditFragment : Fragment() {
         if (args.formulaId == -1L) {
             binding.btnDelete.visibility = View.GONE
             binding.tvTitle.setText(R.string.formula_add)
+            if (editorReady) webView?.evaluateJavascript("setLatex('')", null)
             return
         }
         binding.tvTitle.setText(R.string.formula_edit)
@@ -267,15 +268,25 @@ class FormulaEditFragment : Fragment() {
     private fun save() {
         val title = binding.etFormulaTitle.text?.toString()?.trim().orEmpty()
         if (title.isEmpty()) { binding.etFormulaTitle.error = getString(R.string.formula_title_required); return }
-        if (currentLatex.isBlank()) return
+        webView?.evaluateJavascript("getLatex()") { result ->
+            currentLatex = result?.removeSurrounding("\"") ?: currentLatex
+            doSave(title)
+        } ?: doSave(title)
+    }
+
+    private fun doSave(title: String) {
+        if (currentLatex.isBlank()) {
+            android.widget.Toast.makeText(requireContext(), getString(R.string.formula_content_required), android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        val explanation = binding.etExplanation.text?.toString()?.trim().orEmpty()
+        val subject = binding.etSubject.text?.toString()?.trim().orEmpty()
         val formula = existingFormula?.copy(
             title = title, latex = currentLatex,
-            explanation = binding.etExplanation.text?.toString()?.trim().orEmpty(),
-            subject = binding.etSubject.text?.toString()?.trim().orEmpty()
+            explanation = explanation, subject = subject
         ) ?: FormulaEntity(
             title = title, latex = currentLatex,
-            explanation = binding.etExplanation.text?.toString()?.trim().orEmpty(),
-            subject = binding.etSubject.text?.toString()?.trim().orEmpty()
+            explanation = explanation, subject = subject
         )
         if (existingFormula == null) viewModel.insert(formula) else viewModel.update(formula)
         findNavController().navigateUp()
