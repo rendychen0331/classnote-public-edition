@@ -9,11 +9,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.ClassNoteApplication
-import com.rendy.classnote.R
 import com.rendy.classnote.databinding.FragmentFormulaListBinding
+import com.rendy.classnote.ui.SwipeActionsCallback
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -47,14 +47,6 @@ class FormulaListFragment : Fragment() {
                     FormulaListFragmentDirections
                         .actionFormulaListFragmentToFormulaEditFragment(formula.id)
                 )
-            },
-            onDelete = { formula ->
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.confirm_delete)
-                    .setMessage(R.string.confirm_delete_message)
-                    .setPositiveButton(R.string.delete) { _, _ -> viewModel.delete(formula) }
-                    .setNegativeButton(R.string.cancel, null)
-                    .show()
             }
         )
 
@@ -62,6 +54,21 @@ class FormulaListFragment : Fragment() {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = this@FormulaListFragment.adapter
         }
+
+        ItemTouchHelper(SwipeActionsCallback(
+            context = requireContext(),
+            onDelete = { position ->
+                val formula = adapter.currentList.getOrNull(position) ?: return@SwipeActionsCallback
+                viewModel.delete(formula)
+            },
+            onEdit = { position ->
+                val formula = adapter.currentList.getOrNull(position) ?: return@SwipeActionsCallback
+                findNavController().navigate(
+                    FormulaListFragmentDirections
+                        .actionFormulaListFragmentToFormulaEditFragment(formula.id)
+                )
+            }
+        )).attachToRecyclerView(binding.recyclerFormulas)
 
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?) = false

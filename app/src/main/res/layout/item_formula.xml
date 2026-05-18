@@ -38,16 +38,6 @@
                 android:textSize="11sp"
                 android:layout_marginStart="8dp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDelete"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="4dp"
-                app:icon="@android:drawable/ic_menu_delete"
-                app:iconSize="18dp"
-                android:contentDescription="@string/delete" />
-
         </LinearLayout>
 
         <!-- LaTeX 原始碼 -->

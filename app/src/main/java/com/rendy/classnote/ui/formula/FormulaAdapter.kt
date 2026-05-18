@@ -9,8 +9,7 @@ import com.rendy.classnote.data.local.entity.FormulaEntity
 import com.rendy.classnote.databinding.ItemFormulaBinding
 
 class FormulaAdapter(
-    private val onClick: (FormulaEntity) -> Unit,
-    private val onDelete: (FormulaEntity) -> Unit
+    private val onClick: (FormulaEntity) -> Unit
 ) : ListAdapter<FormulaEntity, FormulaAdapter.ViewHolder>(DIFF) {
 
     inner class ViewHolder(private val binding: ItemFormulaBinding) :
@@ -31,7 +30,6 @@ class FormulaAdapter(
             }
 
             binding.root.setOnClickListener { onClick(formula) }
-            binding.btnDelete.setOnClickListener { onDelete(formula) }
         }
     }
 
