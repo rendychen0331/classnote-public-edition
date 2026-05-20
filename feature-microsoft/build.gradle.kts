@@ -63,6 +63,7 @@ tasks.register("bundleFeatureDex") {
                 !group.startsWith("com.google.android.gms") &&
                 !group.startsWith("com.google.android.material") &&
                 !group.startsWith("com.google.guava") &&
+                !group.startsWith("com.microsoft.identity") &&
                 group !in setOf(
                     "com.google.errorprone",
                     "org.checkerframework",

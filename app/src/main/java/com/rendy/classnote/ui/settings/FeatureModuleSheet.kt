@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -54,7 +55,7 @@ class FeatureModuleSheet : Fragment() {
             if (FeatureManager.isDownloaded(ctx, "google")) {
                 confirmDelete("Google") { FeatureManager.delete(ctx, "google"); refreshStatus() }
             } else {
-                downloadFeature("google", "Google 功能模組")
+                downloadFeature("google", "Google 功能模組", binding.tvGoogleProgress)
             }
         }
 
@@ -63,16 +64,16 @@ class FeatureModuleSheet : Fragment() {
             if (FeatureManager.isDownloaded(ctx, "microsoft")) {
                 confirmDelete("Microsoft") { FeatureManager.delete(ctx, "microsoft"); refreshStatus() }
             } else {
-                downloadFeature("microsoft", "Microsoft 功能模組")
+                downloadFeature("microsoft", "Microsoft 功能模組", binding.tvMicrosoftProgress)
             }
         }
 
         binding.btnAiDownload.setOnClickListener {
             val ctx = requireContext()
             if (FeatureManager.isDownloaded(ctx, "ai")) {
-                confirmDelete("AI 智能") { FeatureManager.delete(ctx, "ai"); refreshStatus() }
+                confirmDelete("AI 功能") { FeatureManager.delete(ctx, "ai"); refreshStatus() }
             } else {
-                downloadFeature("ai", "AI 智能模組")
+                downloadFeature("ai", "AI 功能模組", binding.tvAiProgress)
             }
         }
 
@@ -81,7 +82,7 @@ class FeatureModuleSheet : Fragment() {
             if (FeatureManager.isDownloaded(ctx, "weather")) {
                 confirmDelete("天氣") { FeatureManager.delete(ctx, "weather"); refreshStatus() }
             } else {
-                downloadFeature("weather", "天氣模組")
+                downloadFeature("weather", "天氣模組", binding.tvWeatherProgress)
             }
         }
 
@@ -90,11 +91,11 @@ class FeatureModuleSheet : Fragment() {
         }
     }
 
-    private fun downloadFeature(featureId: String, displayName: String) {
+    private fun downloadFeature(featureId: String, displayName: String, progressView: TextView) {
         val ctx = requireContext()
         setAllButtonsEnabled(false)
-        binding.tvDownloadProgress.visibility = View.VISIBLE
-        binding.tvDownloadProgress.text = "正在取得功能清單…"
+        progressView.visibility = View.VISIBLE
+        progressView.text = "正在取得功能清單…"
 
         viewLifecycleOwner.lifecycleScope.launch {
             val manifest = FeatureDownloader.fetchManifest()
@@ -106,7 +107,7 @@ class FeatureModuleSheet : Fragment() {
             }
 
             val sizeMb = "%.1f MB".format(info.sizeBytes / 1_048_576.0)
-            binding.tvDownloadProgress.text = "下載中（$sizeMb）…"
+            progressView.text = "下載中（$sizeMb）…"
 
             val versionCode = ctx.packageManager.getPackageInfo(ctx.packageName, 0).longVersionCode.toInt()
             when (val result = FeatureDownloader.download(ctx, info, versionCode)) {
@@ -130,8 +131,14 @@ class FeatureModuleSheet : Fragment() {
     private fun checkUpdates() {
         val ctx = requireContext()
         setAllButtonsEnabled(false)
-        binding.tvDownloadProgress.visibility = View.VISIBLE
-        binding.tvDownloadProgress.text = "檢查更新中…"
+
+        val progressMap = mapOf(
+            "google" to binding.tvGoogleProgress,
+            "microsoft" to binding.tvMicrosoftProgress,
+            "ai" to binding.tvAiProgress,
+            "weather" to binding.tvWeatherProgress
+        )
+        progressMap.values.forEach { it.visibility = View.GONE }
 
         viewLifecycleOwner.lifecycleScope.launch {
             val manifest = FeatureDownloader.fetchManifest()
@@ -145,10 +152,14 @@ class FeatureModuleSheet : Fragment() {
             var updated = 0
             for (info in manifest) {
                 if (!FeatureManager.isDownloaded(ctx, info.id)) continue
+                val progressView = progressMap[info.id]
+                progressView?.visibility = View.VISIBLE
+                progressView?.text = "更新中…"
                 when (FeatureDownloader.download(ctx, info, versionCode)) {
                     is DownloadResult.Success -> updated++
                     else -> {}
                 }
+                progressView?.visibility = View.GONE
             }
 
             val msg = if (updated > 0) "已更新 $updated 個功能模組" else "所有已安裝模組均為最新版本"
@@ -176,7 +187,10 @@ class FeatureModuleSheet : Fragment() {
 
     private fun resetButtons() {
         setAllButtonsEnabled(true)
-        binding.tvDownloadProgress.visibility = View.GONE
+        binding.tvGoogleProgress.visibility = View.GONE
+        binding.tvMicrosoftProgress.visibility = View.GONE
+        binding.tvAiProgress.visibility = View.GONE
+        binding.tvWeatherProgress.visibility = View.GONE
         refreshStatus()
     }
 

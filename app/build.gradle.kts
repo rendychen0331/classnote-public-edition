@@ -114,6 +114,7 @@ dependencies {
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.biometric)
     implementation(libs.markwon.core)
+    implementation(libs.msal)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

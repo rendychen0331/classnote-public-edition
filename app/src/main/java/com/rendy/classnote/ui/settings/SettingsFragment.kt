@@ -15,6 +15,7 @@ import com.rendy.classnote.BuildConfig
 import com.rendy.classnote.R
 import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.AutoUpdateWorker
+import com.rendy.classnote.data.FeatureManager
 import com.rendy.classnote.data.UpdateChecker
 import com.rendy.classnote.databinding.FragmentSettingsBinding
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +72,18 @@ class SettingsFragment : Fragment() {
         }
 
         binding.cardMenuAiSettings.setOnClickListener {
-            findNavController().navigate(R.id.actionSettingsToAiSettings)
+            if (FeatureManager.isDownloaded(requireContext(), "ai")) {
+                findNavController().navigate(R.id.actionSettingsToAiSettings)
+            } else {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("需要 AI 功能模組")
+                    .setMessage("請先至「功能模組管理」下載 AI 功能模組。")
+                    .setPositiveButton("前往下載") { _, _ ->
+                        findNavController().navigate(R.id.actionSettingsToFeatureModules)
+                    }
+                    .setNegativeButton("取消", null)
+                    .show()
+            }
         }
 
         binding.cardMenuApiLog.setOnClickListener {
