@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
                 binding.bottomNavigation.menu.setGroupCheckable(0, true, true)
             }
             val weatherInstalled = FeatureManager.isDownloaded(this, "weather")
-            binding.bottomNavigation.menu.findItem(R.id.weatherFragment)?.isEnabled = weatherInstalled
+            binding.bottomNavigation.menu.findItem(R.id.weatherFragment)?.isVisible = weatherInstalled
         }
 
         // adjustNothing：BottomNav 固定不動，鍵盤彈起時手動把內容區上推
