@@ -129,15 +129,26 @@ class MicrosoftSyncSheet : Fragment() {
         }
 
         binding.btnOneDriveRestore.setOnClickListener {
+            binding.btnOneDriveRestore.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
                 val feature = FeatureManager.getBackup(requireContext(), "microsoft")
                 if (feature == null) {
+                    binding.btnOneDriveRestore.isEnabled = true
                     showFeatureNotLoadedToast("microsoft", "Microsoft")
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
-                val meta = feature.fetchMeta(bridge)
-                showRestoreOptionsDialog(feature, bridge, meta)
+                val allMeta = feature.fetchAllMeta(bridge)
+                binding.btnOneDriveRestore.isEnabled = true
+                if (allMeta.isEmpty()) {
+                    Toast.makeText(requireContext(), "OneDrive 上沒有備份", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                if (allMeta.size == 1) {
+                    showRestoreOptionsDialog(feature, bridge, allMeta[0])
+                } else {
+                    showBackupVersionPickerDialog(feature, bridge, allMeta)
+                }
             }
         }
 
@@ -554,6 +565,35 @@ class MicrosoftSyncSheet : Fragment() {
         WorkManager.getInstance(requireContext()).cancelUniqueWork("onenote_auto_sync")
     }
 
+    private fun formatBackupTimestamp(ts: String): String {
+        return if (ts.length == 13 && ts[8] == '_') {
+            "${ts.substring(0, 4)}/${ts.substring(4, 6)}/${ts.substring(6, 8)} ${ts.substring(9, 11)}:${ts.substring(11, 13)}"
+        } else ts
+    }
+
+    private fun showBackupVersionPickerDialog(
+        feature: com.rendy.classnote.feature.BackupFeature,
+        bridge: SyncBridgeImpl,
+        allMeta: List<com.rendy.classnote.feature.BackupMeta>
+    ) {
+        val labels = allMeta.map { m ->
+            val time = formatBackupTimestamp(m.timestamp)
+            val parts = mutableListOf<String>()
+            if (m.hasNotes) parts.add("筆記")
+            if (m.hasAiSettings) parts.add("AI設定")
+            if (m.hasWeatherSettings) parts.add("天氣設定")
+            "$time（${parts.joinToString("、")}）"
+        }.toTypedArray()
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("選擇要還原的備份版本")
+            .setItems(labels) { _, which ->
+                showRestoreOptionsDialog(feature, bridge, allMeta[which])
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
     private fun showRestoreOptionsDialog(
         feature: com.rendy.classnote.feature.BackupFeature,
         bridge: SyncBridgeImpl,
@@ -568,23 +608,25 @@ class MicrosoftSyncSheet : Fragment() {
         if (meta?.hasWeatherSettings == true) { items.add("天氣設定"); checked.add(true) }
 
         val checkedArr = checked.toBooleanArray()
+        val titleSuffix = if (!meta?.timestamp.isNullOrEmpty()) "\n${formatBackupTimestamp(meta!!.timestamp)}" else ""
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("選擇要還原的項目")
+            .setTitle("選擇要還原的項目$titleSuffix")
             .setMultiChoiceItems(items.toTypedArray(), checkedArr) { _, which, isChecked ->
                 checkedArr[which] = isChecked
             }
             .setPositiveButton("還原") { _, _ ->
                 val aiIdx = if (meta?.hasAiSettings == true) 1 else -1
                 val weatherIdx = when {
-                    meta?.hasAiSettings == true && meta.hasWeatherSettings -> 2
+                    meta?.hasAiSettings == true && meta?.hasWeatherSettings == true -> 2
                     meta?.hasAiSettings != true && meta?.hasWeatherSettings == true -> 1
                     else -> -1
                 }
                 val options = com.rendy.classnote.feature.RestoreOptions(
                     restoreNotes = checkedArr[0],
                     restoreAiSettings = aiIdx >= 0 && checkedArr[aiIdx],
-                    restoreWeatherSettings = weatherIdx >= 0 && checkedArr[weatherIdx]
+                    restoreWeatherSettings = weatherIdx >= 0 && checkedArr[weatherIdx],
+                    backupId = meta?.backupId?.takeIf { it.isNotEmpty() }
                 )
                 binding.btnOneDriveRestore.isEnabled = false
                 viewLifecycleOwner.lifecycleScope.launch {

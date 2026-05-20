@@ -12,30 +12,39 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private const val GRAPH_BASE = "https://graph.microsoft.com/v1.0"
-private const val BACKUP_FILENAME = "classnote_backup.db"
-private const val META_FILENAME = "classnote_meta.json"
 private const val DB_NAME = "classnote_database"
 private const val TAG = "MicrosoftBackupFeature"
+private const val MAX_BACKUPS = 3
 
 class MicrosoftBackupFeature : BackupFeature {
+
+    private val tsFormat = SimpleDateFormat("yyyyMMdd_HHmm", Locale.US)
+    private fun dbFileName(id: String) = "classnote_backup_$id.db"
+    private fun metaFileName(id: String) = "classnote_meta_$id.json"
 
     override suspend fun backup(bridge: SyncBridge): BackupOutcome = withContext(Dispatchers.IO) {
         val token = MsAuthHelper.acquireTokenSilent(bridge.context)
             ?: return@withContext BackupOutcome.AuthRequired(null)
         try {
-            // upload DB
             val dbFile = bridge.context.getDatabasePath(DB_NAME)
             if (!dbFile.exists()) return@withContext BackupOutcome.Error("資料庫不存在")
-            uploadToOneDrive(token, BACKUP_FILENAME, dbFile.readBytes(), "application/octet-stream")
+            val backupId = tsFormat.format(Date())
+
+            uploadToOneDrive(token, dbFileName(backupId), dbFile.readBytes(), "application/octet-stream")
                 .let { if (it !in 200..299) return@withContext BackupOutcome.Error("HTTP $it") }
 
-            // upload meta JSON
-            val metaJson = buildMetaJson(bridge)
-            uploadToOneDrive(token, META_FILENAME, metaJson.toByteArray(Charsets.UTF_8), "application/json")
+            val metaJson = buildMetaJson(bridge, backupId)
+            uploadToOneDrive(token, metaFileName(backupId), metaJson.toByteArray(Charsets.UTF_8), "application/json")
 
-            bridge.logSync("OneDriveBackup", "backup", "成功", true)
+            pruneOldFiles(token, "classnote_backup_", ".db")
+            pruneOldFiles(token, "classnote_meta_", ".json")
+
+            bridge.logSync("OneDriveBackup", "backup", "成功 ($backupId)", true)
             BackupOutcome.Success()
         } catch (e: Exception) {
             Log.e(TAG, "Backup failed", e)
@@ -44,14 +53,27 @@ class MicrosoftBackupFeature : BackupFeature {
         }
     }
 
-    override suspend fun fetchMeta(bridge: SyncBridge): BackupMeta? = withContext(Dispatchers.IO) {
-        val token = MsAuthHelper.acquireTokenSilent(bridge.context) ?: return@withContext null
+    override suspend fun fetchMeta(bridge: SyncBridge): BackupMeta? =
+        fetchAllMeta(bridge).firstOrNull()
+
+    override suspend fun fetchAllMeta(bridge: SyncBridge): List<BackupMeta> = withContext(Dispatchers.IO) {
+        val token = MsAuthHelper.acquireTokenSilent(bridge.context) ?: return@withContext emptyList()
         try {
-            val json = downloadFromOneDrive(token, META_FILENAME) ?: return@withContext null
-            parseBackupMeta(String(json, Charsets.UTF_8))
+            listOneDriveFiles(token)
+                .filter { it.startsWith("classnote_meta_") && it.endsWith(".json") }
+                .sortedDescending()
+                .mapNotNull { filename ->
+                    try {
+                        val bytes = downloadFromOneDrive(token, filename) ?: return@mapNotNull null
+                        parseBackupMeta(String(bytes, Charsets.UTF_8))
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to fetch meta $filename", e)
+                        null
+                    }
+                }
         } catch (e: Exception) {
-            Log.e(TAG, "fetchMeta failed", e)
-            null
+            Log.e(TAG, "fetchAllMeta failed", e)
+            emptyList()
         }
     }
 
@@ -59,26 +81,31 @@ class MicrosoftBackupFeature : BackupFeature {
         val token = MsAuthHelper.acquireTokenSilent(bridge.context)
             ?: return@withContext BackupOutcome.AuthRequired(null)
         try {
-            // fetch meta
-            var meta = BackupMeta()
-            try {
-                val metaBytes = downloadFromOneDrive(token, META_FILENAME)
-                if (metaBytes != null) {
-                    meta = parseBackupMeta(String(metaBytes, Charsets.UTF_8)) ?: BackupMeta()
-                }
-            } catch (_: Exception) {}
-
-            // restore DB
-            if (options.restoreNotes) {
-                val bytes = downloadFromOneDrive(token, BACKUP_FILENAME)
-                    ?: return@withContext BackupOutcome.Error("OneDrive 上沒有備份檔")
-                bridge.context.getDatabasePath(DB_NAME).writeBytes(bytes)
+            val backupId: String = options.backupId ?: run {
+                listOneDriveFiles(token)
+                    .filter { it.startsWith("classnote_meta_") && it.endsWith(".json") }
+                    .maxOrNull()
+                    ?.removePrefix("classnote_meta_")?.removeSuffix(".json")
+                    ?: return@withContext BackupOutcome.Error("OneDrive 上沒有備份")
             }
 
-            // restore AI settings
+            var meta = BackupMeta()
+            try {
+                val metaBytes = downloadFromOneDrive(token, metaFileName(backupId))
+                if (metaBytes != null) meta = parseBackupMeta(String(metaBytes, Charsets.UTF_8)) ?: BackupMeta()
+            } catch (_: Exception) {}
+
+            if (options.restoreNotes) {
+                val bytes = downloadFromOneDrive(token, dbFileName(backupId))
+                    ?: return@withContext BackupOutcome.Error("OneDrive 上沒有備份檔 ($backupId)")
+                bridge.context.getDatabasePath(DB_NAME).writeBytes(bytes)
+                bridge.context.getDatabasePath("$DB_NAME-wal").delete()
+                bridge.context.getDatabasePath("$DB_NAME-shm").delete()
+            }
+
             if (options.restoreAiSettings && meta.hasAiSettings) {
                 try {
-                    val metaBytes = downloadFromOneDrive(token, META_FILENAME)
+                    val metaBytes = downloadFromOneDrive(token, metaFileName(backupId))
                     if (metaBytes != null) {
                         val obj = JSONObject(String(metaBytes, Charsets.UTF_8))
                         val aiObj = obj.optJSONObject("aiSettings")
@@ -91,10 +118,9 @@ class MicrosoftBackupFeature : BackupFeature {
                 } catch (_: Exception) {}
             }
 
-            // restore weather settings
             if (options.restoreWeatherSettings && meta.hasWeatherSettings) {
                 try {
-                    val metaBytes = downloadFromOneDrive(token, META_FILENAME)
+                    val metaBytes = downloadFromOneDrive(token, metaFileName(backupId))
                     if (metaBytes != null) {
                         val obj = JSONObject(String(metaBytes, Charsets.UTF_8))
                         val weatherObj = obj.optJSONObject("weatherSettings")
@@ -107,7 +133,7 @@ class MicrosoftBackupFeature : BackupFeature {
                 } catch (_: Exception) {}
             }
 
-            bridge.logSync("OneDriveBackup", "restore", "成功", true)
+            bridge.logSync("OneDriveBackup", "restore", "成功 ($backupId)", true)
             BackupOutcome.Success(meta)
         } catch (e: Exception) {
             Log.e(TAG, "Restore failed", e)
@@ -115,38 +141,61 @@ class MicrosoftBackupFeature : BackupFeature {
         }
     }
 
-    private fun buildMetaJson(bridge: SyncBridge): String {
+    private fun listOneDriveFiles(token: String): List<String> {
+        val url = URL("$GRAPH_BASE/me/drive/special/approot/children?\$select=name")
+        val conn = url.openConnection() as HttpURLConnection
+        conn.setRequestProperty("Authorization", "Bearer $token")
+        val code = conn.responseCode
+        if (code !in 200..299) return emptyList()
+        val json = JSONObject(conn.inputStream.bufferedReader().readText())
+        conn.disconnect()
+        val arr = json.optJSONArray("value") ?: return emptyList()
+        return (0 until arr.length()).mapNotNull { arr.getJSONObject(it).optString("name").takeIf { n -> n.isNotEmpty() } }
+    }
+
+    private fun pruneOldFiles(token: String, prefix: String, suffix: String) {
+        val files = listOneDriveFiles(token)
+            .filter { it.startsWith(prefix) && it.endsWith(suffix) }
+            .sorted()
+        if (files.size > MAX_BACKUPS) {
+            files.take(files.size - MAX_BACKUPS).forEach { filename ->
+                try { deleteFromOneDrive(token, filename) } catch (e: Exception) {
+                    Log.w(TAG, "Failed to delete old backup: $filename", e)
+                }
+            }
+        }
+    }
+
+    private fun buildMetaJson(bridge: SyncBridge, backupId: String): String {
         val obj = JSONObject()
+        obj.put("backupId", backupId)
+        obj.put("timestamp", backupId)
         val featArr = JSONArray()
         bridge.installedFeatureIds().forEach { featArr.put(it) }
         obj.put("installedFeatures", featArr)
-
-        val aiSettings = bridge.getAiSettings()
         val aiObj = JSONObject()
-        aiSettings.forEach { (k, v) -> if (v.isNotBlank()) aiObj.put(k, v) }
+        bridge.getAiSettings().forEach { (k, v) -> if (v.isNotBlank()) aiObj.put(k, v) }
         obj.put("aiSettings", aiObj)
-
-        val weatherSettings = bridge.getWeatherSettings()
         val weatherObj = JSONObject()
-        weatherSettings.forEach { (k, v) -> if (v.isNotBlank() && v != "false") weatherObj.put(k, v) }
+        bridge.getWeatherSettings().forEach { (k, v) -> if (v.isNotBlank() && v != "false") weatherObj.put(k, v) }
         obj.put("weatherSettings", weatherObj)
-
         return obj.toString()
     }
 
     private fun parseBackupMeta(json: String): BackupMeta? = try {
         val obj = JSONObject(json)
         val featArr = obj.optJSONArray("installedFeatures")
-        val features = if (featArr != null) {
-            (0 until featArr.length()).map { featArr.getString(it) }
-        } else emptyList()
+        val features = if (featArr != null) (0 until featArr.length()).map { featArr.getString(it) } else emptyList()
         val aiObj = obj.optJSONObject("aiSettings")
         val weatherObj = obj.optJSONObject("weatherSettings")
+        val backupId = obj.optString("backupId", "")
         BackupMeta(
             installedFeatures = features,
             hasNotes = true,
             hasAiSettings = aiObj != null && aiObj.length() > 0,
-            hasWeatherSettings = weatherObj != null && weatherObj.length() > 0
+            hasWeatherSettings = weatherObj != null && weatherObj.length() > 0,
+            backupId = backupId,
+            timestamp = backupId
         )
     } catch (e: Exception) {
         Log.e(TAG, "parseBackupMeta failed", e)
@@ -175,5 +224,14 @@ class MicrosoftBackupFeature : BackupFeature {
         val bytes = conn.inputStream.readBytes()
         conn.disconnect()
         return bytes
+    }
+
+    private fun deleteFromOneDrive(token: String, filename: String) {
+        val url = URL("$GRAPH_BASE/me/drive/special/approot:/$filename")
+        val conn = url.openConnection() as HttpURLConnection
+        conn.requestMethod = "DELETE"
+        conn.setRequestProperty("Authorization", "Bearer $token")
+        conn.responseCode
+        conn.disconnect()
     }
 }
