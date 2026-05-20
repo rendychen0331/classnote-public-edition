@@ -21,6 +21,7 @@ import com.rendy.classnote.feature.PeriodTimeBridge
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -326,6 +327,12 @@ class ClassNoteNotificationListener : NotificationListenerService() {
         if (prefMatch != null) return prefMatch.first to prefMatch.second.second
         return candidates.firstOrNull { it.second.first && it.second.second.isNotBlank() }
             ?.let { it.first to it.second.second }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacksAndMessages(null)
+        scope.cancel()
     }
 
     companion object {

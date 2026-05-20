@@ -103,6 +103,7 @@ dependencies {
     implementation(project(":feature-api"))
     implementation(libs.play.services.auth)
     implementation(libs.guava)
+    implementation(libs.androidx.security.crypto)
     // shared libs for feature modules — must be in main app so DexClassLoader parent can resolve them
     implementation(libs.google.api.client.android)
     implementation(libs.google.api.services.drive)

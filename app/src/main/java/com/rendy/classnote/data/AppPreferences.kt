@@ -1,7 +1,11 @@
 package com.rendy.classnote.data
 
 import android.content.Context
+import android.content.SharedPreferences
+import android.util.Log
 import androidx.core.content.edit
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -11,6 +15,49 @@ import org.json.JSONObject
 class AppPreferences(context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    private val securePrefs: SharedPreferences by lazy {
+        try {
+            val masterKey = MasterKey.Builder(context.applicationContext)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+            EncryptedSharedPreferences.create(
+                context.applicationContext,
+                SECURE_PREFS_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (e: Exception) {
+            Log.e("AppPreferences", "EncryptedSharedPreferences init failed, using fallback", e)
+            context.getSharedPreferences(SECURE_PREFS_NAME, Context.MODE_PRIVATE)
+        }
+    }
+
+    init {
+        migrateApiKeysIfNeeded()
+    }
+
+    private fun migrateApiKeysIfNeeded() {
+        if (prefs.getBoolean(KEY_API_KEYS_MIGRATED, false)) return
+        val keys = listOf(
+            KEY_GEMINI_API_KEY, KEY_CWA_API_KEY, KEY_WEATHER_API_COM_KEY,
+            KEY_MIMO_API_KEY, KEY_CLAUDE_API_KEY, KEY_OPENAI_API_KEY,
+            KEY_GROQ_API_KEY, KEY_DEEPSEEK_API_KEY,
+            KEY_CUSTOM_ANTHROPIC_KEY, KEY_CUSTOM_OPENAI_KEY
+        )
+        val secEditor = securePrefs.edit()
+        val clearEditor = prefs.edit()
+        keys.forEach { key ->
+            val v = prefs.getString(key, null)
+            if (!v.isNullOrBlank()) {
+                secEditor.putString(key, v)
+                clearEditor.remove(key)
+            }
+        }
+        secEditor.apply()
+        clearEditor.putBoolean(KEY_API_KEYS_MIGRATED, true).apply()
+    }
 
     /** 全頁提醒：提醒觸發時以全螢幕介面顯示（類似鬧鐘）。預設開啟。 */
     var fullScreenAlarmEnabled: Boolean
@@ -275,33 +322,33 @@ class AppPreferences(context: Context) {
 
     /** Gemini API Key，用於 AI 通知解析。 */
     var geminiApiKey: String
-        get() = prefs.getString(KEY_GEMINI_API_KEY, "") ?: ""
-        set(value) = prefs.edit { putString(KEY_GEMINI_API_KEY, value) }
+        get() = securePrefs.getString(KEY_GEMINI_API_KEY, "") ?: ""
+        set(value) = securePrefs.edit { putString(KEY_GEMINI_API_KEY, value) }
 
     /** CWA API Key，用於天氣預報查詢。 */
     var cwaApiKey: String
-        get() = prefs.getString(KEY_CWA_API_KEY, "") ?: ""
-        set(value) = prefs.edit { putString(KEY_CWA_API_KEY, value) }
+        get() = securePrefs.getString(KEY_CWA_API_KEY, "") ?: ""
+        set(value) = securePrefs.edit { putString(KEY_CWA_API_KEY, value) }
 
     /** WeatherAPI.com API Key。 */
     var weatherApiComKey: String
-        get() = prefs.getString(KEY_WEATHER_API_COM_KEY, "") ?: ""
-        set(value) = prefs.edit { putString(KEY_WEATHER_API_COM_KEY, value) }
+        get() = securePrefs.getString(KEY_WEATHER_API_COM_KEY, "") ?: ""
+        set(value) = securePrefs.edit { putString(KEY_WEATHER_API_COM_KEY, value) }
 
     /** Xiaomi MiMo API Key，用於課堂筆記 AI 對話。 */
     var mimoApiKey: String
-        get() = prefs.getString(KEY_MIMO_API_KEY, "") ?: ""
-        set(value) = prefs.edit { putString(KEY_MIMO_API_KEY, value) }
+        get() = securePrefs.getString(KEY_MIMO_API_KEY, "") ?: ""
+        set(value) = securePrefs.edit { putString(KEY_MIMO_API_KEY, value) }
 
     /** Anthropic Claude API Key。 */
     var claudeApiKey: String
-        get() = prefs.getString(KEY_CLAUDE_API_KEY, "") ?: ""
-        set(value) = prefs.edit { putString(KEY_CLAUDE_API_KEY, value) }
+        get() = securePrefs.getString(KEY_CLAUDE_API_KEY, "") ?: ""
+        set(value) = securePrefs.edit { putString(KEY_CLAUDE_API_KEY, value) }
 
     /** OpenAI API Key。 */
     var openaiApiKey: String
-        get() = prefs.getString(KEY_OPENAI_API_KEY, "") ?: ""
-        set(value) = prefs.edit { putString(KEY_OPENAI_API_KEY, value) }
+        get() = securePrefs.getString(KEY_OPENAI_API_KEY, "") ?: ""
+        set(value) = securePrefs.edit { putString(KEY_OPENAI_API_KEY, value) }
 
     /** 課堂筆記 AI 對話優先使用的 provider："gemini" | "mimo" | "claude" | "openai"。 */
     var preferredChatProvider: String
@@ -337,8 +384,8 @@ class AppPreferences(context: Context) {
 
     /** Groq API Key。 */
     var groqApiKey: String
-        get() = prefs.getString(KEY_GROQ_API_KEY, "") ?: ""
-        set(value) = prefs.edit { putString(KEY_GROQ_API_KEY, value) }
+        get() = securePrefs.getString(KEY_GROQ_API_KEY, "") ?: ""
+        set(value) = securePrefs.edit { putString(KEY_GROQ_API_KEY, value) }
 
     var groqEnabled: Boolean
         get() = prefs.getBoolean(KEY_GROQ_ENABLED, false)
@@ -346,8 +393,8 @@ class AppPreferences(context: Context) {
 
     /** DeepSeek API Key。 */
     var deepseekApiKey: String
-        get() = prefs.getString(KEY_DEEPSEEK_API_KEY, "") ?: ""
-        set(value) = prefs.edit { putString(KEY_DEEPSEEK_API_KEY, value) }
+        get() = securePrefs.getString(KEY_DEEPSEEK_API_KEY, "") ?: ""
+        set(value) = securePrefs.edit { putString(KEY_DEEPSEEK_API_KEY, value) }
 
     var deepseekEnabled: Boolean
         get() = prefs.getBoolean(KEY_DEEPSEEK_ENABLED, false)
@@ -363,8 +410,8 @@ class AppPreferences(context: Context) {
         set(value) = prefs.edit { putString(KEY_CUSTOM_ANTHROPIC_MODEL, value) }
 
     var customAnthropicKey: String
-        get() = prefs.getString(KEY_CUSTOM_ANTHROPIC_KEY, "") ?: ""
-        set(value) = prefs.edit { putString(KEY_CUSTOM_ANTHROPIC_KEY, value) }
+        get() = securePrefs.getString(KEY_CUSTOM_ANTHROPIC_KEY, "") ?: ""
+        set(value) = securePrefs.edit { putString(KEY_CUSTOM_ANTHROPIC_KEY, value) }
 
     var customAnthropicEnabled: Boolean
         get() = prefs.getBoolean(KEY_CUSTOM_ANTHROPIC_ENABLED, false)
@@ -380,8 +427,8 @@ class AppPreferences(context: Context) {
         set(value) = prefs.edit { putString(KEY_CUSTOM_OPENAI_MODEL, value) }
 
     var customOpenaiKey: String
-        get() = prefs.getString(KEY_CUSTOM_OPENAI_KEY, "") ?: ""
-        set(value) = prefs.edit { putString(KEY_CUSTOM_OPENAI_KEY, value) }
+        get() = securePrefs.getString(KEY_CUSTOM_OPENAI_KEY, "") ?: ""
+        set(value) = securePrefs.edit { putString(KEY_CUSTOM_OPENAI_KEY, value) }
 
     var customOpenaiEnabled: Boolean
         get() = prefs.getBoolean(KEY_CUSTOM_OPENAI_ENABLED, false)
@@ -542,6 +589,8 @@ class AppPreferences(context: Context) {
 
     companion object {
         private const val PREFS_NAME = "classnote_prefs"
+        private const val SECURE_PREFS_NAME = "classnote_secure_prefs"
+        private const val KEY_API_KEYS_MIGRATED = "api_keys_migrated_v1"
         private const val KEY_FULL_SCREEN_ALARM = "full_screen_alarm_enabled"
         private const val KEY_SNOOZE_MINUTES = "snooze_minutes"
         private const val KEY_DRIVE_BACKUP_ENABLED = "drive_backup_enabled"

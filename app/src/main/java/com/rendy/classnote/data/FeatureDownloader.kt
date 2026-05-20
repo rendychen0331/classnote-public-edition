@@ -61,16 +61,19 @@ object FeatureDownloader {
             }
 
             try {
-                val conn = URL(info.downloadUrl).openConnection() as HttpURLConnection
-                conn.connect()
-                if (conn.responseCode !in 200..299) {
-                    return@withContext DownloadResult.Error("HTTP ${conn.responseCode}")
-                }
-
                 val tmp = File(destFile.parent, "${info.id}.tmp")
                 tmp.parentFile?.mkdirs()
-                conn.inputStream.use { input -> tmp.outputStream().use { input.copyTo(it) } }
-                conn.disconnect()
+
+                val conn = URL(info.downloadUrl).openConnection() as HttpURLConnection
+                try {
+                    conn.connect()
+                    if (conn.responseCode !in 200..299) {
+                        return@withContext DownloadResult.Error("HTTP ${conn.responseCode}")
+                    }
+                    conn.inputStream.use { input -> tmp.outputStream().use { input.copyTo(it) } }
+                } finally {
+                    conn.disconnect()
+                }
 
                 val actual = sha256(tmp)
                 if (actual != info.sha256) {

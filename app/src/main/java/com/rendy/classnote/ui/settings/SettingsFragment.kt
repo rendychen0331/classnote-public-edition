@@ -247,7 +247,7 @@ class SettingsFragment : Fragment() {
 
     private fun trackDownloadProgress(downloadId: Long) {
         viewLifecycleOwner.lifecycleScope.launch {
-            while (isAdded) {
+            while (isAdded && _binding != null) {
                 val progress = withContext(Dispatchers.IO) {
                     UpdateChecker.queryProgress(requireContext(), downloadId)
                 }
@@ -268,7 +268,7 @@ class SettingsFragment : Fragment() {
                         }
                         break
                     }
-                    else -> binding.tvUpdateStatus.text = "下載中... $progress%"
+                    else -> _binding?.tvUpdateStatus?.text = "下載中... $progress%"
                 }
                 delay(500)
             }

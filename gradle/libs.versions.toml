@@ -30,6 +30,7 @@ biometric = "1.1.0"
 markwon = "4.6.2"
 msal = "5.3.0"
 guava = "33.4.8-android"
+securityCrypto = "1.1.0-alpha06"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -64,6 +65,7 @@ androidx-biometric = { group = "androidx.biometric", name = "biometric", version
 markwon-core = { group = "io.noties.markwon", name = "core", version.ref = "markwon" }
 msal = { group = "com.microsoft.identity.client", name = "msal", version.ref = "msal" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

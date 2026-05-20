@@ -181,10 +181,10 @@ class SyncBridgeImpl(override val context: Context) : SyncBridge {
 
     override fun hasData(): Boolean {
         val tables = listOf("reminders", "class_records", "formulas", "courses")
+        val database = db.openHelper.readableDatabase
         return tables.any { table ->
             try {
-                db.openHelper.readableDatabase
-                    .query("SELECT COUNT(*) FROM $table", emptyArray())
+                database.query("SELECT COUNT(*) FROM $table", emptyArray())
                     .use { c -> c.moveToFirst() && c.getInt(0) > 0 }
             } catch (_: Exception) { false }
         }
