@@ -111,9 +111,12 @@ class MicrosoftSyncSheet : Fragment() {
                 val result = feature.backup(bridge)
                 binding.btnOneDriveBackup.isEnabled = true
                 when (result) {
-                    is BackupOutcome.Success ->
+                    is BackupOutcome.Success -> {
+                        prefs.lastOneDriveBackupTime = System.currentTimeMillis()
+                        updateOneDriveSection(prefs)
                         Toast.makeText(requireContext(),
                             getString(R.string.settings_onedrive_backup_success), Toast.LENGTH_SHORT).show()
+                    }
                     is BackupOutcome.AuthRequired -> {
                         val authIntent = result.intent
                         if (authIntent != null) {
@@ -199,6 +202,12 @@ class MicrosoftSyncSheet : Fragment() {
             binding.cardOneDriveNetwork.visibility = View.VISIBLE
             binding.cardOneDriveAutoBackup.visibility = View.VISIBLE
             binding.tvOneDriveLastBackup.visibility = View.VISIBLE
+            val lastTime = prefs.lastOneDriveBackupTime
+            binding.tvOneDriveLastBackup.text = if (lastTime > 0L) {
+                "上次備份：${formatBackupTime(lastTime)}"
+            } else {
+                getString(R.string.settings_onedrive_no_backup)
+            }
             updateOneDriveNetworkLabel(prefs)
             setupOneDriveAutoBackupCard(prefs)
         } else {
@@ -563,6 +572,11 @@ class MicrosoftSyncSheet : Fragment() {
 
     private fun cancelOneNoteSync() {
         WorkManager.getInstance(requireContext()).cancelUniqueWork("onenote_auto_sync")
+    }
+
+    private fun formatBackupTime(ms: Long): String {
+        val fmt = java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.getDefault())
+        return fmt.format(java.util.Date(ms))
     }
 
     private fun formatBackupTimestamp(ts: String): String {

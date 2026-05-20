@@ -70,6 +70,14 @@ class AppPreferences(context: Context) {
         get() = prefs.getInt(KEY_AUTO_BACKUP_INTERVAL_HOURS, 24)
         set(value) = prefs.edit { putInt(KEY_AUTO_BACKUP_INTERVAL_HOURS, value) }
 
+    var lastDriveBackupTime: Long
+        get() = prefs.getLong(KEY_LAST_DRIVE_BACKUP_TIME, 0L)
+        set(value) = prefs.edit { putLong(KEY_LAST_DRIVE_BACKUP_TIME, value) }
+
+    var lastOneDriveBackupTime: Long
+        get() = prefs.getLong(KEY_LAST_ONEDRIVE_BACKUP_TIME, 0L)
+        set(value) = prefs.edit { putLong(KEY_LAST_ONEDRIVE_BACKUP_TIME, value) }
+
     /** 自動 Gmail 同步開關。預設關閉。 */
     var autoGmailSyncEnabled: Boolean
         get() = prefs.getBoolean(KEY_AUTO_GMAIL_SYNC_ENABLED, false)
@@ -625,6 +633,8 @@ class AppPreferences(context: Context) {
         private const val KEY_SENSITIVE_KEYWORDS_ENABLED = "sensitive_keywords_enabled"
         private const val KEY_USER_KEYWORD_BLACKLIST = "notif_user_keyword_blacklist"
         private const val KEY_PENDING_AI_EVENTS = "pending_ai_events"
+        private const val KEY_LAST_DRIVE_BACKUP_TIME = "last_drive_backup_time"
+        private const val KEY_LAST_ONEDRIVE_BACKUP_TIME = "last_onedrive_backup_time"
 
         const val NETWORK_WIFI = "wifi"
         const val NETWORK_MOBILE = "mobile"

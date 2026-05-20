@@ -220,8 +220,11 @@ class GoogleSyncSheet : Fragment() {
                 val result = feature.backup(bridge)
                 binding.btnGoogleBackup.isEnabled = true
                 when (result) {
-                    is BackupOutcome.Success ->
+                    is BackupOutcome.Success -> {
+                        prefs.lastDriveBackupTime = System.currentTimeMillis()
+                        updateDriveSection()
                         Toast.makeText(requireContext(), getString(R.string.settings_google_backup_success), Toast.LENGTH_SHORT).show()
+                    }
                     is BackupOutcome.AuthRequired -> {
                         val backupIntent = result.intent
                         if (backupIntent != null) {
@@ -376,8 +379,18 @@ class GoogleSyncSheet : Fragment() {
             if (!signedIn && prefs.gmailSyncEnabled) View.VISIBLE else View.GONE
 
         if (signedIn) {
-            binding.tvGoogleLastBackup.text = getString(R.string.settings_google_no_backup)
+            val lastTime = prefs.lastDriveBackupTime
+            binding.tvGoogleLastBackup.text = if (lastTime > 0L) {
+                "上次備份：${formatEpochMillis(lastTime)}"
+            } else {
+                getString(R.string.settings_google_no_backup)
+            }
         }
+    }
+
+    private fun formatEpochMillis(ms: Long): String {
+        val fmt = java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.getDefault())
+        return fmt.format(java.util.Date(ms))
     }
 
     // ── Gmail 作業同步 ──────────────────────────────────────────────────────────
