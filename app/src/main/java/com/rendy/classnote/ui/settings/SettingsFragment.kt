@@ -52,6 +52,18 @@ class SettingsFragment : Fragment() {
         setupMenuRows()
         setupAboutSection()
         autoCheckUpdate()
+        refreshAiCard()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshAiCard()
+    }
+
+    private fun refreshAiCard() {
+        val installed = FeatureManager.isDownloaded(requireContext(), "ai")
+        binding.cardMenuAiSettings.alpha = if (installed) 1f else 0.4f
+        binding.tvAiSettingsSubtitle.text = if (installed) "api key、通知辨識" else "未安裝 AI 功能模組"
     }
 
     private fun setupMenuRows() {
