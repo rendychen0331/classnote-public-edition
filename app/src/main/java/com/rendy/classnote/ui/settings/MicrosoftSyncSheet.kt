@@ -62,8 +62,8 @@ class MicrosoftSyncSheet : Fragment() {
         binding.ibtnMsSignIn.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 try {
-                    val token = MicrosoftAuthManager.signIn(requireContext())
-                    if (token == null) {
+                    val ok = MicrosoftAuthManager.signIn(requireActivity())
+                    if (!ok) {
                         Toast.makeText(requireContext(),
                             getString(R.string.settings_onedrive_sign_in_failed), Toast.LENGTH_SHORT).show()
                     }
@@ -84,8 +84,6 @@ class MicrosoftSyncSheet : Fragment() {
 
         binding.btnOneDriveBackup.setOnClickListener {
             binding.btnOneDriveBackup.isEnabled = false
-            Toast.makeText(requireContext(),
-                getString(R.string.settings_onedrive_backup_in_progress), Toast.LENGTH_SHORT).show()
             viewLifecycleOwner.lifecycleScope.launch {
                 val feature = FeatureManager.getBackup(requireContext(), "microsoft")
                 if (feature == null) {
@@ -94,6 +92,22 @@ class MicrosoftSyncSheet : Fragment() {
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
+                if (!bridge.hasData()) {
+                    binding.btnOneDriveBackup.isEnabled = true
+                    val proceed = kotlinx.coroutines.suspendCancellableCoroutine { cont ->
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("備份內容為空")
+                            .setMessage("目前沒有提醒、課堂筆記、公式或課表資料，確定要繼續備份嗎？")
+                            .setPositiveButton("繼續備份") { _, _ -> cont.resume(true, null) }
+                            .setNegativeButton("取消") { _, _ -> cont.resume(false, null) }
+                            .setOnCancelListener { cont.resume(false, null) }
+                            .show()
+                    }
+                    if (!proceed) return@launch
+                    binding.btnOneDriveBackup.isEnabled = false
+                }
+                Toast.makeText(requireContext(),
+                    getString(R.string.settings_onedrive_backup_in_progress), Toast.LENGTH_SHORT).show()
                 val result = feature.backup(bridge)
                 binding.btnOneDriveBackup.isEnabled = true
                 when (result) {

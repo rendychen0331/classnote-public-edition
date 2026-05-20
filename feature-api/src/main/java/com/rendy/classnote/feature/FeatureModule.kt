@@ -92,6 +92,10 @@ interface SyncBridge {
     fun gmailClassroomForwardEnabled(): Boolean
     fun backupNetworkType(): Int
     fun googleSignedInAccountEmail(): String?
+
+    // ── Backup guard ──────────────────────────────────────────────────────
+    /** Returns true if the local DB contains any user data worth backing up. */
+    fun hasData(): Boolean = true
 }
 
 data class KeepEventInfo(

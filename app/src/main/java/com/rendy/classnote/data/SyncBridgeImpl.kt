@@ -177,6 +177,19 @@ class SyncBridgeImpl(override val context: Context) : SyncBridge {
         settings["weatherApiComKey"]?.let { prefs.weatherApiComKey = it }
     }
 
+    // ── Backup guard ──────────────────────────────────────────────────────
+
+    override fun hasData(): Boolean {
+        val tables = listOf("reminders", "class_records", "formulas", "courses")
+        return tables.any { table ->
+            try {
+                db.openHelper.readableDatabase
+                    .query("SELECT COUNT(*) FROM $table", emptyArray())
+                    .use { c -> c.moveToFirst() && c.getInt(0) > 0 }
+            } catch (_: Exception) { false }
+        }
+    }
+
     // ── Preferences ───────────────────────────────────────────────────────
 
     override fun gmailClassroomForwardEnabled(): Boolean = prefs.gmailClassroomForwardEnabled

@@ -1,9 +1,13 @@
 package com.rendy.classnote.feature.microsoft
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
+import com.microsoft.identity.client.AcquireTokenParameters
 import com.microsoft.identity.client.AcquireTokenSilentParameters
+import com.microsoft.identity.client.AuthenticationCallback
 import com.microsoft.identity.client.IAccount
+import com.microsoft.identity.client.IAuthenticationResult
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication
 import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.PublicClientApplication
@@ -83,6 +87,38 @@ internal object MsAuthHelper {
         } catch (e: Exception) {
             Log.e(TAG, "silent token error (scopes=$scopes)", e)
             null
+        }
+    }
+
+    suspend fun signInInteractive(context: Context): Boolean {
+        val activity = context as? Activity ?: run {
+            Log.e(TAG, "signInInteractive requires Activity context")
+            return false
+        }
+        val app = getApp(context) ?: return false
+        return suspendCoroutine { cont ->
+            val params = AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(activity)
+                .withScopes(MS_SCOPES)
+                .withCallback(object : AuthenticationCallback {
+                    override fun onSuccess(result: IAuthenticationResult) {
+                        val email = result.account.username
+                        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                            .edit().putString(KEY_MS_EMAIL, email).apply()
+                        Log.d(TAG, "interactive sign-in success: $email")
+                        cont.resume(true)
+                    }
+                    override fun onError(e: MsalException) {
+                        Log.e(TAG, "interactive sign-in error", e)
+                        cont.resume(false)
+                    }
+                    override fun onCancel() {
+                        Log.d(TAG, "interactive sign-in cancelled")
+                        cont.resume(false)
+                    }
+                })
+                .build()
+            app.acquireToken(params)
         }
     }
 

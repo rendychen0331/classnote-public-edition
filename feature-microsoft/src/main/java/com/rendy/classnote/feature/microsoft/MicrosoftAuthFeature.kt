@@ -9,8 +9,11 @@ private const val KEY_MS_EMAIL = "ms_account_email"
 class MicrosoftAuthFeature : AuthFeature {
 
     override suspend fun signIn(context: Context): Boolean {
-        val token = MsAuthHelper.acquireTokenSilent(context)
-        return token != null
+        // Try silent first (already signed in)
+        val silentToken = MsAuthHelper.acquireTokenSilent(context)
+        if (silentToken != null) return true
+        // No existing account — launch interactive sign-in
+        return MsAuthHelper.signInInteractive(context)
     }
 
     override fun signOut(context: Context) {

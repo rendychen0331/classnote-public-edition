@@ -194,7 +194,6 @@ class GoogleSyncSheet : Fragment() {
 
         binding.btnGoogleBackup.setOnClickListener {
             binding.btnGoogleBackup.isEnabled = false
-            Toast.makeText(requireContext(), getString(R.string.settings_google_backup_in_progress), Toast.LENGTH_SHORT).show()
             viewLifecycleOwner.lifecycleScope.launch {
                 val feature = FeatureManager.getBackup(requireContext(), "google")
                 if (feature == null) {
@@ -203,6 +202,21 @@ class GoogleSyncSheet : Fragment() {
                     return@launch
                 }
                 val bridge = SyncBridgeImpl(requireContext())
+                if (!bridge.hasData()) {
+                    binding.btnGoogleBackup.isEnabled = true
+                    val proceed = kotlinx.coroutines.suspendCancellableCoroutine { cont ->
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("備份內容為空")
+                            .setMessage("目前沒有提醒、課堂筆記、公式或課表資料，確定要繼續備份嗎？")
+                            .setPositiveButton("繼續備份") { _, _ -> cont.resume(true, null) }
+                            .setNegativeButton("取消") { _, _ -> cont.resume(false, null) }
+                            .setOnCancelListener { cont.resume(false, null) }
+                            .show()
+                    }
+                    if (!proceed) return@launch
+                    binding.btnGoogleBackup.isEnabled = false
+                }
+                Toast.makeText(requireContext(), getString(R.string.settings_google_backup_in_progress), Toast.LENGTH_SHORT).show()
                 val result = feature.backup(bridge)
                 binding.btnGoogleBackup.isEnabled = true
                 when (result) {
