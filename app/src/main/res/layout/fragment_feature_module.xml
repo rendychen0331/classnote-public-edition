@@ -82,12 +82,28 @@
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:layout_marginBottom="12dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnGoogleDownload"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="下載"
-                    style="@style/Widget.Material3.Button.TonalButton" />
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnGoogleDownload"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="下載"
+                        style="@style/Widget.Material3.Button.TonalButton" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnGoogleUpdate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="更新"
+                        android:visibility="gone"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvGoogleProgress"
@@ -155,12 +171,28 @@
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:layout_marginBottom="12dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnMicrosoftDownload"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="下載"
-                    style="@style/Widget.Material3.Button.TonalButton" />
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnMicrosoftDownload"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="下載"
+                        style="@style/Widget.Material3.Button.TonalButton" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnMicrosoftUpdate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="更新"
+                        android:visibility="gone"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvMicrosoftProgress"
@@ -228,12 +260,28 @@
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:layout_marginBottom="12dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAiDownload"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="下載"
-                    style="@style/Widget.Material3.Button.TonalButton" />
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAiDownload"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="下載"
+                        style="@style/Widget.Material3.Button.TonalButton" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAiUpdate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="更新"
+                        android:visibility="gone"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvAiProgress"
@@ -301,12 +349,28 @@
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:layout_marginBottom="12dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnWeatherDownload"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="下載"
-                    style="@style/Widget.Material3.Button.TonalButton" />
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnWeatherDownload"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="下載"
+                        style="@style/Widget.Material3.Button.TonalButton" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnWeatherUpdate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="更新"
+                        android:visibility="gone"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvWeatherProgress"

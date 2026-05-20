@@ -47,6 +47,10 @@ class FeatureModuleSheet : Fragment() {
         binding.btnMicrosoftDownload.text = if (msInstalled) "刪除" else "下載"
         binding.btnAiDownload.text = if (aiInstalled) "刪除" else "下載"
         binding.btnWeatherDownload.text = if (weatherInstalled) "刪除" else "下載"
+        binding.btnGoogleUpdate.visibility = if (googleInstalled) View.VISIBLE else View.GONE
+        binding.btnMicrosoftUpdate.visibility = if (msInstalled) View.VISIBLE else View.GONE
+        binding.btnAiUpdate.visibility = if (aiInstalled) View.VISIBLE else View.GONE
+        binding.btnWeatherUpdate.visibility = if (weatherInstalled) View.VISIBLE else View.GONE
     }
 
     private fun setupButtons() {
@@ -86,6 +90,19 @@ class FeatureModuleSheet : Fragment() {
             }
         }
 
+        binding.btnGoogleUpdate.setOnClickListener {
+            updateSingleModule("google", "Google 功能模組", binding.tvGoogleProgress)
+        }
+        binding.btnMicrosoftUpdate.setOnClickListener {
+            updateSingleModule("microsoft", "Microsoft 功能模組", binding.tvMicrosoftProgress)
+        }
+        binding.btnAiUpdate.setOnClickListener {
+            updateSingleModule("ai", "AI 功能模組", binding.tvAiProgress)
+        }
+        binding.btnWeatherUpdate.setOnClickListener {
+            updateSingleModule("weather", "天氣模組", binding.tvWeatherProgress)
+        }
+
         binding.btnCheckUpdates.setOnClickListener {
             checkUpdates()
         }
@@ -123,6 +140,31 @@ class FeatureModuleSheet : Fragment() {
                 is DownloadResult.Error -> {
                     Toast.makeText(ctx, "下載失敗：${result.message}", Toast.LENGTH_LONG).show()
                 }
+            }
+            resetButtons()
+        }
+    }
+
+    private fun updateSingleModule(featureId: String, displayName: String, progressView: TextView) {
+        val ctx = requireContext()
+        setAllButtonsEnabled(false)
+        progressView.visibility = View.VISIBLE
+        progressView.text = "更新中…"
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val manifest = FeatureDownloader.fetchManifest()
+            val info = manifest.find { it.id == featureId }
+            if (info == null) {
+                Toast.makeText(ctx, "無法取得 $displayName 資訊", Toast.LENGTH_LONG).show()
+                resetButtons()
+                return@launch
+            }
+            val versionCode = ctx.packageManager.getPackageInfo(ctx.packageName, 0).longVersionCode.toInt()
+            when (val result = FeatureDownloader.download(ctx, info, versionCode)) {
+                is DownloadResult.Success -> Toast.makeText(ctx, "$displayName 已更新", Toast.LENGTH_SHORT).show()
+                is DownloadResult.AlreadyUpToDate -> Toast.makeText(ctx, "$displayName 已是最新版本", Toast.LENGTH_SHORT).show()
+                is DownloadResult.VersionTooOld -> Toast.makeText(ctx, "請先更新 App 再安裝此功能模組", Toast.LENGTH_LONG).show()
+                is DownloadResult.Error -> Toast.makeText(ctx, "更新失敗：${result.message}", Toast.LENGTH_LONG).show()
             }
             resetButtons()
         }
@@ -182,6 +224,10 @@ class FeatureModuleSheet : Fragment() {
         binding.btnMicrosoftDownload.isEnabled = enabled
         binding.btnAiDownload.isEnabled = enabled
         binding.btnWeatherDownload.isEnabled = enabled
+        binding.btnGoogleUpdate.isEnabled = enabled
+        binding.btnMicrosoftUpdate.isEnabled = enabled
+        binding.btnAiUpdate.isEnabled = enabled
+        binding.btnWeatherUpdate.isEnabled = enabled
         binding.btnCheckUpdates.isEnabled = enabled
     }
 
