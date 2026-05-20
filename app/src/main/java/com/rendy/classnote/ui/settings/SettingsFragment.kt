@@ -53,11 +53,22 @@ class SettingsFragment : Fragment() {
         setupAboutSection()
         autoCheckUpdate()
         refreshAiCard()
+        refreshWeatherCard()
+        resumePendingDownload()
     }
 
     override fun onResume() {
         super.onResume()
         refreshAiCard()
+        refreshWeatherCard()
+    }
+
+    private fun refreshWeatherCard() {
+        val installed = FeatureManager.isDownloaded(requireContext(), "weather")
+        binding.cardMenuWeather.alpha = if (installed) 1f else 0.4f
+        binding.cardMenuWeather.isEnabled = installed
+        binding.cardMenuWeather.isClickable = installed
+        binding.tvWeatherSettingsSubtitle.text = if (installed) "每日天氣推播、時間與地區設定" else "未安裝天氣模組"
     }
 
     private fun refreshAiCard() {
@@ -216,12 +227,22 @@ class SettingsFragment : Fragment() {
                 if (downloadId == UpdateChecker.DOWNLOAD_ID_CACHED) {
                     binding.tvUpdateStatus.text = "正在開啟安裝介面…"
                 } else {
+                    prefs.activeApkDownloadId = downloadId
                     binding.tvUpdateStatus.text = "下載中... 0%"
+                    binding.btnCheckUpdate.isEnabled = false
                     trackDownloadProgress(downloadId)
                 }
             }
             .setNegativeButton("稍後", null)
             .show()
+    }
+
+    private fun resumePendingDownload() {
+        val downloadId = prefs.activeApkDownloadId
+        if (downloadId <= 0L) return
+        binding.tvUpdateStatus.text = "下載中..."
+        binding.btnCheckUpdate.isEnabled = false
+        trackDownloadProgress(downloadId)
     }
 
     private fun trackDownloadProgress(downloadId: Long) {
@@ -232,11 +253,19 @@ class SettingsFragment : Fragment() {
                 }
                 when {
                     progress == 100 -> {
-                        binding.tvUpdateStatus.text = "下載完成"
+                        prefs.activeApkDownloadId = 0L
+                        if (_binding != null) {
+                            binding.tvUpdateStatus.text = "下載完成"
+                            binding.btnCheckUpdate.isEnabled = true
+                        }
                         break
                     }
                     progress < 0 -> {
-                        binding.tvUpdateStatus.text = "下載失敗"
+                        prefs.activeApkDownloadId = 0L
+                        if (_binding != null) {
+                            binding.tvUpdateStatus.text = "下載失敗"
+                            binding.btnCheckUpdate.isEnabled = true
+                        }
                         break
                     }
                     else -> binding.tvUpdateStatus.text = "下載中... $progress%"

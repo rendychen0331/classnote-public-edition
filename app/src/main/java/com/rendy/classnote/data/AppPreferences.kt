@@ -78,6 +78,10 @@ class AppPreferences(context: Context) {
         get() = prefs.getLong(KEY_LAST_ONEDRIVE_BACKUP_TIME, 0L)
         set(value) = prefs.edit { putLong(KEY_LAST_ONEDRIVE_BACKUP_TIME, value) }
 
+    var activeApkDownloadId: Long
+        get() = prefs.getLong(KEY_ACTIVE_APK_DOWNLOAD_ID, 0L)
+        set(value) = prefs.edit { putLong(KEY_ACTIVE_APK_DOWNLOAD_ID, value) }
+
     /** 自動 Gmail 同步開關。預設關閉。 */
     var autoGmailSyncEnabled: Boolean
         get() = prefs.getBoolean(KEY_AUTO_GMAIL_SYNC_ENABLED, false)
@@ -635,6 +639,7 @@ class AppPreferences(context: Context) {
         private const val KEY_PENDING_AI_EVENTS = "pending_ai_events"
         private const val KEY_LAST_DRIVE_BACKUP_TIME = "last_drive_backup_time"
         private const val KEY_LAST_ONEDRIVE_BACKUP_TIME = "last_onedrive_backup_time"
+        private const val KEY_ACTIVE_APK_DOWNLOAD_ID = "active_apk_download_id"
 
         const val NETWORK_WIFI = "wifi"
         const val NETWORK_MOBILE = "mobile"

@@ -86,7 +86,12 @@ object UpdateChecker {
 
     fun downloadAndInstall(context: Context, apkUrl: String, tagName: String): Long {
         val filename = "classnote-$tagName.apk"
-        val cachedFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), filename)
+        val downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        downloadsDir?.listFiles { f ->
+            f.name.startsWith("classnote-") && f.name.endsWith(".apk") && f.name != filename
+        }?.forEach { it.delete() }
+
+        val cachedFile = File(downloadsDir, filename)
         if (cachedFile.exists() && cachedFile.length() > 0) {
             triggerInstallFromFile(context, cachedFile)
             return DOWNLOAD_ID_CACHED
@@ -126,6 +131,7 @@ object UpdateChecker {
                 try { ctx.startActivity(installIntent) } catch (e: Exception) {
                     Log.e(TAG, "triggerInstall error", e)
                 }
+                dm.remove(downloadId)
             }
         }
 
@@ -147,6 +153,7 @@ object UpdateChecker {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
                 putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
             })
+            apkFile.delete()
         } catch (e: Exception) {
             Log.e(TAG, "triggerInstallFromFile error", e)
             android.widget.Toast.makeText(context, "無法開啟安裝介面：${e.message}", android.widget.Toast.LENGTH_LONG).show()

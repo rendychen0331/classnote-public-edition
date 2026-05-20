@@ -21,12 +21,22 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rendy.classnote.R
+import com.rendy.classnote.data.FeatureManager
 import com.rendy.classnote.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
+
+    private val settingsDestinations = setOf(
+        R.id.settingsFragment, R.id.alarmPermFragment, R.id.syncFragment,
+        R.id.backupSyncFragment, R.id.googleSyncFragment, R.id.microsoftSyncFragment,
+        R.id.localSyncFragment, R.id.weatherNotifFragment,
+        R.id.aiSettingsFragment, R.id.apiLogFragment,
+        R.id.permissionsFragment, R.id.featureModuleFragment,
+        R.id.errorLogFragment
+    )
 
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* no-op */ }
@@ -43,24 +53,16 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
 
         binding.bottomNavigation.setupWithNavController(navController)
-        // setupWithNavController 同步 NavController→BottomNav 選中狀態（保留）
-        // 覆寫 item 點擊：切換 tab 前若在設定頁（含子頁面），先 pop 回根，避免子頁被留在 back stack
-        val settingsDestinations = setOf(
-            R.id.settingsFragment, R.id.alarmPermFragment, R.id.syncFragment,
-            R.id.backupSyncFragment, R.id.googleSyncFragment, R.id.microsoftSyncFragment,
-            R.id.localSyncFragment, R.id.weatherNotifFragment,
-            R.id.aiSettingsFragment, R.id.apiLogFragment,
-            R.id.permissionsFragment, R.id.featureModuleFragment
-        )
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             if (navController.currentDestination?.id in settingsDestinations) {
                 navController.popBackStack(R.id.settingsFragment, inclusive = true)
             }
             NavigationUI.onNavDestinationSelected(item, navController)
         }
-        // 重選同一 tab 時，若目前在設定子頁，強制導回該 tab
         binding.bottomNavigation.setOnItemReselectedListener { item ->
-            if (navController.currentDestination?.id != item.itemId) {
+            if (navController.currentDestination?.id in settingsDestinations) {
+                navController.popBackStack(R.id.settingsFragment, inclusive = true)
+            } else if (navController.currentDestination?.id != item.itemId) {
                 NavigationUI.onNavDestinationSelected(item, navController)
             }
         }
@@ -85,8 +87,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            binding.toolbar.menu.findItem(R.id.action_settings)
-                ?.isVisible = destination.id !in settingsDestinations
+            val inSettings = destination.id in settingsDestinations
+            binding.toolbar.menu.findItem(R.id.action_settings)?.isVisible = !inSettings
+            if (inSettings) {
+                binding.bottomNavigation.menu.setGroupCheckable(0, false, true)
+            } else {
+                binding.bottomNavigation.menu.setGroupCheckable(0, true, true)
+            }
+            val weatherInstalled = FeatureManager.isDownloaded(this, "weather")
+            binding.bottomNavigation.menu.findItem(R.id.weatherFragment)?.isEnabled = weatherInstalled
         }
 
         // adjustNothing：BottomNav 固定不動，鍵盤彈起時手動把內容區上推

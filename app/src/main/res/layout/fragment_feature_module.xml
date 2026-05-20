@@ -384,13 +384,5 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Check updates -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCheckUpdates"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="檢查模組更新"
-            style="@style/Widget.Material3.Button.OutlinedButton" />
-
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

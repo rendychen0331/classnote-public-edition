@@ -102,10 +102,6 @@ class FeatureModuleSheet : Fragment() {
         binding.btnWeatherUpdate.setOnClickListener {
             updateSingleModule("weather", "天氣模組", binding.tvWeatherProgress)
         }
-
-        binding.btnCheckUpdates.setOnClickListener {
-            checkUpdates()
-        }
     }
 
     private fun downloadFeature(featureId: String, displayName: String, progressView: TextView) {
@@ -170,46 +166,6 @@ class FeatureModuleSheet : Fragment() {
         }
     }
 
-    private fun checkUpdates() {
-        val ctx = requireContext()
-        setAllButtonsEnabled(false)
-
-        val progressMap = mapOf(
-            "google" to binding.tvGoogleProgress,
-            "microsoft" to binding.tvMicrosoftProgress,
-            "ai" to binding.tvAiProgress,
-            "weather" to binding.tvWeatherProgress
-        )
-        progressMap.values.forEach { it.visibility = View.GONE }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            val manifest = FeatureDownloader.fetchManifest()
-            if (manifest.isEmpty()) {
-                Toast.makeText(ctx, "無法取得功能清單，請檢查網路", Toast.LENGTH_LONG).show()
-                resetButtons()
-                return@launch
-            }
-
-            val versionCode = ctx.packageManager.getPackageInfo(ctx.packageName, 0).longVersionCode.toInt()
-            var updated = 0
-            for (info in manifest) {
-                if (!FeatureManager.isDownloaded(ctx, info.id)) continue
-                val progressView = progressMap[info.id]
-                progressView?.visibility = View.VISIBLE
-                progressView?.text = "更新中…"
-                when (FeatureDownloader.download(ctx, info, versionCode)) {
-                    is DownloadResult.Success -> updated++
-                    else -> {}
-                }
-                progressView?.visibility = View.GONE
-            }
-
-            val msg = if (updated > 0) "已更新 $updated 個功能模組" else "所有已安裝模組均為最新版本"
-            Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show()
-            resetButtons()
-        }
-    }
-
     private fun confirmDelete(name: String, onConfirm: () -> Unit) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("刪除 $name 功能模組")
@@ -228,7 +184,6 @@ class FeatureModuleSheet : Fragment() {
         binding.btnMicrosoftUpdate.isEnabled = enabled
         binding.btnAiUpdate.isEnabled = enabled
         binding.btnWeatherUpdate.isEnabled = enabled
-        binding.btnCheckUpdates.isEnabled = enabled
     }
 
     private fun resetButtons() {
