@@ -9,6 +9,7 @@ import android.webkit.WebViewClient
 import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.WeatherPreferences
 import com.rendy.classnote.data.local.ClassNoteDatabase
+import com.rendy.classnote.data.ErrorLogger
 import com.rendy.classnote.data.remote.ApiLogger
 import com.rendy.classnote.data.repository.ClassRecordRepository
 import com.rendy.classnote.data.repository.CourseRepository
@@ -77,6 +78,7 @@ class ClassNoteApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         ApiLogger.init(database.apiLogDao())
+        ErrorLogger.init(database.errorLogDao())
         val nm = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
         val bypassDnd = appPreferences.bypassDndEnabled && nm.isNotificationPolicyAccessGranted
         NotificationHelper.createNotificationChannel(this, bypassDnd)

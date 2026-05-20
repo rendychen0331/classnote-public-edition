@@ -138,7 +138,10 @@
             app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/actionSettingsToApiLog"
-            app:destination="@id/apiLogFragment"
+            app:destination="@id/apiLogFragment" />
+        <action
+            android:id="@+id/actionSettingsToErrorLog"
+            app:destination="@id/errorLogFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -261,6 +264,12 @@
         android:name="com.rendy.classnote.ui.settings.ApiLogSheet"
         android:label="API 記錄"
         tools:layout="@layout/sheet_api_log" />
+
+    <fragment
+        android:id="@+id/errorLogFragment"
+        android:name="com.rendy.classnote.ui.settings.ErrorLogSheet"
+        android:label="錯誤記錄"
+        tools:layout="@layout/sheet_error_log" />
 
     <!-- ── 上課紀錄 ── -->
     <fragment

@@ -23,9 +23,10 @@ import kotlinx.coroutines.launch
         com.rendy.classnote.data.local.entity.ClassRecordEntity::class,
         com.rendy.classnote.data.local.entity.ClassRecordMediaEntity::class,
         com.rendy.classnote.data.local.entity.ApiLogEntity::class,
-        com.rendy.classnote.data.local.entity.ClassSessionSummaryEntity::class
+        com.rendy.classnote.data.local.entity.ClassSessionSummaryEntity::class,
+        com.rendy.classnote.data.local.entity.ErrorLogEntity::class
     ],
-    version = 14,
+    version = 15,
     exportSchema = false
 )
 abstract class ClassNoteDatabase : RoomDatabase() {
@@ -40,6 +41,7 @@ abstract class ClassNoteDatabase : RoomDatabase() {
     abstract fun classRecordMediaDao(): com.rendy.classnote.data.local.dao.ClassRecordMediaDao
     abstract fun apiLogDao(): com.rendy.classnote.data.local.dao.ApiLogDao
     abstract fun classSessionSummaryDao(): com.rendy.classnote.data.local.dao.ClassSessionSummaryDao
+    abstract fun errorLogDao(): com.rendy.classnote.data.local.dao.ErrorLogDao
 
     companion object {
         @Volatile
@@ -171,6 +173,20 @@ abstract class ClassNoteDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS error_logs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        timestamp INTEGER NOT NULL,
+                        tag TEXT NOT NULL,
+                        message TEXT NOT NULL,
+                        stacktrace TEXT NOT NULL DEFAULT ''
+                    )
+                """.trimIndent())
+            }
+        }
+
         fun closeDatabase() {
             INSTANCE?.close()
             INSTANCE = null
@@ -184,7 +200,7 @@ abstract class ClassNoteDatabase : RoomDatabase() {
                     "classnote_database"
                 )
                     .addCallback(DatabaseCallback())
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15)
                     .build()
                 INSTANCE = instance
                 instance

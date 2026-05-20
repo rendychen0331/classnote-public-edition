@@ -90,6 +90,10 @@ class SettingsFragment : Fragment() {
             findNavController().navigate(R.id.actionSettingsToApiLog)
         }
 
+        binding.cardMenuErrorLog.setOnClickListener {
+            findNavController().navigate(R.id.actionSettingsToErrorLog)
+        }
+
         binding.cardMenuFeatureModules.setOnClickListener {
             findNavController().navigate(R.id.actionSettingsToFeatureModules)
         }
