@@ -37,19 +37,23 @@ class FeatureModuleSheet : Fragment() {
         val googleInstalled = FeatureManager.isDownloaded(ctx, "google")
         val msInstalled = FeatureManager.isDownloaded(ctx, "microsoft")
         val aiInstalled = FeatureManager.isDownloaded(ctx, "ai")
+        val assistantInstalled = FeatureManager.isDownloaded(ctx, "assistant")
         val weatherInstalled = FeatureManager.isDownloaded(ctx, "weather")
 
         binding.tvGoogleStatus.text = if (googleInstalled) "已安裝" else "未安裝"
         binding.tvMicrosoftStatus.text = if (msInstalled) "已安裝" else "未安裝"
         binding.tvAiStatus.text = if (aiInstalled) "已安裝" else "未安裝"
+        binding.tvAssistantStatus.text = if (assistantInstalled) "已安裝" else "未安裝"
         binding.tvWeatherStatus.text = if (weatherInstalled) "已安裝" else "未安裝"
         binding.btnGoogleDownload.text = if (googleInstalled) "刪除" else "下載"
         binding.btnMicrosoftDownload.text = if (msInstalled) "刪除" else "下載"
         binding.btnAiDownload.text = if (aiInstalled) "刪除" else "下載"
+        binding.btnAssistantDownload.text = if (assistantInstalled) "刪除" else "下載"
         binding.btnWeatherDownload.text = if (weatherInstalled) "刪除" else "下載"
         binding.btnGoogleUpdate.visibility = if (googleInstalled) View.VISIBLE else View.GONE
         binding.btnMicrosoftUpdate.visibility = if (msInstalled) View.VISIBLE else View.GONE
         binding.btnAiUpdate.visibility = if (aiInstalled) View.VISIBLE else View.GONE
+        binding.btnAssistantUpdate.visibility = if (assistantInstalled) View.VISIBLE else View.GONE
         binding.btnWeatherUpdate.visibility = if (weatherInstalled) View.VISIBLE else View.GONE
     }
 
@@ -81,6 +85,15 @@ class FeatureModuleSheet : Fragment() {
             }
         }
 
+        binding.btnAssistantDownload.setOnClickListener {
+            val ctx = requireContext()
+            if (FeatureManager.isDownloaded(ctx, "assistant")) {
+                confirmDelete("助手") { FeatureManager.delete(ctx, "assistant"); refreshStatus() }
+            } else {
+                downloadFeature("assistant", "助手模組", binding.tvAssistantProgress)
+            }
+        }
+
         binding.btnWeatherDownload.setOnClickListener {
             val ctx = requireContext()
             if (FeatureManager.isDownloaded(ctx, "weather")) {
@@ -98,6 +111,9 @@ class FeatureModuleSheet : Fragment() {
         }
         binding.btnAiUpdate.setOnClickListener {
             updateSingleModule("ai", "AI 功能模組", binding.tvAiProgress)
+        }
+        binding.btnAssistantUpdate.setOnClickListener {
+            updateSingleModule("assistant", "助手模組", binding.tvAssistantProgress)
         }
         binding.btnWeatherUpdate.setOnClickListener {
             updateSingleModule("weather", "天氣模組", binding.tvWeatherProgress)
@@ -179,10 +195,12 @@ class FeatureModuleSheet : Fragment() {
         binding.btnGoogleDownload.isEnabled = enabled
         binding.btnMicrosoftDownload.isEnabled = enabled
         binding.btnAiDownload.isEnabled = enabled
+        binding.btnAssistantDownload.isEnabled = enabled
         binding.btnWeatherDownload.isEnabled = enabled
         binding.btnGoogleUpdate.isEnabled = enabled
         binding.btnMicrosoftUpdate.isEnabled = enabled
         binding.btnAiUpdate.isEnabled = enabled
+        binding.btnAssistantUpdate.isEnabled = enabled
         binding.btnWeatherUpdate.isEnabled = enabled
     }
 
@@ -191,6 +209,7 @@ class FeatureModuleSheet : Fragment() {
         binding.tvGoogleProgress.visibility = View.GONE
         binding.tvMicrosoftProgress.visibility = View.GONE
         binding.tvAiProgress.visibility = View.GONE
+        binding.tvAssistantProgress.visibility = View.GONE
         binding.tvWeatherProgress.visibility = View.GONE
         refreshStatus()
     }

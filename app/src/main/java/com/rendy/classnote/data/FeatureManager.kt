@@ -24,6 +24,7 @@ object FeatureManager {
         "google"    to "com.rendy.classnote.feature.google.GoogleFeatureModule",
         "microsoft" to "com.rendy.classnote.feature.microsoft.MicrosoftFeatureModule",
         "ai"        to "com.rendy.classnote.feature.ai.AiFeatureModule",
+        "assistant" to "com.rendy.classnote.feature.assistant.AssistantFeatureModule",
         "weather"   to "com.rendy.classnote.feature.weather.WeatherFeatureModule"
     )
 

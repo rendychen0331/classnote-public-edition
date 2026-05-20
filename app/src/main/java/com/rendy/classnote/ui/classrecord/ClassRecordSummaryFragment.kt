@@ -93,14 +93,28 @@ class ClassRecordSummaryFragment : Fragment() {
     }
 
     private fun generateSummary() {
-        val prefs = AppPreferences(requireContext())
-        val apiKey = prefs.geminiApiKey
-        if (apiKey.isBlank()) {
-            addMessage(ChatMessage("請先在設定頁輸入 Gemini API Key", isUser = false))
-            return
-        }
         val ai = FeatureManager.getAi(requireContext()) ?: run {
             addMessage(ChatMessage("請先下載 AI 功能模組", isUser = false))
+            return
+        }
+        val prefs = AppPreferences(requireContext())
+        val provider = selectedProvider()
+        val apiKey = when (provider) {
+            "mimo"             -> prefs.mimoApiKey
+            "claude"           -> prefs.claudeApiKey
+            "openai"           -> prefs.openaiApiKey
+            "groq"             -> prefs.groqApiKey
+            "deepseek"         -> prefs.deepseekApiKey
+            "custom-anthropic" -> AppPreferences.encodeCustomKey(
+                prefs.customAnthropicEndpoint, prefs.customAnthropicModel, prefs.customAnthropicKey
+            )
+            "custom-openai"    -> AppPreferences.encodeCustomKey(
+                prefs.customOpenaiEndpoint, prefs.customOpenaiModel, prefs.customOpenaiKey
+            )
+            else               -> prefs.geminiApiKey
+        }
+        if (apiKey.isBlank()) {
+            addMessage(ChatMessage("請先在設定頁輸入 API Key", isUser = false))
             return
         }
 
@@ -122,7 +136,7 @@ class ClassRecordSummaryFragment : Fragment() {
                     if (record.aiSummary.isNotBlank()) {
                         contentParts.add("【錄音摘要】\n${record.aiSummary}")
                     } else {
-                        ai.summarizeAudio(apiKey, audio.filePath)?.takeIf { it.isNotBlank() }
+                        ai.summarizeAudio(provider, apiKey, audio.filePath)?.takeIf { it.isNotBlank() }
                             ?.let { contentParts.add("【錄音摘要】\n$it") }
                     }
                 }
@@ -131,7 +145,7 @@ class ClassRecordSummaryFragment : Fragment() {
                     if (photo.aiSummary.isNotBlank()) {
                         contentParts.add("【$label】\n${photo.aiSummary}")
                     } else {
-                        ai.summarizePhoto(apiKey, photo.filePath)?.takeIf { it.isNotBlank() }
+                        ai.summarizePhoto(provider, apiKey, photo.filePath)?.takeIf { it.isNotBlank() }
                             ?.let {
                                 viewModel.updateMediaAiSummary(photo.id, it)
                                 contentParts.add("【$label】\n$it")
@@ -147,7 +161,7 @@ class ClassRecordSummaryFragment : Fragment() {
                 return@launch
             }
 
-            val summary = ai.summarizeSession(apiKey, contentParts.joinToString("\n\n"))
+            val summary = ai.summarizeSession(provider, apiKey, contentParts.joinToString("\n\n"))
             binding.progressChat.visibility = View.GONE
             binding.btnSend.isEnabled = true
 

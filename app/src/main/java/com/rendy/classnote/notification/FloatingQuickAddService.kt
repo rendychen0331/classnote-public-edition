@@ -66,7 +66,14 @@ class FloatingQuickAddService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_SHOW -> if (overlayView == null) showOverlay()
+            ACTION_SHOW -> {
+                if (!FeatureManager.isDownloaded(this, "assistant")) {
+                    android.widget.Toast.makeText(this, "請先至功能模組管理下載助手模組", android.widget.Toast.LENGTH_SHORT).show()
+                    dismiss()
+                } else if (overlayView == null) {
+                    showOverlay()
+                }
+            }
             ACTION_DISMISS -> dismiss()
         }
         return START_NOT_STICKY

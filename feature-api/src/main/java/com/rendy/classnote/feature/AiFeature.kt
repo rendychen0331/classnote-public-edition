@@ -24,9 +24,9 @@ interface AiFeature {
         periodTimes: List<PeriodTimeBridge>
     ): List<List<EventInfo>>
 
-    suspend fun summarizeSession(apiKey: String, content: String): String?
-    suspend fun summarizeAudio(apiKey: String, audioPath: String): String?
-    suspend fun summarizePhoto(apiKey: String, photoPath: String): String?
+    suspend fun summarizeSession(provider: String, apiKey: String, content: String): String?
+    suspend fun summarizeAudio(provider: String, apiKey: String, audioPath: String): String?
+    suspend fun summarizePhoto(provider: String, apiKey: String, photoPath: String): String?
 
     suspend fun chatWithContext(
         provider: String,

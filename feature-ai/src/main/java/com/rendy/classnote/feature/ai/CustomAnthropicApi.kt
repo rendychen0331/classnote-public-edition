@@ -120,4 +120,37 @@ internal object CustomAnthropicApi {
         }
         result
     }
+
+    suspend fun summarizeSession(endpoint: String, model: String, apiKey: String, content: String): String? = withContext(Dispatchers.IO) {
+        var result: String? = null
+        try {
+            val conn = (URL(endpoint).openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                setRequestProperty("Content-Type", "application/json; charset=utf-8")
+                setRequestProperty("x-api-key", apiKey)
+                setRequestProperty("anthropic-version", API_VERSION)
+                doOutput = true
+                connectTimeout = 30_000
+                readTimeout = 60_000
+            }
+            val body = JSONObject().apply {
+                put("model", model)
+                put("max_tokens", 2000)
+                put("messages", JSONArray().put(JSONObject().apply {
+                    put("role", "user")
+                    put("content", "以下是一堂課的所有筆記內容，請用繁體中文整理成課堂重點總結，以條列式呈現，每點不超過 60 字：\n\n$content")
+                }))
+            }.toString()
+            OutputStreamWriter(conn.outputStream, Charsets.UTF_8).use { it.write(body) }
+            if (conn.responseCode == 200) {
+                result = JSONObject(conn.inputStream.bufferedReader(Charsets.UTF_8).readText())
+                    .getJSONArray("content").getJSONObject(0).getString("text").trim()
+            } else {
+                Log.e(TAG, "summarizeSession HTTP ${conn.responseCode}")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "summarizeSession failed", e)
+        }
+        result
+    }
 }
