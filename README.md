@@ -17,7 +17,7 @@ Made with Claude(程式碼) & Gemini(App icon) & Google Stitch(UI)
 >
 >大部分使用Xiaomi HyperOS 2 測試（主力機）
 >
->~~天氣僅支援CWA API~~
+>~~天氣僅支援CWA API~~已支援open-meteo& weatherapi.com(尚未測試)
 
 ## 特別感謝
 - [svgl](https://svgl.app) - 提供icon
