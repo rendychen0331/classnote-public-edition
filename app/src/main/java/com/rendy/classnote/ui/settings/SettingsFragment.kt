@@ -214,7 +214,7 @@ class SettingsFragment : Fragment() {
             .setPositiveButton("下載安裝") { _, _ ->
                 val downloadId = UpdateChecker.downloadAndInstall(requireContext(), info.apkUrl, info.tagName)
                 if (downloadId == UpdateChecker.DOWNLOAD_ID_CACHED) {
-                    binding.tvUpdateStatus.text = "已從快取安裝"
+                    binding.tvUpdateStatus.text = "正在開啟安裝介面…"
                 } else {
                     binding.tvUpdateStatus.text = "下載中... 0%"
                     trackDownloadProgress(downloadId)

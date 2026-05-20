@@ -139,16 +139,17 @@ object UpdateChecker {
         return downloadId
     }
 
-    private fun triggerInstallFromFile(context: Context, apkFile: File) {
+    fun triggerInstallFromFile(context: Context, apkFile: File) {
         try {
             val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apkFile)
             context.startActivity(Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
-                data = uri
+                setDataAndType(uri, "application/vnd.android.package-archive")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
                 putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
             })
         } catch (e: Exception) {
             Log.e(TAG, "triggerInstallFromFile error", e)
+            android.widget.Toast.makeText(context, "無法開啟安裝介面：${e.message}", android.widget.Toast.LENGTH_LONG).show()
         }
     }
 
