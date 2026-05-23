@@ -5,6 +5,8 @@
     <!-- Bottom Navigation -->
     <string name="nav_schedule">課表</string>
     <string name="nav_reminders">提醒</string>
+    <string name="nav_more">更多</string>
+    <string name="nav_ai">AI</string>
 
     <!-- Schedule Tabs -->
     <string name="tab_week_view">週課表</string>

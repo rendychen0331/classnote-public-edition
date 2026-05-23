@@ -2,22 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/scheduleFragment"
+        android:orderInCategory="0"
         android:icon="@drawable/ic_schedule"
         android:title="@string/nav_schedule" />
     <item
         android:id="@+id/reminderListFragment"
+        android:orderInCategory="10"
         android:icon="@drawable/ic_reminder"
         android:title="@string/nav_reminders" />
     <item
-        android:id="@+id/formulaListFragment"
-        android:icon="@drawable/ic_formula"
-        android:title="@string/nav_formula" />
-    <item
-        android:id="@+id/weatherFragment"
-        android:icon="@drawable/ic_weather"
-        android:title="@string/nav_weather" />
-    <item
         android:id="@+id/classRecordListFragment"
+        android:orderInCategory="20"
         android:icon="@drawable/ic_class_record"
         android:title="@string/nav_class_record" />
+    <item
+        android:id="@+id/moreFragment"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_extension"
+        android:title="@string/nav_more" />
 </menu>

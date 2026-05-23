@@ -71,9 +71,9 @@ class MainActivity : AppCompatActivity() {
             setOf(
                 R.id.scheduleFragment,
                 R.id.reminderListFragment,
-                R.id.formulaListFragment,
-                R.id.weatherFragment,
-                R.id.classRecordListFragment
+                R.id.classRecordListFragment,
+                R.id.aiSettingsFragment,
+                R.id.moreFragment
             )
         )
         binding.toolbar.setupWithNavController(navController, appBarConfig)
@@ -94,8 +94,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 binding.bottomNavigation.menu.setGroupCheckable(0, true, true)
             }
-            val weatherInstalled = FeatureManager.isDownloaded(this, "weather")
-            binding.bottomNavigation.menu.findItem(R.id.weatherFragment)?.isVisible = weatherInstalled
+            refreshAiTab()
         }
 
         // adjustNothing：BottomNav 固定不動，鍵盤彈起時手動把內容區上推
@@ -110,10 +109,26 @@ class MainActivity : AppCompatActivity() {
             ViewCompat.onApplyWindowInsets(view, insets)
         }
 
+        refreshAiTab()
+
         // 僅首次建立時請求權限（避免旋轉螢幕重複跳轉設定頁）
         if (savedInstanceState == null) {
             requestRequiredPermissions()
             handleNavigateIntent(intent)
+        }
+    }
+
+    private var aiTabAdded = false
+
+    private fun refreshAiTab() {
+        val installed = FeatureManager.isDownloaded(this, "ai")
+        if (installed && !aiTabAdded) {
+            binding.bottomNavigation.menu.add(0, R.id.aiSettingsFragment, 30, getString(R.string.nav_ai))
+                .setIcon(R.drawable.ic_ai)
+            aiTabAdded = true
+        } else if (!installed && aiTabAdded) {
+            binding.bottomNavigation.menu.removeItem(R.id.aiSettingsFragment)
+            aiTabAdded = false
         }
     }
 

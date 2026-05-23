@@ -102,6 +102,20 @@
         android:label="@string/nav_weather"
         tools:layout="@layout/fragment_weather" />
 
+    <!-- ── 更多 ── -->
+    <fragment
+        android:id="@+id/moreFragment"
+        android:name="com.rendy.classnote.ui.more.MoreFragment"
+        android:label="@string/nav_more"
+        tools:layout="@layout/fragment_more">
+        <action
+            android:id="@+id/actionMoreToFormulaList"
+            app:destination="@id/formulaListFragment" />
+        <action
+            android:id="@+id/actionMoreToWeather"
+            app:destination="@id/weatherFragment" />
+    </fragment>
+
     <!-- ── 設定 ── -->
     <fragment
         android:id="@+id/settingsFragment"
