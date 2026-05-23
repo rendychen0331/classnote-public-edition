@@ -161,9 +161,9 @@ class AiChatFragment : Fragment() {
                 return@launch
             }
             val labels = records.map { r: ClassRecordEntity ->
-                val subject = r.subject.ifBlank { "未命名" }
+                val title = r.title.ifBlank { r.date.ifBlank { "未命名" } }
                 val timeLabel = r.timeLabel.ifBlank { "" }
-                if (timeLabel.isNotBlank()) "$subject｜$timeLabel" else subject
+                if (timeLabel.isNotBlank()) "$title｜$timeLabel" else title
             }.toTypedArray()
 
             AlertDialog.Builder(requireContext())
