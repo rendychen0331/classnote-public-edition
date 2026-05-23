@@ -1,6 +1,9 @@
 package com.rendy.classnote.data
 
 import android.app.DownloadManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -9,8 +12,10 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
 import com.rendy.classnote.BuildConfig
+import com.rendy.classnote.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -84,8 +89,12 @@ object UpdateChecker {
     /** Return value -2L means APK was already cached — install triggered directly, no progress to track. */
     const val DOWNLOAD_ID_CACHED = -2L
 
+    private const val NOTIF_CHANNEL_ID = "update_install"
+    private const val NOTIF_ID_INSTALL_READY = 9001
+
     fun downloadAndInstall(context: Context, apkUrl: String, tagName: String): Long {
         val filename = "classnote-$tagName.apk"
+        AppPreferences(context).activeApkFileName = filename
         val downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         downloadsDir?.listFiles { f ->
             f.name.startsWith("classnote-") && f.name.endsWith(".apk") && f.name != filename
@@ -122,16 +131,8 @@ object UpdateChecker {
                 cursor.close()
                 if (!success) return
 
-                val apkUri = dm.getUriForDownloadedFile(downloadId) ?: return
-                val installIntent = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
-                    data = apkUri
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-                }
-                try { ctx.startActivity(installIntent) } catch (e: Exception) {
-                    Log.e(TAG, "triggerInstall error", e)
-                }
                 dm.remove(downloadId)
+                showInstallNotification(ctx, tagName)
             }
         }
 
@@ -143,6 +144,37 @@ object UpdateChecker {
         }
 
         return downloadId
+    }
+
+    fun getDownloadedApkFile(context: Context): File? {
+        val filename = AppPreferences(context).activeApkFileName.takeIf { it.isNotEmpty() } ?: return null
+        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), filename)
+        return if (file.exists() && file.length() > 0) file else null
+    }
+
+    private fun showInstallNotification(context: Context, tagName: String) {
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            nm.createNotificationChannel(
+                NotificationChannel(NOTIF_CHANNEL_ID, "應用程式更新", NotificationManager.IMPORTANCE_HIGH)
+            )
+        }
+        val installIntent = Intent(context, InstallApkReceiver::class.java).apply {
+            action = InstallApkReceiver.ACTION_INSTALL
+        }
+        val pi = PendingIntent.getBroadcast(
+            context, 0, installIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val notif = NotificationCompat.Builder(context, NOTIF_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("ClassNote $tagName 下載完成")
+            .setContentText("點擊安裝新版本")
+            .setContentIntent(pi)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+        nm.notify(NOTIF_ID_INSTALL_READY, notif)
     }
 
     fun triggerInstallFromFile(context: Context, apkFile: File) {
