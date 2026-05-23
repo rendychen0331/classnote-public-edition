@@ -164,17 +164,43 @@ object UpdateChecker {
     fun queryProgress(context: Context, downloadId: Long): Int {
         val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val cursor = dm.query(DownloadManager.Query().setFilterById(downloadId))
-        if (!cursor.moveToFirst()) { cursor.close(); return -1 }
+        if (!cursor.moveToFirst()) {
+            cursor.close()
+            ErrorLogger.e(TAG, "APK 下載記錄不存在 downloadId=$downloadId")
+            return -1
+        }
         val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
         val total = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
         val downloaded = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+        val reason = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
         cursor.close()
         return when {
             status == DownloadManager.STATUS_SUCCESSFUL -> 100
-            status == DownloadManager.STATUS_FAILED -> -1
+            status == DownloadManager.STATUS_FAILED -> {
+                val reasonStr = downloadManagerReasonString(reason)
+                Log.e(TAG, "APK download failed reason=$reason ($reasonStr)")
+                ErrorLogger.e(TAG, "APK 下載失敗：$reasonStr (code=$reason)")
+                -1
+            }
             total > 0 -> (downloaded * 100 / total).toInt()
             else -> 0
         }
+    }
+
+    private fun downloadManagerReasonString(reason: Int) = when (reason) {
+        DownloadManager.ERROR_CANNOT_RESUME         -> "ERROR_CANNOT_RESUME"
+        DownloadManager.ERROR_DEVICE_NOT_FOUND      -> "ERROR_DEVICE_NOT_FOUND"
+        DownloadManager.ERROR_FILE_ALREADY_EXISTS   -> "ERROR_FILE_ALREADY_EXISTS"
+        DownloadManager.ERROR_FILE_ERROR            -> "ERROR_FILE_ERROR"
+        DownloadManager.ERROR_HTTP_DATA_ERROR       -> "ERROR_HTTP_DATA_ERROR"
+        DownloadManager.ERROR_INSUFFICIENT_SPACE    -> "ERROR_INSUFFICIENT_SPACE"
+        DownloadManager.ERROR_TOO_MANY_REDIRECTS    -> "ERROR_TOO_MANY_REDIRECTS"
+        DownloadManager.ERROR_UNHANDLED_HTTP_CODE   -> "ERROR_UNHANDLED_HTTP_CODE"
+        DownloadManager.ERROR_UNKNOWN               -> "ERROR_UNKNOWN"
+        DownloadManager.PAUSED_QUEUED_FOR_WIFI      -> "PAUSED_QUEUED_FOR_WIFI"
+        DownloadManager.PAUSED_WAITING_FOR_NETWORK  -> "PAUSED_WAITING_FOR_NETWORK"
+        DownloadManager.PAUSED_WAITING_TO_RETRY     -> "PAUSED_WAITING_TO_RETRY"
+        else                                        -> "reason=$reason"
     }
 
 }

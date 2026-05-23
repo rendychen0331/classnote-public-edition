@@ -47,6 +47,7 @@ object FeatureDownloader {
             }
         } catch (e: Exception) {
             Log.e(TAG, "fetchManifest failed", e)
+            ErrorLogger.e(TAG, "取得功能清單失敗：${e.javaClass.simpleName} ${e.message}", e)
             emptyList()
         }
     }
@@ -68,6 +69,9 @@ object FeatureDownloader {
                 try {
                     conn.connect()
                     if (conn.responseCode !in 200..299) {
+                        val msg = "HTTP ${conn.responseCode} — ${info.downloadUrl}"
+                        Log.e(TAG, "download ${info.id} failed: $msg")
+                        ErrorLogger.e(TAG, "下載 ${info.id} 失敗：$msg")
                         return@withContext DownloadResult.Error("HTTP ${conn.responseCode}")
                     }
                     conn.inputStream.use { input -> tmp.outputStream().use { input.copyTo(it) } }
@@ -78,7 +82,10 @@ object FeatureDownloader {
                 val actual = sha256(tmp)
                 if (actual != info.sha256) {
                     tmp.delete()
-                    return@withContext DownloadResult.Error("SHA256 mismatch: expected ${info.sha256}, got $actual")
+                    val msg = "SHA256 mismatch for ${info.id}: expected ${info.sha256}, got $actual"
+                    Log.e(TAG, msg)
+                    ErrorLogger.e(TAG, msg)
+                    return@withContext DownloadResult.Error("SHA256 mismatch")
                 }
 
                 FeatureManager.unload(info.id)
@@ -91,6 +98,7 @@ object FeatureDownloader {
                 DownloadResult.Success
             } catch (e: Exception) {
                 Log.e(TAG, "download ${info.id} failed", e)
+                ErrorLogger.e(TAG, "下載 ${info.id} 例外：${e.javaClass.simpleName} ${e.message}", e)
                 DownloadResult.Error(e.message ?: "download failed")
             }
         }
