@@ -24,6 +24,7 @@ import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.FeatureManager
 import com.rendy.classnote.databinding.FragmentAiChatBinding
 import com.rendy.classnote.databinding.ItemChatBubbleBinding
+import com.rendy.classnote.data.local.entity.ClassRecordEntity
 import com.rendy.classnote.ui.classrecord.ChatMessage
 import com.rendy.classnote.ui.classrecord.ClassRecordViewModel
 import io.noties.markwon.Markwon
@@ -159,7 +160,7 @@ class AiChatFragment : Fragment() {
                 Toast.makeText(requireContext(), "尚無上課紀錄", Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            val labels = records.map { r ->
+            val labels = records.map { r: ClassRecordEntity ->
                 val subject = r.subject.ifBlank { "未命名" }
                 val timeLabel = r.timeLabel.ifBlank { "" }
                 if (timeLabel.isNotBlank()) "$subject｜$timeLabel" else subject
