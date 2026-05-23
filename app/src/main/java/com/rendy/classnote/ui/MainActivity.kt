@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         R.id.localSyncFragment, R.id.weatherNotifFragment,
         R.id.aiSettingsFragment, R.id.apiLogFragment,
         R.id.permissionsFragment, R.id.featureModuleFragment,
-        R.id.errorLogFragment
+        R.id.errorLogFragment, R.id.aboutFragment
     )
 
     private val requestNotificationPermission =
