@@ -102,6 +102,13 @@
         android:label="@string/nav_weather"
         tools:layout="@layout/fragment_weather" />
 
+    <!-- ── AI 對話 ── -->
+    <fragment
+        android:id="@+id/aiChatFragment"
+        android:name="com.rendy.classnote.ui.ai.AiChatFragment"
+        android:label="@string/nav_ai"
+        tools:layout="@layout/fragment_ai_chat" />
+
     <!-- ── 更多 ── -->
     <fragment
         android:id="@+id/moreFragment"

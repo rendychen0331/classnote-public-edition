@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.scheduleFragment,
                 R.id.reminderListFragment,
                 R.id.classRecordListFragment,
-                R.id.aiSettingsFragment,
+                R.id.aiChatFragment,
                 R.id.moreFragment
             )
         )
@@ -123,11 +123,11 @@ class MainActivity : AppCompatActivity() {
     private fun refreshAiTab() {
         val installed = FeatureManager.isDownloaded(this, "ai")
         if (installed && !aiTabAdded) {
-            binding.bottomNavigation.menu.add(0, R.id.aiSettingsFragment, 30, getString(R.string.nav_ai))
+            binding.bottomNavigation.menu.add(0, R.id.aiChatFragment, 30, getString(R.string.nav_ai))
                 .setIcon(R.drawable.ic_ai)
             aiTabAdded = true
         } else if (!installed && aiTabAdded) {
-            binding.bottomNavigation.menu.removeItem(R.id.aiSettingsFragment)
+            binding.bottomNavigation.menu.removeItem(R.id.aiChatFragment)
             aiTabAdded = false
         }
     }
