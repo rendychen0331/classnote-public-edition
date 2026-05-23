@@ -228,18 +228,14 @@ class SettingsFragment : Fragment() {
                 }
                 when {
                     progress == 100 -> {
+                        val apkFile = UpdateChecker.getDownloadedApkFile(requireContext())
                         prefs.activeApkDownloadId = 0L
                         prefs.activeApkFileName = ""
                         if (_binding != null) {
-                            binding.tvUpdateStatus.text = "下載完成，開啟安裝..."
+                            binding.tvUpdateStatus.text = "下載完成"
                             binding.btnCheckUpdate.isEnabled = true
                         }
-                        val apkFile = UpdateChecker.getDownloadedApkFile(requireContext())
-                        if (apkFile != null) {
-                            UpdateChecker.triggerInstallFromFile(requireContext(), apkFile)
-                        } else if (_binding != null) {
-                            binding.tvUpdateStatus.text = "下載完成，請查看通知安裝"
-                        }
+                        if (apkFile != null) UpdateChecker.triggerInstallFromFile(requireContext(), apkFile)
                         break
                     }
                     progress < 0 -> {

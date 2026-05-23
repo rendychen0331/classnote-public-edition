@@ -70,14 +70,6 @@
 
         <!-- BroadcastReceiver for AI batch confirm / cancel -->
         <receiver
-            android:name=".notification.InstallApkReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.rendy.classnote.action.INSTALL_APK" />
-            </intent-filter>
-        </receiver>
-
-        <receiver
             android:name=".notification.AiConfirmReceiver"
             android:exported="false">
             <intent-filter>
