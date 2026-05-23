@@ -52,13 +52,23 @@ class SettingsFragment : Fragment() {
         setupMenuRows()
         setupAboutSection()
         autoCheckUpdate()
+        refreshAiCard()
         refreshWeatherCard()
         resumePendingDownload()
     }
 
     override fun onResume() {
         super.onResume()
+        refreshAiCard()
         refreshWeatherCard()
+    }
+
+    private fun refreshAiCard() {
+        val installed = FeatureManager.isDownloaded(requireContext(), "ai")
+        binding.cardMenuAiSettings.alpha = if (installed) 1f else 0.4f
+        binding.cardMenuAiSettings.isEnabled = installed
+        binding.cardMenuAiSettings.isClickable = installed
+        binding.tvAiSettingsSubtitle.text = if (installed) "api key、通知辨識" else "未安裝 AI 功能模組"
     }
 
     private fun refreshWeatherCard() {
@@ -84,6 +94,21 @@ class SettingsFragment : Fragment() {
 
         binding.cardMenuWeather.setOnClickListener {
             findNavController().navigate(R.id.actionSettingsToWeatherNotif)
+        }
+
+        binding.cardMenuAiSettings.setOnClickListener {
+            if (FeatureManager.isDownloaded(requireContext(), "ai")) {
+                findNavController().navigate(R.id.actionSettingsToAiSettings)
+            } else {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("需要 AI 功能模組")
+                    .setMessage("請先至「功能模組管理」下載 AI 功能模組。")
+                    .setPositiveButton("前往下載") { _, _ ->
+                        findNavController().navigate(R.id.actionSettingsToFeatureModules)
+                    }
+                    .setNegativeButton("取消", null)
+                    .show()
+            }
         }
 
         binding.cardMenuApiLog.setOnClickListener {
