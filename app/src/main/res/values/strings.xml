@@ -211,6 +211,7 @@
 
     <!-- Weather（天氣） -->
     <string name="nav_weather">天氣</string>
+    <string name="nav_ai">AI</string>
     <string name="weather_rain_prob">降雨機率：</string>
     <string name="weather_forecast">未來預報</string>
     <string name="weather_no_locations">點擊右上方「+」新增天氣地區</string>

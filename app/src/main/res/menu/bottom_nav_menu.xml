@@ -17,6 +17,10 @@
         android:icon="@drawable/ic_weather"
         android:title="@string/nav_weather" />
     <item
+        android:id="@+id/aiSettingsFragment"
+        android:icon="@drawable/ic_ai"
+        android:title="@string/nav_ai" />
+    <item
         android:id="@+id/classRecordListFragment"
         android:icon="@drawable/ic_class_record"
         android:title="@string/nav_class_record" />

@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         R.id.settingsFragment, R.id.alarmPermFragment, R.id.syncFragment,
         R.id.backupSyncFragment, R.id.googleSyncFragment, R.id.microsoftSyncFragment,
         R.id.localSyncFragment, R.id.weatherNotifFragment,
-        R.id.aiSettingsFragment, R.id.apiLogFragment,
+        R.id.apiLogFragment,
         R.id.permissionsFragment, R.id.featureModuleFragment,
         R.id.errorLogFragment
     )
@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.reminderListFragment,
                 R.id.formulaListFragment,
                 R.id.weatherFragment,
+                R.id.aiSettingsFragment,
                 R.id.classRecordListFragment
             )
         )
@@ -96,6 +97,8 @@ class MainActivity : AppCompatActivity() {
             }
             val weatherInstalled = FeatureManager.isDownloaded(this, "weather")
             binding.bottomNavigation.menu.findItem(R.id.weatherFragment)?.isVisible = weatherInstalled
+            val aiInstalled = FeatureManager.isDownloaded(this, "ai")
+            binding.bottomNavigation.menu.findItem(R.id.aiSettingsFragment)?.isVisible = aiInstalled
         }
 
         // adjustNothing：BottomNav 固定不動，鍵盤彈起時手動把內容區上推
