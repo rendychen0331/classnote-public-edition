@@ -104,7 +104,8 @@ class AiChatFragment : Fragment() {
         )
 
         chipMap.forEach { (chip, pair) ->
-            val active = pair.second.first.isNotBlank() && pair.second.second
+            val (_, keyAndEnabled) = pair
+            val active = keyAndEnabled.first.isNotBlank() && keyAndEnabled.second
             chip.isEnabled = active
             chip.alpha = if (active) 1f else 0.4f
         }
