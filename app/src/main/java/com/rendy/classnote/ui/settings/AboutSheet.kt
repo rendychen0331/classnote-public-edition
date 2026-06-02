@@ -1,5 +1,7 @@
 package com.rendy.classnote.ui.settings
 
+import android.app.DownloadManager
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -45,6 +47,7 @@ class AboutSheet : Fragment() {
         prefs = AppPreferences(requireContext())
         setupVersionInfo()
         setupUpdateSection()
+        refreshInstallButton()
         autoCheckUpdate()
         resumePendingDownload()
     }
@@ -66,10 +69,24 @@ class AboutSheet : Fragment() {
         }
     }
 
-    private fun setupUpdateSection() {
-        binding.btnCheckUpdate.setOnClickListener {
-            performUpdateCheck(force = true)
+    private fun refreshInstallButton() {
+        val cached = UpdateChecker.getDownloadedApkFile(requireContext())
+        if (cached != null) {
+            binding.btnCheckUpdate.text = "立即安裝"
+            binding.btnCheckUpdate.isEnabled = true
+            binding.btnCheckUpdate.setOnClickListener {
+                UpdateChecker.triggerInstallFromFile(requireContext(), cached)
+                refreshInstallButton()
+            }
+        } else {
+            binding.btnCheckUpdate.text = "檢查更新"
+            binding.btnCheckUpdate.setOnClickListener {
+                performUpdateCheck(force = true)
+            }
         }
+    }
+
+    private fun setupUpdateSection() {
 
         val autoUpdateEnabled = prefs.autoUpdateEnabled
         binding.switchAutoUpdate.isChecked = autoUpdateEnabled
@@ -152,9 +169,11 @@ class AboutSheet : Fragment() {
                         val apkFile = UpdateChecker.getDownloadedApkFile(requireContext())
                         prefs.activeApkDownloadId = 0L
                         prefs.activeApkFileName = ""
+                        val dm = requireContext().getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                        dm.remove(downloadId)
                         if (_binding != null) {
                             binding.tvUpdateStatus.text = "下載完成"
-                            binding.btnCheckUpdate.isEnabled = true
+                            refreshInstallButton()
                         }
                         if (apkFile != null) UpdateChecker.triggerInstallFromFile(requireContext(), apkFile)
                         break

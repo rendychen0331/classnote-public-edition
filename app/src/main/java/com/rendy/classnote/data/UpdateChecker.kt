@@ -1,12 +1,8 @@
 package com.rendy.classnote.data
 
 import android.app.DownloadManager
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.util.Log
 import androidx.core.content.FileProvider
@@ -108,36 +104,7 @@ object UpdateChecker {
             setMimeType("application/vnd.android.package-archive")
         }
 
-        val downloadId = dm.enqueue(request)
-
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(ctx: Context, intent: Intent) {
-                val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
-                if (id != downloadId) return
-                ctx.unregisterReceiver(this)
-
-                val query = DownloadManager.Query().setFilterById(downloadId)
-                val cursor = dm.query(query)
-                val success = cursor.moveToFirst() &&
-                    cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL
-                cursor.close()
-                if (!success) return
-
-                dm.remove(downloadId)
-                val apkFile = getDownloadedApkFile(ctx) ?: return
-                AppPreferences(ctx).activeApkFileName = ""
-                triggerInstallFromFile(ctx, apkFile)
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), Context.RECEIVER_EXPORTED)
-        } else {
-            @Suppress("UnspecifiedRegisterReceiverFlag")
-            context.registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-        }
-
-        return downloadId
+        return dm.enqueue(request)
     }
 
     fun getDownloadedApkFile(context: Context): File? {
