@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ClassNote</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_schedule">课表</string>
+    <string name="nav_reminders">提醒</string>
+    <string name="nav_more">更多</string>
+    <string name="nav_ai">AI</string>
+    <string name="nav_settings">设置</string>
+
+    <!-- Schedule / Course -->
+    <string name="add_course">新建课程</string>
+    <string name="edit_course">编辑课程</string>
+    <string name="delete_course">删除课程</string>
+    <string name="no_class_today">今日无课</string>
+
+    <!-- Reminders -->
+    <string name="add_reminder">新建提醒</string>
+    <string name="edit_reminder">编辑提醒</string>
+    <string name="delete_reminder">删除提醒</string>
+    <string name="no_reminders">暂无提醒事项</string>
+
+    <!-- Common actions -->
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="back">返回</string>
+    <string name="confirm_delete">确认删除</string>
+    <string name="confirm_delete_message">确定要删除此项目吗？</string>
+    <string name="confirm_delete_reminder_title">删除提醒？</string>
+    <string name="confirm_delete_reminder_msg">删除后无法恢复，相关通知将一并取消。</string>
+
+    <!-- Settings -->
+    <string name="settings_google_backup">备份到云端</string>
+    <string name="settings_google_last_backup">最后备份：%1$s</string>
+    <string name="settings_google_no_backup">尚未备份</string>
+    <string name="settings_google_backup_success">备份成功</string>
+    <string name="settings_auto_backup_title">自动备份</string>
+    <string name="settings_auto_backup_interval">备份频率</string>
+    <string name="backup_network_wifi">仅 Wi-Fi</string>
+    <string name="backup_network_mobile">仅移动数据</string>
+    <string name="backup_network_any">Wi-Fi 或移动数据</string>
+
+    <!-- Detail -->
+    <string name="detail_no_notification">无通知</string>
+</resources>

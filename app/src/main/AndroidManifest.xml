@@ -28,7 +28,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ClassNote">
+        android:theme="@style/Theme.ClassNote"
+        android:localeConfig="@xml/locales_config">
 
         <!-- 全螢幕鬧鐘介面 -->
         <activity

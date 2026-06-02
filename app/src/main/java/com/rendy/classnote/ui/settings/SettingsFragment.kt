@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -34,12 +36,14 @@ class SettingsFragment : Fragment() {
         refreshAiCard()
         refreshWeatherCard()
         binding.tvAboutVersionInline.text = BuildConfig.VERSION_NAME
+        refreshLanguageSubtitle()
     }
 
     override fun onResume() {
         super.onResume()
         refreshAiCard()
         refreshWeatherCard()
+        refreshLanguageSubtitle()
     }
 
     private fun refreshAiCard() {
@@ -58,6 +62,21 @@ class SettingsFragment : Fragment() {
         binding.tvWeatherSettingsSubtitle.text = if (installed) "每日天氣推播、時間與地區設定" else "未安裝天氣模組"
     }
 
+    private fun refreshLanguageSubtitle() {
+        binding.tvLanguageSubtitle.text = currentLanguageLabel()
+    }
+
+    private fun currentLanguageLabel(): String {
+        val tag = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+        return when {
+            tag.startsWith("zh-TW") || tag.startsWith("zh-Hant") -> "繁體中文"
+            tag.startsWith("zh-CN") || tag.startsWith("zh-Hans") || tag.startsWith("zh") -> "简体中文"
+            tag.startsWith("en") -> "English"
+            tag.isEmpty() -> "繁體中文"
+            else -> tag
+        }
+    }
+
     private fun setupMenuRows() {
         binding.cardMenuAlarm.setOnClickListener {
             findNavController().navigate(R.id.actionSettingsToAlarmPerm)
@@ -65,6 +84,10 @@ class SettingsFragment : Fragment() {
 
         binding.cardMenuPermissions.setOnClickListener {
             findNavController().navigate(R.id.actionSettingsToPermissions)
+        }
+
+        binding.cardMenuLanguage.setOnClickListener {
+            showLanguagePicker()
         }
 
         binding.cardMenuSync.setOnClickListener {
@@ -105,6 +128,23 @@ class SettingsFragment : Fragment() {
         binding.cardMenuAbout.setOnClickListener {
             findNavController().navigate(R.id.actionSettingsToAbout)
         }
+    }
+
+    private fun showLanguagePicker() {
+        val options = arrayOf("繁體中文", "简体中文", "English")
+        val tags = arrayOf("zh-TW", "zh-CN", "en")
+        val current = currentLanguageLabel()
+        val checkedIndex = options.indexOfFirst { it == current }.coerceAtLeast(0)
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("選擇語言 / Select Language")
+            .setSingleChoiceItems(options, checkedIndex) { dialog, which ->
+                dialog.dismiss()
+                val locales = LocaleListCompat.forLanguageTags(tags[which])
+                AppCompatDelegate.setApplicationLocales(locales)
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
 
     override fun onDestroyView() {
