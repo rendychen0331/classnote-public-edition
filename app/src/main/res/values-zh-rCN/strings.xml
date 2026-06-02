@@ -7,40 +7,406 @@
     <string name="nav_reminders">提醒</string>
     <string name="nav_more">更多</string>
     <string name="nav_ai">AI</string>
-    <string name="nav_settings">设置</string>
+
+    <!-- Schedule Tabs -->
+    <string name="tab_week_view">周课表</string>
+    <string name="tab_calendar_view">日历</string>
 
     <!-- Schedule / Course -->
     <string name="add_course">新建课程</string>
     <string name="edit_course">编辑课程</string>
     <string name="delete_course">删除课程</string>
+    <string name="course_name">课程名称</string>
+    <string name="teacher">教师</string>
+    <string name="room">教室</string>
+    <string name="day_of_week">星期</string>
+    <string name="period">节次</string>
+    <string name="semester">学期</string>
+    <string name="switch_semester">切换学期</string>
+    <string name="override_type_cancel">取消课程</string>
+    <string name="override_type_replace">临时换课</string>
+    <string name="override_date">修改日期</string>
+    <string name="add_override">新建临时修改</string>
+    <string name="cancelled_label">（取消）</string>
+    <string name="temp_label">（临时）</string>
     <string name="no_class_today">今日无课</string>
+    <string name="weekend">周末</string>
+
+    <!-- Day names -->
+    <string-array name="days_of_week">
+        <item>周一</item>
+        <item>周二</item>
+        <item>周三</item>
+        <item>周四</item>
+        <item>周五</item>
+    </string-array>
+
+    <!-- Period names -->
+    <string name="period_format">第 %d 节</string>
 
     <!-- Reminders -->
     <string name="add_reminder">新建提醒</string>
     <string name="edit_reminder">编辑提醒</string>
     <string name="delete_reminder">删除提醒</string>
+    <string name="reminder_title">提醒标题</string>
+    <string name="reminder_note">备注（选填）</string>
+    <string name="due_date">截止日期</string>
+    <string name="pick_date">选择日期</string>
+    <string name="pick_time">选择时间</string>
+    <string name="clear_time">清除</string>
+    <string name="add_notification">新建通知时间</string>
     <string name="no_reminders">暂无提醒事项</string>
+    <string name="no_notifications_set">尚未设置通知时间</string>
+    <string name="original_notification_label">原始通知消息</string>
+    <string name="notification_times_label">通知时间：</string>
+    <string name="mark_complete">标记完成</string>
+    <string name="associated_course">关联课程</string>
+    <string name="independent_reminder">独立提醒</string>
 
-    <!-- Common actions -->
+    <!-- Common -->
     <string name="save">保存</string>
     <string name="cancel">取消</string>
     <string name="back">返回</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
     <string name="confirm_delete">确认删除</string>
     <string name="confirm_delete_message">确定要删除此项目吗？</string>
-    <string name="confirm_delete_reminder_title">删除提醒？</string>
-    <string name="confirm_delete_reminder_msg">删除后无法恢复，相关通知将一并取消。</string>
+
+    <!-- Widget -->
+    <string name="widget_description">ClassNote 课表与提醒小组件</string>
+
+    <!-- Reminder categories -->
+    <string name="category_none">无分类</string>
+    <string name="category_work">工作</string>
+    <string name="category_homework">作业</string>
+    <string name="category_exam">考试</string>
+    <string name="category_reminder">提醒</string>
+    <string name="reminder_category_label">分类</string>
+
+    <!-- Repeat -->
+    <string name="repeat_label">重复</string>
+    <string name="repeat_none">不重复</string>
+    <string name="repeat_daily">每天</string>
+    <string name="repeat_weekly">每周</string>
+    <string name="repeat_monthly">每月</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">提醒事项通知</string>
+    <string name="notification_channel_description">ClassNote 提醒事项推送通知</string>
+    <string name="notification_tap_hint">点击查看提醒详情</string>
+
+    <!-- Reminder Edit - full screen toggle -->
+    <string name="reminder_full_screen_alarm_title">全屏提醒</string>
+    <string name="reminder_full_screen_alarm_desc">触发时以全屏闹钟界面显示并震动</string>
 
     <!-- Settings -->
+    <string name="nav_settings">设置</string>
+    <string name="settings_section_alarm">闹钟提醒</string>
+    <string name="settings_full_screen_alarm_title">全页提醒</string>
+    <string name="settings_full_screen_alarm_desc">提醒触发时以全屏界面显示，并自动亮屏（类似闹钟）</string>
+    <string name="settings_snooze_title">推迟时间</string>
+    <string name="settings_section_permissions">权限设置</string>
+    <string name="settings_perm_fullscreen_title">全屏通知（Android 14+）</string>
+    <string name="settings_perm_fullscreen_desc">允许 ClassNote 以全屏方式显示提醒</string>
+    <string name="settings_perm_overlay_title">显示在其他应用上方</string>
+    <string name="settings_perm_overlay_desc">在使用其他应用时也能弹出提醒窗口</string>
+    <string name="settings_perm_dnd_title">勿扰模式仍显示提醒</string>
+    <string name="settings_perm_dnd_desc">在勿扰模式下也能收到提醒通知（需授予勿扰模式访问权限）</string>
+    <string name="settings_perm_dnd_access_granted">勿扰模式访问：已授权</string>
+    <string name="settings_perm_dnd_access_denied">勿扰模式访问：未授权，点此前往设置</string>
+    <string name="settings_perm_xiaomi_title">小米锁屏显示（HyperOS/MIUI）</string>
+    <string name="settings_perm_xiaomi_desc">其他权限 → 在锁定屏幕上显示</string>
+    <string name="settings_perm_granted">已授权</string>
+    <string name="settings_perm_not_granted">未授权，点此设置</string>
+    <string name="settings_perm_status_unknown">无法确认状态</string>
+    <string name="settings_quiet_hours_title">安静时段</string>
+    <string name="settings_quiet_hours_desc">导入提醒的通知不会在此时段内触发</string>
+    <string name="settings_quiet_hours_start">开始</string>
+    <string name="settings_quiet_hours_end">结束</string>
+    <string name="settings_quiet_hours_policy_before">提前通知</string>
+    <string name="settings_quiet_hours_policy_after">延后通知</string>
+    <string name="snooze_10min">10 分钟</string>
+    <string name="snooze_5min">5 分钟</string>
+    <string name="snooze_15min">15 分钟</string>
+    <string name="snooze_30min">30 分钟</string>
+    <string name="settings_section_google">Google 账号备份</string>
+    <string name="settings_drive_backup_title">备份到 Google Drive</string>
+    <string name="settings_drive_backup_desc">将数据备份至个人 Google Drive，可跨设备恢复</string>
+    <string name="settings_google_sign_in">登录 Google</string>
+    <string name="settings_google_sign_out">退出登录</string>
     <string name="settings_google_backup">备份到云端</string>
+    <string name="settings_google_restore">从云端恢复</string>
+    <string name="settings_google_export">导出原始文件到 Drive</string>
+    <string name="settings_google_export_in_progress">导出中…</string>
+    <string name="settings_google_export_success">已导出到 Drive 的 ClassNote 文件夹</string>
     <string name="settings_google_last_backup">最后备份：%1$s</string>
     <string name="settings_google_no_backup">尚未备份</string>
-    <string name="settings_google_backup_success">备份成功</string>
+    <string name="settings_google_not_signed_in">未登录</string>
+    <string name="settings_google_backup_in_progress">备份中…</string>
     <string name="settings_auto_backup_title">自动备份</string>
+    <string name="settings_auto_backup_desc">定时自动备份到 Google Drive</string>
     <string name="settings_auto_backup_interval">备份频率</string>
+    <string name="settings_auto_backup_interval_6h">每 6 小时</string>
+    <string name="settings_auto_backup_interval_12h">每 12 小时</string>
+    <string name="settings_auto_backup_interval_24h">每天</string>
+    <string name="settings_auto_backup_interval_72h">每 3 天</string>
+    <string name="settings_google_backup_success">备份成功</string>
+    <string name="settings_google_reauth_ok">授权完成，请重试</string>
+    <string name="settings_google_restore_success">恢复成功，请重新打开应用</string>
+    <string name="settings_google_restore_confirm_title">确认恢复？</string>
+    <string name="settings_google_restore_confirm_msg">当前数据将被云端备份覆盖，此操作无法撤销。</string>
+    <string name="backup_network_title">备份网络</string>
     <string name="backup_network_wifi">仅 Wi-Fi</string>
     <string name="backup_network_mobile">仅移动数据</string>
     <string name="backup_network_any">Wi-Fi 或移动数据</string>
+    <string name="settings_section_gmail">Gmail 作业同步</string>
+    <string name="settings_gmail_sync_title">从 Gmail 导入作业</string>
+    <string name="settings_gmail_sync_desc">自动读取 Google Classroom 作业通知邮件并添加为提醒</string>
+    <string name="settings_gmail_not_signed_in">未登录 Gmail</string>
+    <string name="settings_gmail_sign_in">登录 Gmail</string>
+    <string name="settings_gmail_sign_out">退出登录</string>
+    <string name="settings_gmail_forward_title">读取转发的 Classroom 邮件</string>
+    <string name="settings_gmail_forward_desc">（测试）同步由其他账号转发的作业通知</string>
+    <string name="settings_gmail_use_drive_account">使用 Drive 备份账号</string>
+    <string name="settings_gmail_use_this_account">使用此账号</string>
+    <string name="settings_drive_use_gmail_account">使用 Gmail 同步账号</string>
+    <string name="settings_gmail_no_permission">需要 Gmail 授权</string>
+    <string name="settings_gmail_permission_denied">Gmail 授权被拒，无法同步</string>
+    <string name="settings_gmail_sync_now">立即同步</string>
+    <string name="settings_gmail_no_sync">尚未同步</string>
+    <string name="settings_gmail_sync_result">已导入 %1$d 条，跳过 %2$d 条</string>
+    <string name="settings_auto_gmail_sync_title">自动同步</string>
+    <string name="settings_auto_gmail_sync_interval">每 %1$d 小时同步一次</string>
+    <string name="settings_auto_classroom_sync_title">自动同步</string>
+    <string name="settings_auto_classroom_sync_interval">每 %1$d 小时同步一次</string>
 
-    <!-- Detail -->
+    <!-- Biometric -->
+    <string name="biometric_title_monitor">验证身份以继续</string>
+    <string name="biometric_subtitle_monitor">访问 AI 通知监控设置</string>
+    <string name="biometric_subtitle_apikey">访问 Gemini API Key</string>
+
+    <!-- Reminder Detail -->
+    <string name="detail_start_date">开始日期</string>
+    <string name="detail_source_gmail">Gmail 同步</string>
+    <string name="detail_source_classroom">Classroom 同步</string>
+    <string name="detail_source_notify">通知解析</string>
+    <string name="detail_fullscreen_on">开启</string>
+    <string name="detail_fullscreen_off">关闭</string>
     <string name="detail_no_notification">无通知</string>
+    <string name="confirm_delete_reminder_title">删除提醒？</string>
+    <string name="confirm_delete_reminder_msg">删除后无法恢复，相关通知将一并取消。</string>
+
+    <!-- Formula -->
+    <string name="nav_formula">公式</string>
+    <string name="formula_add">新建公式</string>
+    <string name="formula_edit">编辑公式</string>
+    <string name="formula_title">公式名称</string>
+    <string name="formula_title_required">请输入公式名称</string>
+    <string name="formula_content_required">请输入公式内容</string>
+    <string name="formula_subject">科目（选填）</string>
+    <string name="formula_latex_hint">LaTeX 公式（如 E=mc^2 或 \\frac{a}{b}）</string>
+    <string name="formula_latex_required">请输入公式</string>
+    <string name="formula_explanation">说明（选填）</string>
+    <string name="formula_preview_label">预览</string>
+    <string name="formula_search_hint">搜索公式、科目或说明</string>
+    <string name="formula_empty">尚未记录任何公式</string>
+
+    <!-- Weather -->
+    <string name="nav_weather">天气</string>
+    <string name="weather_rain_prob">降雨概率：</string>
+    <string name="weather_forecast">未来预报</string>
+    <string name="weather_no_locations">点击右上方「+」添加天气地区</string>
+    <string name="weather_add_location">添加地区</string>
+    <string name="weather_all_added">已添加所有地区</string>
+    <string name="weather_location_search_hint">搜索地区</string>
+
+    <!-- Weather Notification Settings -->
+    <string name="settings_section_weather">天气通知</string>
+    <string name="settings_weather_cwa_key_label">CWA API Key</string>
+    <string name="settings_weather_cwa_key_hint">CWA-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</string>
+    <string name="settings_weather_cwa_key_save">保存</string>
+    <string name="settings_weather_cwa_key_saved">API Key 已保存</string>
+    <string name="settings_weather_notif_title">每日天气推送</string>
+    <string name="settings_weather_notif_desc">每天在指定时间推送选定地区的天气预报</string>
+    <string name="settings_weather_notif_time">通知时间</string>
+    <string name="settings_weather_notif_location">通知地区</string>
+    <string name="settings_weather_no_location">未设置地区</string>
+
+    <!-- Class Record -->
+    <string name="nav_class_record">上课记录</string>
+    <string name="class_record_add">新建上课记录</string>
+    <string name="class_record_no_records">尚无上课记录</string>
+    <string name="class_record_time_label">时间标签（选填，例如：第一节）</string>
+    <string name="class_record_text_note">上课备注（选填）</string>
+    <string name="class_record_take_photo">拍照</string>
+    <string name="class_record_record_audio">录音</string>
+    <string name="class_record_stop_audio">停止录音</string>
+    <string name="class_record_ai_summary">AI 总结录音</string>
+    <string name="class_record_summarizing">总结中…</string>
+    <string name="class_record_ai_summary_label">AI 课堂总结</string>
+    <string name="class_record_add_drawing">手写笔记</string>
+    <string name="class_record_pick_gallery">从相册导入</string>
+
+    <!-- Classroom Sync -->
+    <string name="settings_section_classroom">Classroom 作业同步</string>
+    <string name="settings_classroom_sync_title">Google Classroom</string>
+    <string name="settings_classroom_sync_desc">直接从 Classroom 导入作业截止日期，比 Gmail 更完整</string>
+    <string name="settings_classroom_not_authorized">尚未登录</string>
+    <string name="settings_classroom_authorize">登录</string>
+    <string name="settings_classroom_sign_out">退出登录</string>
+    <string name="settings_classroom_sync_now">立即同步</string>
+    <string name="settings_classroom_no_sync">尚未同步</string>
+    <string name="settings_classroom_sync_result">已导入 %1$d 条，跳过 %2$d 条</string>
+    <string name="settings_classroom_permission_denied">Classroom 授权被拒，无法同步</string>
+
+    <!-- Google Calendar Sync -->
+    <string name="settings_section_calendar">Google 日历同步</string>
+    <string name="settings_calendar_sync_title">Google 日历</string>
+    <string name="settings_calendar_sync_desc">导入 Google 日历未来 60 天的活动为提醒事项</string>
+    <string name="settings_calendar_sign_in">授权日历访问</string>
+    <string name="settings_calendar_sign_out">退出登录</string>
+    <string name="settings_calendar_no_permission">需要 Google 日历授权</string>
+    <string name="settings_calendar_permission_denied">日历授权被拒，无法同步</string>
+    <string name="settings_calendar_sync_now">立即同步</string>
+    <string name="settings_calendar_no_sync">尚未同步</string>
+    <string name="settings_calendar_sync_result">已导入 %1$d 条，跳过 %2$d 条</string>
+    <string name="settings_auto_calendar_sync_title">自动同步</string>
+    <string name="settings_auto_calendar_sync_interval">每 %1$d 小时自动同步一次</string>
+
+    <!-- Google Tasks Sync -->
+    <string name="settings_section_tasks">Google Tasks 同步</string>
+    <string name="settings_tasks_sync_title">Google Tasks</string>
+    <string name="settings_tasks_sync_desc">导入 Google Tasks 的待办事项为提醒事项（截止日期为日期，无时间）</string>
+    <string name="settings_tasks_sign_in">授权 Tasks 访问</string>
+    <string name="settings_tasks_sign_out">退出登录</string>
+    <string name="settings_tasks_no_permission">需要 Google Tasks 授权</string>
+    <string name="settings_tasks_permission_denied">Tasks 授权被拒，无法同步</string>
+    <string name="settings_tasks_sync_now">立即同步</string>
+    <string name="settings_tasks_no_sync">尚未同步</string>
+    <string name="settings_tasks_sync_result">已导入 %1$d 条，跳过 %2$d 条</string>
+    <string name="settings_auto_tasks_sync_title">自动同步</string>
+    <string name="settings_auto_tasks_sync_interval">每 %1$d 小时自动同步一次</string>
+    <string name="settings_section_keep">Google Keep</string>
+    <string name="settings_keep_sync_title">Google Keep 同步</string>
+    <string name="settings_keep_sync_desc">从 Google Keep 导入笔记作为提醒事项（需 Google Workspace 或教育账号）</string>
+    <string name="settings_auto_keep_sync_title">自动同步</string>
+    <string name="settings_auto_keep_sync_interval">每 %1$d 小时同步一次</string>
+    <string name="settings_keep_no_sync">尚未同步</string>
+    <string name="settings_keep_sync_now">立即同步</string>
+    <string name="settings_keep_sync_result">已导入 %1$d 条，跳过 %2$d 条</string>
+    <string name="settings_keep_no_permission">此功能需要 Google Workspace 或教育账号</string>
+    <string name="settings_add_account">添加账号</string>
+    <string name="settings_auto_mstodo_sync_interval">每 %1$d 小时自动同步一次</string>
+    <string name="settings_auto_outlook_calendar_sync_interval">每 %1$d 小时自动同步一次</string>
+    <string name="settings_auto_teams_assignment_sync_interval">每 %1$d 小时自动同步一次</string>
+    <string name="settings_section_onenote">Microsoft OneNote</string>
+    <string name="settings_onenote_sync_title">OneNote 同步</string>
+    <string name="settings_onenote_sync_desc">从 OneNote 笔记本导入页面作为提醒事项，支持个人与企业账号</string>
+    <string name="settings_onenote_no_sync">尚未同步</string>
+    <string name="settings_onenote_sync_now">立即同步</string>
+    <string name="settings_onenote_sync_result">已导入 %1$d 条，跳过 %2$d 条</string>
+    <string name="settings_auto_onenote_sync_title">自动同步</string>
+    <string name="settings_auto_onenote_sync_interval">每 %1$d 小时自动同步一次</string>
+    <string name="settings_onenote_no_permission">请先登录 Microsoft 账号</string>
+    <string name="settings_auto_sync">自动同步</string>
+
+    <!-- OneDrive Backup -->
+    <string name="settings_section_onedrive">OneDrive 备份</string>
+    <string name="settings_onedrive_backup_title">Microsoft OneDrive</string>
+    <string name="settings_onedrive_backup_desc">将数据库备份至 OneDrive 应用专属文件夹，支持跨设备恢复</string>
+    <string name="settings_onedrive_not_signed_in">尚未登录 Microsoft 账号</string>
+    <string name="settings_onedrive_sign_in">登录</string>
+    <string name="settings_onedrive_sign_out">退出登录</string>
+    <string name="settings_onedrive_backup">立即备份</string>
+    <string name="settings_onedrive_restore">恢复</string>
+    <string name="settings_onedrive_no_backup">尚未备份</string>
+    <string name="settings_onedrive_last_backup">上次备份：%1$s</string>
+    <string name="settings_onedrive_backup_in_progress">备份中…</string>
+    <string name="settings_onedrive_backup_success">备份成功</string>
+    <string name="settings_onedrive_restore_confirm_title">确认恢复</string>
+    <string name="settings_onedrive_restore_confirm_msg">恢复后当前数据将被覆盖，应用需重新启动才能生效，确定继续吗？</string>
+    <string name="settings_onedrive_restore_success">恢复成功，请重新启动应用</string>
+    <string name="settings_onedrive_auto_backup_title">自动备份</string>
+    <string name="settings_onedrive_auto_backup_desc">定期自动将数据备份至 OneDrive</string>
+    <string name="settings_onedrive_sign_in_failed">Microsoft 登录失败</string>
+
+    <!-- MS To Do -->
+    <string name="settings_section_mstodo">MS To Do 同步</string>
+    <string name="settings_mstodo_sync_title">Microsoft To Do</string>
+    <string name="settings_mstodo_sync_desc">从 Microsoft To Do 导入未完成任务为提醒事项</string>
+    <string name="settings_mstodo_sync_now">立即同步</string>
+    <string name="settings_mstodo_no_sync">尚未同步</string>
+    <string name="settings_mstodo_sync_result">导入 %1$d 条，跳过 %2$d 条</string>
+
+    <!-- Outlook Calendar -->
+    <string name="settings_section_outlook_calendar">Outlook 日历同步</string>
+    <string name="settings_outlook_calendar_sync_title">Outlook 日历</string>
+    <string name="settings_outlook_calendar_sync_desc">从 Outlook 日历导入未来 30 天的活动为提醒事项</string>
+    <string name="settings_outlook_calendar_sync_now">立即同步</string>
+    <string name="settings_outlook_calendar_no_sync">尚未同步</string>
+    <string name="settings_outlook_calendar_sync_result">导入 %1$d 条，跳过 %2$d 条</string>
+
+    <!-- Teams for Education -->
+    <string name="settings_section_teams_assignment">Teams 作业同步</string>
+    <string name="settings_teams_assignment_sync_title">Microsoft Teams 作业</string>
+    <string name="settings_teams_assignment_sync_desc">从 Teams for Education 导入未提交的作业为提醒事项（需学校账号）</string>
+    <string name="settings_teams_assignment_sync_now">立即同步</string>
+    <string name="settings_teams_assignment_no_sync">尚未同步</string>
+    <string name="settings_teams_assignment_sync_result">导入 %1$d 条，跳过 %2$d 条</string>
+    <string name="settings_teams_assignment_no_permission">需要学校组织账号（AAD edu）且已同意 EduAssignments 授权，个人 Microsoft 账号不支持此功能</string>
+
+    <!-- AI Notification Parsing -->
+    <string name="settings_section_ai_notify">AI 通知解析</string>
+    <string name="settings_ai_notify_title">自动解析通知</string>
+    <string name="settings_ai_notify_desc">收到通知时，自动用 Gemini AI 判断是否为作业或活动并加入提醒</string>
+    <string name="settings_ai_notify_access_title">通知访问权限</string>
+    <string name="settings_ai_notify_access_granted">已授权</string>
+    <string name="settings_ai_notify_access_denied">未授权，点此前往设置</string>
+    <string name="settings_ai_notify_access_btn">前往设置</string>
+    <string name="settings_ai_gemini_key_label">Gemini API Key</string>
+    <string name="settings_ai_gemini_key_hint">AIzaSy…</string>
+    <string name="settings_ai_gemini_key_save">保存</string>
+    <string name="settings_ai_gemini_key_saved">API Key 已保存</string>
+    <string name="settings_ai_chat_provider_title">笔记对话使用的 AI</string>
+    <string name="settings_ai_chat_provider_desc">选择哪个 AI 模型用于课堂笔记对话</string>
+    <string name="settings_ai_notif_provider_title">通知辨识使用的 AI</string>
+    <string name="settings_ai_notif_provider_desc">选择哪个 AI 模型用于解析通知内容</string>
+    <string name="settings_ai_monitored_apps_title">监控的应用</string>
+    <string name="settings_ai_monitored_apps_all">所有应用</string>
+    <string name="settings_ai_monitored_apps_count">%1$d 个应用</string>
+    <string name="settings_ai_monitored_apps_btn">选择</string>
+    <string name="settings_ai_monitored_apps_dialog_title">选择要监控的应用</string>
+    <string name="settings_ai_app_search_hint">搜索应用名称</string>
+
+    <!-- Channel whitelist -->
+    <string name="settings_ai_channel_filter_title">频道白名单</string>
+    <string name="settings_ai_channel_filter_desc">指定各应用哪些频道（群组）的通知才送给 AI 判断，其余直接忽略</string>
+    <string name="settings_ai_channel_filter_btn">设置</string>
+    <string name="settings_ai_channel_filter_all">所有频道</string>
+    <string name="settings_ai_channel_filter_count">已设置 %1$d 个应用</string>
+    <string name="settings_ai_channel_select_app">选择应用</string>
+    <string name="settings_ai_channel_no_seen">尚未收到任何通知，无法设置频道</string>
+    <string name="settings_ai_channel_clear_btn">清除（监控全部）</string>
+    <!-- Channel blacklist -->
+    <string name="settings_ai_channel_blacklist_title">频道黑名单</string>
+    <string name="settings_ai_channel_blacklist_btn">设置</string>
+    <string name="settings_ai_channel_blacklist_none">未设置</string>
+    <string name="settings_ai_channel_blacklist_count">已屏蔽 %1$d 个应用的频道</string>
+    <string name="settings_ai_channel_blacklist_select_app">选择要屏蔽频道的应用</string>
+    <string name="settings_ai_keyword_blacklist_title">关键字黑名单</string>
+    <string name="settings_ai_keyword_blacklist_desc">通知含以下关键字时，跳过 AI 辨识</string>
+    <string name="settings_ai_keyword_blacklist_btn">编辑</string>
+    <string name="settings_ai_keyword_blacklist_none">未设置</string>
+    <string name="settings_ai_keyword_blacklist_count">%1$d 个关键字</string>
+    <string name="settings_ai_keyword_blacklist_dialog_title">关键字黑名单</string>
+    <string name="settings_ai_keyword_blacklist_hint">输入关键字</string>
+    <string name="settings_ai_keyword_blacklist_add">添加</string>
+    <string name="settings_ai_keyword_blacklist_empty">（空白）</string>
+    <string name="settings_ai_default_remind_time_title">无时间事件的默认提醒时间</string>
+    <string name="settings_ai_default_remind_time_desc">识别出日期但无时间的事件（如"明天游泳"），在此时间提醒</string>
+    <string name="tile_quick_add">助手模式</string>
+    <string name="tile_quick_add_desc">快速添加提醒或笔记</string>
+    <string name="attach_camera">拍照</string>
+    <string name="attach_gallery">相册</string>
+    <string name="attach_audio">录音</string>
 </resources>

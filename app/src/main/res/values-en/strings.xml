@@ -7,40 +7,406 @@
     <string name="nav_reminders">Reminders</string>
     <string name="nav_more">More</string>
     <string name="nav_ai">AI</string>
-    <string name="nav_settings">Settings</string>
+
+    <!-- Schedule Tabs -->
+    <string name="tab_week_view">Weekly</string>
+    <string name="tab_calendar_view">Calendar</string>
 
     <!-- Schedule / Course -->
     <string name="add_course">Add Course</string>
     <string name="edit_course">Edit Course</string>
     <string name="delete_course">Delete Course</string>
+    <string name="course_name">Course Name</string>
+    <string name="teacher">Teacher</string>
+    <string name="room">Room</string>
+    <string name="day_of_week">Day</string>
+    <string name="period">Period</string>
+    <string name="semester">Semester</string>
+    <string name="switch_semester">Switch Semester</string>
+    <string name="override_type_cancel">Cancel Class</string>
+    <string name="override_type_replace">Substitute Class</string>
+    <string name="override_date">Change Date</string>
+    <string name="add_override">Add Temporary Change</string>
+    <string name="cancelled_label">(Cancelled)</string>
+    <string name="temp_label">(Temp)</string>
     <string name="no_class_today">No class today</string>
+    <string name="weekend">Weekend</string>
+
+    <!-- Day names -->
+    <string-array name="days_of_week">
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+    </string-array>
+
+    <!-- Period names -->
+    <string name="period_format">Period %d</string>
 
     <!-- Reminders -->
     <string name="add_reminder">Add Reminder</string>
     <string name="edit_reminder">Edit Reminder</string>
     <string name="delete_reminder">Delete Reminder</string>
+    <string name="reminder_title">Title</string>
+    <string name="reminder_note">Note (optional)</string>
+    <string name="due_date">Due Date</string>
+    <string name="pick_date">Pick Date</string>
+    <string name="pick_time">Pick Time</string>
+    <string name="clear_time">Clear</string>
+    <string name="add_notification">Add Notification Time</string>
     <string name="no_reminders">No reminders</string>
+    <string name="no_notifications_set">No notifications set</string>
+    <string name="original_notification_label">Original notification</string>
+    <string name="notification_times_label">Notify at:</string>
+    <string name="mark_complete">Mark Complete</string>
+    <string name="associated_course">Associated Course</string>
+    <string name="independent_reminder">Standalone Reminder</string>
 
-    <!-- Common actions -->
+    <!-- Common -->
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="back">Back</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
     <string name="confirm_delete">Confirm Delete</string>
     <string name="confirm_delete_message">Are you sure you want to delete this item?</string>
-    <string name="confirm_delete_reminder_title">Delete Reminder?</string>
-    <string name="confirm_delete_reminder_msg">This cannot be undone. Related notifications will be cancelled.</string>
+
+    <!-- Widget -->
+    <string name="widget_description">ClassNote Schedule &amp; Reminders Widget</string>
+
+    <!-- Reminder categories -->
+    <string name="category_none">None</string>
+    <string name="category_work">Work</string>
+    <string name="category_homework">Homework</string>
+    <string name="category_exam">Exam</string>
+    <string name="category_reminder">Reminder</string>
+    <string name="reminder_category_label">Category</string>
+
+    <!-- Repeat -->
+    <string name="repeat_label">Repeat</string>
+    <string name="repeat_none">No repeat</string>
+    <string name="repeat_daily">Daily</string>
+    <string name="repeat_weekly">Weekly</string>
+    <string name="repeat_monthly">Monthly</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Reminders</string>
+    <string name="notification_channel_description">ClassNote reminder notifications</string>
+    <string name="notification_tap_hint">Tap to view reminder details</string>
+
+    <!-- Reminder Edit - full screen toggle -->
+    <string name="reminder_full_screen_alarm_title">Full-screen Alarm</string>
+    <string name="reminder_full_screen_alarm_desc">Show as full-screen alarm with vibration when triggered</string>
 
     <!-- Settings -->
+    <string name="nav_settings">Settings</string>
+    <string name="settings_section_alarm">Alarm</string>
+    <string name="settings_full_screen_alarm_title">Full-screen Reminder</string>
+    <string name="settings_full_screen_alarm_desc">Show reminder as full-screen interface and wake screen when triggered (like an alarm)</string>
+    <string name="settings_snooze_title">Snooze Duration</string>
+    <string name="settings_section_permissions">Permissions</string>
+    <string name="settings_perm_fullscreen_title">Full-screen Notification (Android 14+)</string>
+    <string name="settings_perm_fullscreen_desc">Allow ClassNote to show reminders in full-screen</string>
+    <string name="settings_perm_overlay_title">Display Over Other Apps</string>
+    <string name="settings_perm_overlay_desc">Show reminder popups while using other apps</string>
+    <string name="settings_perm_dnd_title">Show Reminders in DND Mode</string>
+    <string name="settings_perm_dnd_desc">Receive reminders while Do Not Disturb is active (requires DND access)</string>
+    <string name="settings_perm_dnd_access_granted">DND Access: Granted</string>
+    <string name="settings_perm_dnd_access_denied">DND Access: Not granted — tap to go to settings</string>
+    <string name="settings_perm_xiaomi_title">Xiaomi Lock Screen (HyperOS/MIUI)</string>
+    <string name="settings_perm_xiaomi_desc">Other Permissions → Show on Lock Screen</string>
+    <string name="settings_perm_granted">Granted</string>
+    <string name="settings_perm_not_granted">Not granted — tap to set up</string>
+    <string name="settings_perm_status_unknown">Status unknown</string>
+    <string name="settings_quiet_hours_title">Quiet Hours</string>
+    <string name="settings_quiet_hours_desc">Imported reminders will not trigger during this period</string>
+    <string name="settings_quiet_hours_start">Start</string>
+    <string name="settings_quiet_hours_end">End</string>
+    <string name="settings_quiet_hours_policy_before">Notify before</string>
+    <string name="settings_quiet_hours_policy_after">Notify after</string>
+    <string name="snooze_10min">10 minutes</string>
+    <string name="snooze_5min">5 minutes</string>
+    <string name="snooze_15min">15 minutes</string>
+    <string name="snooze_30min">30 minutes</string>
+    <string name="settings_section_google">Google Account Backup</string>
+    <string name="settings_drive_backup_title">Backup to Google Drive</string>
+    <string name="settings_drive_backup_desc">Back up data to your Google Drive, restorable across devices</string>
+    <string name="settings_google_sign_in">Sign in with Google</string>
+    <string name="settings_google_sign_out">Sign out</string>
     <string name="settings_google_backup">Backup to Cloud</string>
+    <string name="settings_google_restore">Restore from Cloud</string>
+    <string name="settings_google_export">Export raw files to Drive</string>
+    <string name="settings_google_export_in_progress">Exporting…</string>
+    <string name="settings_google_export_success">Exported to ClassNote folder in Drive</string>
     <string name="settings_google_last_backup">Last backup: %1$s</string>
     <string name="settings_google_no_backup">Not backed up</string>
-    <string name="settings_google_backup_success">Backup successful</string>
+    <string name="settings_google_not_signed_in">Not signed in</string>
+    <string name="settings_google_backup_in_progress">Backing up…</string>
     <string name="settings_auto_backup_title">Auto Backup</string>
+    <string name="settings_auto_backup_desc">Automatically back up to Google Drive on a schedule</string>
     <string name="settings_auto_backup_interval">Backup frequency</string>
+    <string name="settings_auto_backup_interval_6h">Every 6 hours</string>
+    <string name="settings_auto_backup_interval_12h">Every 12 hours</string>
+    <string name="settings_auto_backup_interval_24h">Daily</string>
+    <string name="settings_auto_backup_interval_72h">Every 3 days</string>
+    <string name="settings_google_backup_success">Backup successful</string>
+    <string name="settings_google_reauth_ok">Authorization complete — please try again</string>
+    <string name="settings_google_restore_success">Restore successful — please reopen the app</string>
+    <string name="settings_google_restore_confirm_title">Confirm Restore?</string>
+    <string name="settings_google_restore_confirm_msg">Current data will be overwritten by the cloud backup. This cannot be undone.</string>
+    <string name="backup_network_title">Backup Network</string>
     <string name="backup_network_wifi">Wi-Fi only</string>
     <string name="backup_network_mobile">Mobile data only</string>
     <string name="backup_network_any">Wi-Fi or mobile data</string>
+    <string name="settings_section_gmail">Gmail Assignment Sync</string>
+    <string name="settings_gmail_sync_title">Import assignments from Gmail</string>
+    <string name="settings_gmail_sync_desc">Automatically read Google Classroom assignment emails and add them as reminders</string>
+    <string name="settings_gmail_not_signed_in">Not signed in to Gmail</string>
+    <string name="settings_gmail_sign_in">Sign in to Gmail</string>
+    <string name="settings_gmail_sign_out">Sign out</string>
+    <string name="settings_gmail_forward_title">Read forwarded Classroom emails</string>
+    <string name="settings_gmail_forward_desc">(Beta) Sync assignment notifications forwarded from other accounts</string>
+    <string name="settings_gmail_use_drive_account">Use Drive backup account</string>
+    <string name="settings_gmail_use_this_account">Use this account</string>
+    <string name="settings_drive_use_gmail_account">Use Gmail sync account</string>
+    <string name="settings_gmail_no_permission">Gmail authorization required</string>
+    <string name="settings_gmail_permission_denied">Gmail authorization denied — sync unavailable</string>
+    <string name="settings_gmail_sync_now">Sync Now</string>
+    <string name="settings_gmail_no_sync">Not synced yet</string>
+    <string name="settings_gmail_sync_result">Imported %1$d, skipped %2$d</string>
+    <string name="settings_auto_gmail_sync_title">Auto Sync</string>
+    <string name="settings_auto_gmail_sync_interval">Sync every %1$d hours</string>
+    <string name="settings_auto_classroom_sync_title">Auto Sync</string>
+    <string name="settings_auto_classroom_sync_interval">Sync every %1$d hours</string>
 
-    <!-- Detail -->
+    <!-- Biometric -->
+    <string name="biometric_title_monitor">Verify identity to continue</string>
+    <string name="biometric_subtitle_monitor">Access AI notification monitor settings</string>
+    <string name="biometric_subtitle_apikey">Access Gemini API Key</string>
+
+    <!-- Reminder Detail -->
+    <string name="detail_start_date">Start Date</string>
+    <string name="detail_source_gmail">Gmail sync</string>
+    <string name="detail_source_classroom">Classroom sync</string>
+    <string name="detail_source_notify">Notification parsed</string>
+    <string name="detail_fullscreen_on">On</string>
+    <string name="detail_fullscreen_off">Off</string>
     <string name="detail_no_notification">No notification</string>
+    <string name="confirm_delete_reminder_title">Delete Reminder?</string>
+    <string name="confirm_delete_reminder_msg">This cannot be undone. Related notifications will be cancelled.</string>
+
+    <!-- Formula -->
+    <string name="nav_formula">Formulas</string>
+    <string name="formula_add">Add Formula</string>
+    <string name="formula_edit">Edit Formula</string>
+    <string name="formula_title">Formula Name</string>
+    <string name="formula_title_required">Please enter a formula name</string>
+    <string name="formula_content_required">Please enter formula content</string>
+    <string name="formula_subject">Subject (optional)</string>
+    <string name="formula_latex_hint">LaTeX formula (e.g. E=mc^2 or \\frac{a}{b})</string>
+    <string name="formula_latex_required">Please enter a formula</string>
+    <string name="formula_explanation">Explanation (optional)</string>
+    <string name="formula_preview_label">Preview</string>
+    <string name="formula_search_hint">Search formulas, subjects or explanations</string>
+    <string name="formula_empty">No formulas recorded yet</string>
+
+    <!-- Weather -->
+    <string name="nav_weather">Weather</string>
+    <string name="weather_rain_prob">Rain: </string>
+    <string name="weather_forecast">Forecast</string>
+    <string name="weather_no_locations">Tap &#8220;+&#8221; to add a location</string>
+    <string name="weather_add_location">Add Location</string>
+    <string name="weather_all_added">All locations added</string>
+    <string name="weather_location_search_hint">Search location</string>
+
+    <!-- Weather Notification Settings -->
+    <string name="settings_section_weather">Weather Notifications</string>
+    <string name="settings_weather_cwa_key_label">CWA API Key</string>
+    <string name="settings_weather_cwa_key_hint">CWA-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</string>
+    <string name="settings_weather_cwa_key_save">Save</string>
+    <string name="settings_weather_cwa_key_saved">API Key saved</string>
+    <string name="settings_weather_notif_title">Daily Weather Notification</string>
+    <string name="settings_weather_notif_desc">Push the weather forecast for selected locations at a set time each day</string>
+    <string name="settings_weather_notif_time">Notification Time</string>
+    <string name="settings_weather_notif_location">Notification Location</string>
+    <string name="settings_weather_no_location">No location set</string>
+
+    <!-- Class Record -->
+    <string name="nav_class_record">Class Notes</string>
+    <string name="class_record_add">Add Class Note</string>
+    <string name="class_record_no_records">No class notes yet</string>
+    <string name="class_record_time_label">Time label (optional, e.g. Period 1)</string>
+    <string name="class_record_text_note">Notes (optional)</string>
+    <string name="class_record_take_photo">Photo</string>
+    <string name="class_record_record_audio">Record</string>
+    <string name="class_record_stop_audio">Stop Recording</string>
+    <string name="class_record_ai_summary">AI Summary</string>
+    <string name="class_record_summarizing">Summarizing…</string>
+    <string name="class_record_ai_summary_label">AI Class Summary</string>
+    <string name="class_record_add_drawing">Handwriting</string>
+    <string name="class_record_pick_gallery">Import from Gallery</string>
+
+    <!-- Classroom Sync -->
+    <string name="settings_section_classroom">Classroom Assignment Sync</string>
+    <string name="settings_classroom_sync_title">Google Classroom</string>
+    <string name="settings_classroom_sync_desc">Import assignment due dates directly from Classroom — more complete than Gmail</string>
+    <string name="settings_classroom_not_authorized">Not signed in</string>
+    <string name="settings_classroom_authorize">Sign in</string>
+    <string name="settings_classroom_sign_out">Sign out</string>
+    <string name="settings_classroom_sync_now">Sync Now</string>
+    <string name="settings_classroom_no_sync">Not synced yet</string>
+    <string name="settings_classroom_sync_result">Imported %1$d, skipped %2$d</string>
+    <string name="settings_classroom_permission_denied">Classroom authorization denied — sync unavailable</string>
+
+    <!-- Google Calendar Sync -->
+    <string name="settings_section_calendar">Google Calendar Sync</string>
+    <string name="settings_calendar_sync_title">Google Calendar</string>
+    <string name="settings_calendar_sync_desc">Import events from Google Calendar for the next 60 days as reminders</string>
+    <string name="settings_calendar_sign_in">Authorize Calendar Access</string>
+    <string name="settings_calendar_sign_out">Sign out</string>
+    <string name="settings_calendar_no_permission">Google Calendar authorization required</string>
+    <string name="settings_calendar_permission_denied">Calendar authorization denied — sync unavailable</string>
+    <string name="settings_calendar_sync_now">Sync Now</string>
+    <string name="settings_calendar_no_sync">Not synced yet</string>
+    <string name="settings_calendar_sync_result">Imported %1$d, skipped %2$d</string>
+    <string name="settings_auto_calendar_sync_title">Auto Sync</string>
+    <string name="settings_auto_calendar_sync_interval">Auto-sync every %1$d hours</string>
+
+    <!-- Google Tasks Sync -->
+    <string name="settings_section_tasks">Google Tasks Sync</string>
+    <string name="settings_tasks_sync_title">Google Tasks</string>
+    <string name="settings_tasks_sync_desc">Import tasks from Google Tasks as reminders (due date only, no time)</string>
+    <string name="settings_tasks_sign_in">Authorize Tasks Access</string>
+    <string name="settings_tasks_sign_out">Sign out</string>
+    <string name="settings_tasks_no_permission">Google Tasks authorization required</string>
+    <string name="settings_tasks_permission_denied">Tasks authorization denied — sync unavailable</string>
+    <string name="settings_tasks_sync_now">Sync Now</string>
+    <string name="settings_tasks_no_sync">Not synced yet</string>
+    <string name="settings_tasks_sync_result">Imported %1$d, skipped %2$d</string>
+    <string name="settings_auto_tasks_sync_title">Auto Sync</string>
+    <string name="settings_auto_tasks_sync_interval">Auto-sync every %1$d hours</string>
+    <string name="settings_section_keep">Google Keep</string>
+    <string name="settings_keep_sync_title">Google Keep Sync</string>
+    <string name="settings_keep_sync_desc">Import notes from Google Keep as reminders (requires Google Workspace or education account)</string>
+    <string name="settings_auto_keep_sync_title">Auto Sync</string>
+    <string name="settings_auto_keep_sync_interval">Sync every %1$d hours</string>
+    <string name="settings_keep_no_sync">Not synced yet</string>
+    <string name="settings_keep_sync_now">Sync Now</string>
+    <string name="settings_keep_sync_result">Imported %1$d, skipped %2$d</string>
+    <string name="settings_keep_no_permission">This feature requires a Google Workspace or education account</string>
+    <string name="settings_add_account">Add Account</string>
+    <string name="settings_auto_mstodo_sync_interval">Auto-sync every %1$d hours</string>
+    <string name="settings_auto_outlook_calendar_sync_interval">Auto-sync every %1$d hours</string>
+    <string name="settings_auto_teams_assignment_sync_interval">Auto-sync every %1$d hours</string>
+    <string name="settings_section_onenote">Microsoft OneNote</string>
+    <string name="settings_onenote_sync_title">OneNote Sync</string>
+    <string name="settings_onenote_sync_desc">Import pages from OneNote notebooks as reminders — supports personal and work accounts</string>
+    <string name="settings_onenote_no_sync">Not synced yet</string>
+    <string name="settings_onenote_sync_now">Sync Now</string>
+    <string name="settings_onenote_sync_result">Imported %1$d, skipped %2$d</string>
+    <string name="settings_auto_onenote_sync_title">Auto Sync</string>
+    <string name="settings_auto_onenote_sync_interval">Auto-sync every %1$d hours</string>
+    <string name="settings_onenote_no_permission">Please sign in to your Microsoft account first</string>
+    <string name="settings_auto_sync">Auto Sync</string>
+
+    <!-- OneDrive Backup -->
+    <string name="settings_section_onedrive">OneDrive Backup</string>
+    <string name="settings_onedrive_backup_title">Microsoft OneDrive</string>
+    <string name="settings_onedrive_backup_desc">Back up your database to OneDrive — restorable across devices</string>
+    <string name="settings_onedrive_not_signed_in">Not signed in to Microsoft</string>
+    <string name="settings_onedrive_sign_in">Sign in</string>
+    <string name="settings_onedrive_sign_out">Sign out</string>
+    <string name="settings_onedrive_backup">Backup Now</string>
+    <string name="settings_onedrive_restore">Restore</string>
+    <string name="settings_onedrive_no_backup">Not backed up</string>
+    <string name="settings_onedrive_last_backup">Last backup: %1$s</string>
+    <string name="settings_onedrive_backup_in_progress">Backing up…</string>
+    <string name="settings_onedrive_backup_success">Backup successful</string>
+    <string name="settings_onedrive_restore_confirm_title">Confirm Restore</string>
+    <string name="settings_onedrive_restore_confirm_msg">Current data will be overwritten. The app needs to restart to take effect. Continue?</string>
+    <string name="settings_onedrive_restore_success">Restore successful — please restart the app</string>
+    <string name="settings_onedrive_auto_backup_title">Auto Backup</string>
+    <string name="settings_onedrive_auto_backup_desc">Automatically back up data to OneDrive on a schedule</string>
+    <string name="settings_onedrive_sign_in_failed">Microsoft sign-in failed</string>
+
+    <!-- MS To Do -->
+    <string name="settings_section_mstodo">Microsoft To Do Sync</string>
+    <string name="settings_mstodo_sync_title">Microsoft To Do</string>
+    <string name="settings_mstodo_sync_desc">Import incomplete tasks from Microsoft To Do as reminders</string>
+    <string name="settings_mstodo_sync_now">Sync Now</string>
+    <string name="settings_mstodo_no_sync">Not synced yet</string>
+    <string name="settings_mstodo_sync_result">Imported %1$d, skipped %2$d</string>
+
+    <!-- Outlook Calendar -->
+    <string name="settings_section_outlook_calendar">Outlook Calendar Sync</string>
+    <string name="settings_outlook_calendar_sync_title">Outlook Calendar</string>
+    <string name="settings_outlook_calendar_sync_desc">Import events from Outlook Calendar for the next 30 days as reminders</string>
+    <string name="settings_outlook_calendar_sync_now">Sync Now</string>
+    <string name="settings_outlook_calendar_no_sync">Not synced yet</string>
+    <string name="settings_outlook_calendar_sync_result">Imported %1$d, skipped %2$d</string>
+
+    <!-- Teams for Education -->
+    <string name="settings_section_teams_assignment">Teams Assignment Sync</string>
+    <string name="settings_teams_assignment_sync_title">Microsoft Teams Assignments</string>
+    <string name="settings_teams_assignment_sync_desc">Import unsubmitted assignments from Teams for Education as reminders (school account required)</string>
+    <string name="settings_teams_assignment_sync_now">Sync Now</string>
+    <string name="settings_teams_assignment_no_sync">Not synced yet</string>
+    <string name="settings_teams_assignment_sync_result">Imported %1$d, skipped %2$d</string>
+    <string name="settings_teams_assignment_no_permission">Requires a school organization account (AAD edu) with EduAssignments consent — personal Microsoft accounts are not supported</string>
+
+    <!-- AI Notification Parsing -->
+    <string name="settings_section_ai_notify">AI Notification Parsing</string>
+    <string name="settings_ai_notify_title">Auto-parse Notifications</string>
+    <string name="settings_ai_notify_desc">When a notification arrives, automatically use Gemini AI to detect assignments or events and add them as reminders</string>
+    <string name="settings_ai_notify_access_title">Notification Access</string>
+    <string name="settings_ai_notify_access_granted">Granted</string>
+    <string name="settings_ai_notify_access_denied">Not granted — tap to go to settings</string>
+    <string name="settings_ai_notify_access_btn">Go to Settings</string>
+    <string name="settings_ai_gemini_key_label">Gemini API Key</string>
+    <string name="settings_ai_gemini_key_hint">AIzaSy…</string>
+    <string name="settings_ai_gemini_key_save">Save</string>
+    <string name="settings_ai_gemini_key_saved">API Key saved</string>
+    <string name="settings_ai_chat_provider_title">AI for Class Notes Chat</string>
+    <string name="settings_ai_chat_provider_desc">Choose which AI model to use for class note conversations</string>
+    <string name="settings_ai_notif_provider_title">AI for Notification Parsing</string>
+    <string name="settings_ai_notif_provider_desc">Choose which AI model to use for parsing notification content</string>
+    <string name="settings_ai_monitored_apps_title">Monitored Apps</string>
+    <string name="settings_ai_monitored_apps_all">All Apps</string>
+    <string name="settings_ai_monitored_apps_count">%1$d apps</string>
+    <string name="settings_ai_monitored_apps_btn">Select</string>
+    <string name="settings_ai_monitored_apps_dialog_title">Select Apps to Monitor</string>
+    <string name="settings_ai_app_search_hint">Search app name</string>
+
+    <!-- Channel whitelist -->
+    <string name="settings_ai_channel_filter_title">Channel Whitelist</string>
+    <string name="settings_ai_channel_filter_desc">Specify which channels (groups) per app are sent to AI for analysis — others are ignored</string>
+    <string name="settings_ai_channel_filter_btn">Configure</string>
+    <string name="settings_ai_channel_filter_all">All channels</string>
+    <string name="settings_ai_channel_filter_count">%1$d apps configured</string>
+    <string name="settings_ai_channel_select_app">Select App</string>
+    <string name="settings_ai_channel_no_seen">No notifications received yet — cannot configure channels</string>
+    <string name="settings_ai_channel_clear_btn">Clear (monitor all)</string>
+    <!-- Channel blacklist -->
+    <string name="settings_ai_channel_blacklist_title">Channel Blacklist</string>
+    <string name="settings_ai_channel_blacklist_btn">Configure</string>
+    <string name="settings_ai_channel_blacklist_none">None set</string>
+    <string name="settings_ai_channel_blacklist_count">%1$d apps blocked</string>
+    <string name="settings_ai_channel_blacklist_select_app">Select app to block channels</string>
+    <string name="settings_ai_keyword_blacklist_title">Keyword Blacklist</string>
+    <string name="settings_ai_keyword_blacklist_desc">Skip AI parsing when a notification contains these keywords</string>
+    <string name="settings_ai_keyword_blacklist_btn">Edit</string>
+    <string name="settings_ai_keyword_blacklist_none">None set</string>
+    <string name="settings_ai_keyword_blacklist_count">%1$d keywords</string>
+    <string name="settings_ai_keyword_blacklist_dialog_title">Keyword Blacklist</string>
+    <string name="settings_ai_keyword_blacklist_hint">Enter keyword</string>
+    <string name="settings_ai_keyword_blacklist_add">Add</string>
+    <string name="settings_ai_keyword_blacklist_empty">(empty)</string>
+    <string name="settings_ai_default_remind_time_title">Default reminder time for timeless events</string>
+    <string name="settings_ai_default_remind_time_desc">For events with a date but no time (e.g. "swim tomorrow"), remind at this time</string>
+    <string name="tile_quick_add">Assistant</string>
+    <string name="tile_quick_add_desc">Quick add reminder or note</string>
+    <string name="attach_camera">Camera</string>
+    <string name="attach_gallery">Gallery</string>
+    <string name="attach_audio">Audio</string>
 </resources>
