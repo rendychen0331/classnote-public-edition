@@ -78,17 +78,8 @@ class MainActivity : AppCompatActivity() {
         )
         binding.toolbar.setupWithNavController(navController, appBarConfig)
 
-        binding.toolbar.inflateMenu(R.menu.toolbar_menu)
-        binding.toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_settings) {
-                navController.navigate(R.id.settingsFragment)
-                true
-            } else false
-        }
-
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val inSettings = destination.id in settingsDestinations
-            binding.toolbar.menu.findItem(R.id.action_settings)?.isVisible = !inSettings
             if (inSettings) {
                 binding.bottomNavigation.menu.setGroupCheckable(0, false, true)
             } else {
