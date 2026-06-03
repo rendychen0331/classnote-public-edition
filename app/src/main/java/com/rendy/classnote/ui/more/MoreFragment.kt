@@ -37,6 +37,9 @@ class MoreFragment : Fragment() {
         binding.cardMoreFormula.setOnClickListener {
             findNavController().navigate(R.id.actionMoreToFormulaList)
         }
+        binding.cardMoreSettings.setOnClickListener {
+            findNavController().navigate(R.id.actionMoreToSettings)
+        }
         binding.cardMoreWeather.setOnClickListener {
             if (FeatureManager.isDownloaded(requireContext(), "weather")) {
                 findNavController().navigate(R.id.actionMoreToWeather)
