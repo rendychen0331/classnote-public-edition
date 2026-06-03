@@ -85,18 +85,21 @@ object UpdateChecker {
         onProgress: (Int) -> Unit
     ): Boolean = withContext(Dispatchers.IO) {
         try {
+            val prefs = AppPreferences(context)
             val dir = apkDir(context)
             val filename = "classnote-$tagName.apk"
-            // Clean old APKs
-            dir.listFiles { f -> f.name.endsWith(".apk") && f.name != filename }
-                ?.forEach { it.delete() }
+            // Clean old APKs and stale tmp files
+            dir.listFiles { f -> f.name != filename }?.forEach { it.delete() }
 
             val destFile = File(dir, filename)
-            if (destFile.exists() && destFile.length() > 0) {
-                AppPreferences(context).activeApkFileName = filename
+            if (destFile.exists() && destFile.length() > 0 && prefs.apkDownloadComplete) {
                 withContext(Dispatchers.Main) { onProgress(100) }
                 return@withContext true
             }
+
+            // Delete potentially corrupt destFile before re-downloading
+            destFile.delete()
+            prefs.apkDownloadComplete = false
 
             val conn = URL(apkUrl).openConnection() as HttpURLConnection
             conn.connectTimeout = 15000
@@ -128,7 +131,8 @@ object UpdateChecker {
             } finally {
                 conn.disconnect()
             }
-            AppPreferences(context).activeApkFileName = filename
+            prefs.activeApkFileName = filename
+            prefs.apkDownloadComplete = true
             true
         } catch (e: Exception) {
             Log.e(TAG, "downloadApk failed", e)
@@ -138,7 +142,9 @@ object UpdateChecker {
     }
 
     fun getDownloadedApkFile(context: Context): File? {
-        val filename = AppPreferences(context).activeApkFileName.takeIf { it.isNotEmpty() } ?: return null
+        val prefs = AppPreferences(context)
+        if (!prefs.apkDownloadComplete) return null
+        val filename = prefs.activeApkFileName.takeIf { it.isNotEmpty() } ?: return null
         val file = File(apkDir(context), filename)
         return if (file.exists() && file.length() > 0) file else null
     }
