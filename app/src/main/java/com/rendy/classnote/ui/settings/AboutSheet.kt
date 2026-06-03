@@ -79,7 +79,9 @@ class AboutSheet : Fragment() {
                 refreshInstallButton()
             }
         } else {
+            prefs.activeApkFileName = ""
             binding.btnCheckUpdate.text = "檢查更新"
+            binding.btnCheckUpdate.isEnabled = true
             binding.btnCheckUpdate.setOnClickListener {
                 performUpdateCheck(force = true)
             }
@@ -166,11 +168,10 @@ class AboutSheet : Fragment() {
                 }
                 when {
                     progress == 100 -> {
-                        val apkFile = UpdateChecker.getDownloadedApkFile(requireContext())
                         prefs.activeApkDownloadId = 0L
-                        prefs.activeApkFileName = ""
                         val dm = requireContext().getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
                         dm.remove(downloadId)
+                        val apkFile = UpdateChecker.getDownloadedApkFile(requireContext())
                         if (_binding != null) {
                             binding.tvUpdateStatus.text = "下載完成"
                             refreshInstallButton()
