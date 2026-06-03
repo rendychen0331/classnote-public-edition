@@ -1,7 +1,5 @@
 package com.rendy.classnote.ui.settings
 
-import android.app.DownloadManager
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,10 +15,7 @@ import com.rendy.classnote.data.AppPreferences
 import com.rendy.classnote.data.AutoUpdateWorker
 import com.rendy.classnote.data.UpdateChecker
 import com.rendy.classnote.databinding.SheetAboutBinding
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 private val UPDATE_INTERVAL_OPTIONS = listOf(24, 72, 168)
@@ -49,7 +44,6 @@ class AboutSheet : Fragment() {
         setupUpdateSection()
         refreshInstallButton()
         autoCheckUpdate()
-        resumePendingDownload()
     }
 
     private fun setupVersionInfo() {
@@ -89,7 +83,6 @@ class AboutSheet : Fragment() {
     }
 
     private fun setupUpdateSection() {
-
         val autoUpdateEnabled = prefs.autoUpdateEnabled
         binding.switchAutoUpdate.isChecked = autoUpdateEnabled
         binding.rowAutoUpdateInterval.visibility = if (autoUpdateEnabled) View.VISIBLE else View.GONE
@@ -120,14 +113,16 @@ class AboutSheet : Fragment() {
         lifecycleScope.launch {
             val info = UpdateChecker.checkForUpdate(requireContext(), force = force)
             if (_binding == null) return@launch
-            binding.btnCheckUpdate.isEnabled = true
             when {
-                info == null   -> binding.tvUpdateStatus.text = "檢查失敗"
-                info.isNewer   -> {
+                info == null  -> binding.tvUpdateStatus.text = "檢查失敗"
+                info.isNewer  -> {
                     binding.tvUpdateStatus.text = "有新版本"
                     showUpdateAvailable(info)
                 }
-                else           -> binding.tvUpdateStatus.text = "已是最新"
+                else          -> {
+                    binding.tvUpdateStatus.text = "已是最新"
+                    binding.btnCheckUpdate.isEnabled = true
+                }
             }
         }
     }
@@ -138,58 +133,36 @@ class AboutSheet : Fragment() {
             .setTitle("發現新版本 ${info.tagName}")
             .setMessage("目前版本：${BuildConfig.VERSION_NAME}\n\n是否立即下載並安裝？")
             .setPositiveButton("下載安裝") { _, _ ->
-                val downloadId = UpdateChecker.downloadAndInstall(requireContext(), info.apkUrl, info.tagName)
-                if (downloadId == UpdateChecker.DOWNLOAD_ID_CACHED) {
-                    binding.tvUpdateStatus.text = "正在開啟安裝介面…"
-                } else {
-                    prefs.activeApkDownloadId = downloadId
-                    binding.tvUpdateStatus.text = "下載中... 0%"
-                    binding.btnCheckUpdate.isEnabled = false
-                    trackDownloadProgress(downloadId)
-                }
+                startDownload(info.apkUrl, info.tagName)
             }
             .setNegativeButton("稍後", null)
             .show()
     }
 
-    private fun resumePendingDownload() {
-        val downloadId = prefs.activeApkDownloadId
-        if (downloadId <= 0L) return
-        binding.tvUpdateStatus.text = "下載中..."
+    private fun startDownload(apkUrl: String, tagName: String) {
+        binding.tvUpdateStatus.text = "下載中... 0%"
         binding.btnCheckUpdate.isEnabled = false
-        trackDownloadProgress(downloadId)
-    }
+        binding.btnCheckUpdate.text = "下載中..."
 
-    private fun trackDownloadProgress(downloadId: Long) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            while (isAdded && _binding != null) {
-                val progress = withContext(Dispatchers.IO) {
-                    UpdateChecker.queryProgress(requireContext(), downloadId)
+        lifecycleScope.launch {
+            val success = UpdateChecker.downloadApk(
+                context = requireContext(),
+                apkUrl = apkUrl,
+                tagName = tagName,
+                onProgress = { pct ->
+                    _binding?.tvUpdateStatus?.text = "下載中... $pct%"
                 }
-                when {
-                    progress == 100 -> {
-                        prefs.activeApkDownloadId = 0L
-                        val dm = requireContext().getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                        dm.remove(downloadId)
-                        val apkFile = UpdateChecker.getDownloadedApkFile(requireContext())
-                        if (_binding != null) {
-                            binding.tvUpdateStatus.text = "下載完成"
-                            refreshInstallButton()
-                        }
-                        if (apkFile != null) UpdateChecker.triggerInstallFromFile(requireContext(), apkFile)
-                        break
-                    }
-                    progress < 0 -> {
-                        prefs.activeApkDownloadId = 0L
-                        if (_binding != null) {
-                            binding.tvUpdateStatus.text = "下載失敗"
-                            binding.btnCheckUpdate.isEnabled = true
-                        }
-                        break
-                    }
-                    else -> _binding?.tvUpdateStatus?.text = "下載中... $progress%"
+            )
+            if (_binding == null) return@launch
+            if (success) {
+                binding.tvUpdateStatus.text = "下載完成"
+                refreshInstallButton()
+                UpdateChecker.getDownloadedApkFile(requireContext())?.let {
+                    UpdateChecker.triggerInstallFromFile(requireContext(), it)
                 }
-                delay(500)
+            } else {
+                binding.tvUpdateStatus.text = "下載失敗"
+                refreshInstallButton()
             }
         }
     }
