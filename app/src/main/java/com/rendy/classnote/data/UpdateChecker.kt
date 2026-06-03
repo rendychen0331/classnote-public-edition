@@ -104,10 +104,12 @@ object UpdateChecker {
             val conn = URL(apkUrl).openConnection() as HttpURLConnection
             conn.connectTimeout = 15000
             conn.readTimeout = 60000
+            conn.instanceFollowRedirects = true
+            conn.setRequestProperty("User-Agent", "ClassNote-Updater/1.0")
             try {
                 conn.connect()
                 if (conn.responseCode !in 200..299) {
-                    ErrorLogger.e(TAG, "APK 下載失敗：HTTP ${conn.responseCode}")
+                    ErrorLogger.e(TAG, "APK 下載失敗：HTTP ${conn.responseCode} url=$apkUrl")
                     return@withContext false
                 }
                 val total = conn.contentLengthLong
@@ -126,6 +128,15 @@ object UpdateChecker {
                             }
                         }
                     }
+                }
+                // Verify ZIP magic bytes (APK = ZIP, must start with PK\x03\x04)
+                val magic = ByteArray(4)
+                tmp.inputStream().use { it.read(magic) }
+                if (magic[0] != 0x50.toByte() || magic[1] != 0x4B.toByte()) {
+                    tmp.delete()
+                    val msg = "下載到的檔案不是有效 APK（大小=${downloaded}B，可能是 HTML）"
+                    ErrorLogger.e(TAG, msg)
+                    return@withContext false
                 }
                 tmp.renameTo(destFile)
             } finally {
