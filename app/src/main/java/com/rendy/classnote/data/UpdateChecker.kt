@@ -129,13 +129,18 @@ object UpdateChecker {
                         }
                     }
                 }
+                // Verify size matches Content-Length
+                if (total > 0 && downloaded != total) {
+                    tmp.delete()
+                    ErrorLogger.e(TAG, "APK 下載截斷：預期=${total}B 實際=${downloaded}B")
+                    return@withContext false
+                }
                 // Verify ZIP magic bytes (APK = ZIP, must start with PK\x03\x04)
                 val magic = ByteArray(4)
                 tmp.inputStream().use { it.read(magic) }
                 if (magic[0] != 0x50.toByte() || magic[1] != 0x4B.toByte()) {
                     tmp.delete()
-                    val msg = "下載到的檔案不是有效 APK（大小=${downloaded}B，可能是 HTML）"
-                    ErrorLogger.e(TAG, msg)
+                    ErrorLogger.e(TAG, "下載到的檔案不是有效 APK（大小=${downloaded}B，可能是 HTML）")
                     return@withContext false
                 }
                 tmp.renameTo(destFile)
