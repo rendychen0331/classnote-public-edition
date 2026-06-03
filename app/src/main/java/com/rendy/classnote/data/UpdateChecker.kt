@@ -94,7 +94,7 @@ object UpdateChecker {
             val destFile = File(dir, filename)
             if (destFile.exists() && destFile.length() > 0) {
                 AppPreferences(context).activeApkFileName = filename
-                onProgress(100)
+                withContext(Dispatchers.Main) { onProgress(100) }
                 return@withContext true
             }
 
@@ -117,7 +117,10 @@ object UpdateChecker {
                         while (input.read(buf).also { read = it } != -1) {
                             output.write(buf, 0, read)
                             downloaded += read
-                            if (total > 0) onProgress((downloaded * 100 / total).toInt())
+                            if (total > 0) {
+                                val pct = (downloaded * 100 / total).toInt()
+                                withContext(Dispatchers.Main) { onProgress(pct) }
+                            }
                         }
                     }
                 }
