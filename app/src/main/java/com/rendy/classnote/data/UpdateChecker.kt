@@ -2,6 +2,7 @@ package com.rendy.classnote.data
 
 import android.content.Context
 import android.content.Intent
+import android.os.Environment
 import android.util.Log
 import androidx.core.content.FileProvider
 import com.rendy.classnote.BuildConfig
@@ -149,6 +150,16 @@ object UpdateChecker {
             }
             prefs.activeApkFileName = filename
             prefs.apkDownloadComplete = true
+            // Copy to external files/Downloads for manual access / debugging
+            try {
+                val extDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                if (extDir != null) {
+                    extDir.mkdirs()
+                    destFile.copyTo(File(extDir, filename), overwrite = true)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "copy to external Downloads failed (non-fatal)", e)
+            }
             true
         } catch (e: Exception) {
             Log.e(TAG, "downloadApk failed", e)
