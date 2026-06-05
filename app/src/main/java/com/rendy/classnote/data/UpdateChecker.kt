@@ -144,7 +144,11 @@ object UpdateChecker {
                     ErrorLogger.e(TAG, "下載到的檔案不是有效 APK（大小=${downloaded}B，可能是 HTML）")
                     return@withContext false
                 }
-                tmp.renameTo(destFile)
+                if (!tmp.renameTo(destFile)) {
+                    tmp.delete()
+                    ErrorLogger.e(TAG, "APK rename 失敗：tmp → $filename")
+                    return@withContext false
+                }
             } finally {
                 conn.disconnect()
             }
@@ -184,7 +188,13 @@ object UpdateChecker {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
                 putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
             })
-            apkFile.delete()
+            // Reset prefs so UI shows "檢查更新" again.
+            // Do NOT delete the file here — the system installer reads it asynchronously
+            // via the FileProvider URI; deleting immediately causes "套件剖析失敗".
+            // Old APKs are cleaned up next time downloadApk() runs for a new version.
+            val prefs = AppPreferences(context)
+            prefs.apkDownloadComplete = false
+            prefs.activeApkFileName = ""
         } catch (e: Exception) {
             Log.e(TAG, "triggerInstallFromFile error", e)
             android.widget.Toast.makeText(context, "無法開啟安裝介面：${e.message}", android.widget.Toast.LENGTH_LONG).show()
