@@ -117,6 +117,7 @@ class AboutSheet : Fragment() {
                 info == null  -> binding.tvUpdateStatus.text = "檢查失敗"
                 info.isNewer  -> {
                     binding.tvUpdateStatus.text = "有新版本"
+                    binding.btnCheckUpdate.isEnabled = true
                     showUpdateAvailable(info)
                 }
                 else          -> {
