@@ -56,7 +56,7 @@ class AboutSheet : Fragment() {
                 val parts = raw.split("-")
                 val d = parts[0]
                 val t = parts[1]
-                "${d.substring(0, 4)}/${d.substring(4, 6)}/${d.substring(6, 8)}  ${t.substring(0, 2)}:${t.substring(2, 4)}"
+                "${d.substring(0, 4)}/${d.substring(4, 6)}/${d.substring(6, 8)}  UTC ${t.substring(0, 2)}:${t.substring(2, 4)}"
             }.getOrDefault(raw)
         } else {
             binding.tvAboutBuildTime.text = "-"
