@@ -233,11 +233,11 @@
     <string name="settings_weather_no_location">未設定地區</string>
 
     <!-- 上課紀錄 -->
-    <string name="nav_class_record">上課紀錄</string>
-    <string name="class_record_add">新增上課紀錄</string>
-    <string name="class_record_no_records">尚未有上課紀錄</string>
+    <string name="nav_class_record">筆記</string>
+    <string name="class_record_add">新增筆記</string>
+    <string name="class_record_no_records">尚未有筆記</string>
     <string name="class_record_time_label">時間標籤（選填，例如：第一節）</string>
-    <string name="class_record_text_note">上課備註（選填）</string>
+    <string name="class_record_text_note">備註（選填）</string>
     <string name="class_record_take_photo">拍照</string>
     <string name="class_record_record_audio">錄音</string>
     <string name="class_record_stop_audio">停止錄音</string>

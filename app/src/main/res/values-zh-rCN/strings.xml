@@ -233,11 +233,11 @@
     <string name="settings_weather_no_location">未设置地区</string>
 
     <!-- Class Record -->
-    <string name="nav_class_record">上课记录</string>
-    <string name="class_record_add">新建上课记录</string>
-    <string name="class_record_no_records">尚无上课记录</string>
+    <string name="nav_class_record">笔记</string>
+    <string name="class_record_add">新建笔记</string>
+    <string name="class_record_no_records">尚无笔记</string>
     <string name="class_record_time_label">时间标签（选填，例如：第一节）</string>
-    <string name="class_record_text_note">上课备注（选填）</string>
+    <string name="class_record_text_note">备注（选填）</string>
     <string name="class_record_take_photo">拍照</string>
     <string name="class_record_record_audio">录音</string>
     <string name="class_record_stop_audio">停止录音</string>

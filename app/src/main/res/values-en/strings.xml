@@ -233,9 +233,9 @@
     <string name="settings_weather_no_location">No location set</string>
 
     <!-- Class Record -->
-    <string name="nav_class_record">Class Notes</string>
-    <string name="class_record_add">Add Class Note</string>
-    <string name="class_record_no_records">No class notes yet</string>
+    <string name="nav_class_record">Notes</string>
+    <string name="class_record_add">Add Note</string>
+    <string name="class_record_no_records">No notes yet</string>
     <string name="class_record_time_label">Time label (optional, e.g. Period 1)</string>
     <string name="class_record_text_note">Notes (optional)</string>
     <string name="class_record_take_photo">Photo</string>
