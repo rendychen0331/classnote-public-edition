@@ -92,13 +92,6 @@ Made with Claude（程式碼）& Gemini（App icon）& Google Stitch（UI）
 | ❓ 支援未測試 | OpenAI ChatGPT |
 | ❓ 支援未測試 | Xiaomi MiMo（OpenAI API）|
 | ❓ 支援未測試 | DeepSeek |
-| ❌ 不支援 | xAI Grok |
-| ❌ 不支援 | Microsoft Copilot |
-| ❌ 不支援 | GitHub Copilot |
-| ❌ 不支援 | ByteDance Doubao／Dola |
-| ❌ 不支援 | Alibaba Qwen |
-| ❌ 不支援 | Perplexity |
-| ❌ 不支援 | Meta AI |
 
 ## 4. 說明
 
