@@ -237,8 +237,7 @@ class AiSettingsSheet : Fragment() {
             savedMsg = "自訂 OpenAI API Key 已儲存"
         )
 
-        setupChatProviderChips()
-        setupNotifProviderChips()
+        setupProviderChips()
     }
 
     private fun setupCustomProviderCard(
@@ -345,80 +344,93 @@ class AiSettingsSheet : Fragment() {
         }
     }
 
-    private fun setupChatProviderChips() {
-        val customAnthropicKey = AppPreferences.encodeCustomKey(
-            prefs.customAnthropicEndpoint, prefs.customAnthropicModel, prefs.customAnthropicKey
-        )
-        val customOpenaiKey = AppPreferences.encodeCustomKey(
-            prefs.customOpenaiEndpoint, prefs.customOpenaiModel, prefs.customOpenaiKey
-        )
-        val chipMap = mapOf(
-            binding.chipChatGemini          to ("gemini"           to (prefs.geminiApiKey   to prefs.geminiEnabled)),
-            binding.chipChatMimo            to ("mimo"             to (prefs.mimoApiKey     to prefs.mimoEnabled)),
-            binding.chipChatClaude          to ("claude"           to (prefs.claudeApiKey   to prefs.claudeEnabled)),
-            binding.chipChatOpenai          to ("openai"           to (prefs.openaiApiKey   to prefs.openaiEnabled)),
-            binding.chipChatGroq            to ("groq"             to (prefs.groqApiKey     to prefs.groqEnabled)),
-            binding.chipChatDeepseek        to ("deepseek"         to (prefs.deepseekApiKey to prefs.deepseekEnabled)),
-            binding.chipChatCustomAnthropic to ("custom-anthropic" to (customAnthropicKey   to (prefs.customAnthropicEnabled
-                && prefs.customAnthropicEndpoint.isNotBlank() && prefs.customAnthropicModel.isNotBlank() && prefs.customAnthropicKey.isNotBlank()))),
-            binding.chipChatCustomOpenai    to ("custom-openai"    to (customOpenaiKey      to (prefs.customOpenaiEnabled
-                && prefs.customOpenaiEndpoint.isNotBlank() && prefs.customOpenaiModel.isNotBlank())))
-        )
-        chipMap.forEach { (chip, pair) ->
-            val (_, keyAndEnabled) = pair
-            val active = keyAndEnabled.first.isNotBlank() && keyAndEnabled.second
-            chip.isEnabled = active
-            chip.alpha = if (active) 1f else 0.4f
-        }
-        val preferred = prefs.preferredChatProvider
-        val preferredChip = chipMap.entries.firstOrNull { it.value.first == preferred }?.key
-        val firstAvailable = chipMap.entries.firstOrNull { it.key.isEnabled }?.key
-        (preferredChip?.takeIf { it.isEnabled } ?: firstAvailable)?.isChecked = true
+    private fun setupProviderChips() {
+        // Read all encrypted prefs once to avoid repeated AES decryption
+        val geminiKey        = prefs.geminiApiKey;   val geminiOn        = prefs.geminiEnabled
+        val mimoKey          = prefs.mimoApiKey;     val mimoOn          = prefs.mimoEnabled
+        val claudeKey        = prefs.claudeApiKey;   val claudeOn        = prefs.claudeEnabled
+        val openaiKey        = prefs.openaiApiKey;   val openaiOn        = prefs.openaiEnabled
+        val groqKey          = prefs.groqApiKey;     val groqOn          = prefs.groqEnabled
+        val deepseekKey      = prefs.deepseekApiKey; val deepseekOn      = prefs.deepseekEnabled
+        val cAnthrEndpoint   = prefs.customAnthropicEndpoint
+        val cAnthrModel      = prefs.customAnthropicModel
+        val cAnthrRawKey     = prefs.customAnthropicKey
+        val cAnthrOn         = prefs.customAnthropicEnabled
+        val cOpenaiEndpoint  = prefs.customOpenaiEndpoint
+        val cOpenaiModel     = prefs.customOpenaiModel
+        val cOpenaiRawKey    = prefs.customOpenaiKey
+        val cOpenaiOn        = prefs.customOpenaiEnabled
 
-        binding.chipGroupChatProvider.setOnCheckedStateChangeListener { _, checkedIds ->
-            val id = checkedIds.firstOrNull() ?: return@setOnCheckedStateChangeListener
-            val provider = chipMap.entries.firstOrNull { it.key.id == id }?.value?.first
-                ?: return@setOnCheckedStateChangeListener
-            prefs.preferredChatProvider = provider
-        }
-    }
+        val customAnthropicKey = AppPreferences.encodeCustomKey(cAnthrEndpoint, cAnthrModel, cAnthrRawKey)
+        val customOpenaiKey    = AppPreferences.encodeCustomKey(cOpenaiEndpoint, cOpenaiModel, cOpenaiRawKey)
 
-    private fun setupNotifProviderChips() {
-        val customAnthropicKey = AppPreferences.encodeCustomKey(
-            prefs.customAnthropicEndpoint, prefs.customAnthropicModel, prefs.customAnthropicKey
+        data class ProviderEntry(val key: String, val active: Boolean)
+        val providers = mapOf(
+            "gemini"           to ProviderEntry(geminiKey,         geminiKey.isNotBlank()         && geminiOn),
+            "mimo"             to ProviderEntry(mimoKey,           mimoKey.isNotBlank()           && mimoOn),
+            "claude"           to ProviderEntry(claudeKey,         claudeKey.isNotBlank()         && claudeOn),
+            "openai"           to ProviderEntry(openaiKey,         openaiKey.isNotBlank()         && openaiOn),
+            "groq"             to ProviderEntry(groqKey,           groqKey.isNotBlank()           && groqOn),
+            "deepseek"         to ProviderEntry(deepseekKey,       deepseekKey.isNotBlank()       && deepseekOn),
+            "custom-anthropic" to ProviderEntry(customAnthropicKey, customAnthropicKey.isNotBlank()
+                && cAnthrOn && cAnthrEndpoint.isNotBlank() && cAnthrModel.isNotBlank() && cAnthrRawKey.isNotBlank()),
+            "custom-openai"    to ProviderEntry(customOpenaiKey,   customOpenaiKey.isNotBlank()
+                && cOpenaiOn && cOpenaiEndpoint.isNotBlank() && cOpenaiModel.isNotBlank())
         )
-        val customOpenaiKey = AppPreferences.encodeCustomKey(
-            prefs.customOpenaiEndpoint, prefs.customOpenaiModel, prefs.customOpenaiKey
-        )
-        val chipMap = mapOf(
-            binding.chipNotifGemini          to ("gemini"           to (prefs.geminiApiKey   to prefs.geminiEnabled)),
-            binding.chipNotifMimo            to ("mimo"             to (prefs.mimoApiKey     to prefs.mimoEnabled)),
-            binding.chipNotifClaude          to ("claude"           to (prefs.claudeApiKey   to prefs.claudeEnabled)),
-            binding.chipNotifOpenai          to ("openai"           to (prefs.openaiApiKey   to prefs.openaiEnabled)),
-            binding.chipNotifGroq            to ("groq"             to (prefs.groqApiKey     to prefs.groqEnabled)),
-            binding.chipNotifDeepseek        to ("deepseek"         to (prefs.deepseekApiKey to prefs.deepseekEnabled)),
-            binding.chipNotifCustomAnthropic to ("custom-anthropic" to (customAnthropicKey   to (prefs.customAnthropicEnabled
-                && prefs.customAnthropicEndpoint.isNotBlank() && prefs.customAnthropicModel.isNotBlank() && prefs.customAnthropicKey.isNotBlank()))),
-            binding.chipNotifCustomOpenai    to ("custom-openai"    to (customOpenaiKey      to (prefs.customOpenaiEnabled
-                && prefs.customOpenaiEndpoint.isNotBlank() && prefs.customOpenaiModel.isNotBlank())))
-        )
-        chipMap.forEach { (chip, pair) ->
-            val (_, keyAndEnabled) = pair
-            val active = keyAndEnabled.first.isNotBlank() && keyAndEnabled.second
-            chip.isEnabled = active
-            chip.alpha = if (active) 1f else 0.4f
-        }
-        val preferred = prefs.preferredNotifProvider
-        val preferredChip = chipMap.entries.firstOrNull { it.value.first == preferred }?.key
-        val firstAvailable = chipMap.entries.firstOrNull { it.key.isEnabled }?.key
-        (preferredChip?.takeIf { it.isEnabled } ?: firstAvailable)?.isChecked = true
 
-        binding.chipGroupNotifProvider.setOnCheckedStateChangeListener { _, checkedIds ->
-            val id = checkedIds.firstOrNull() ?: return@setOnCheckedStateChangeListener
-            val provider = chipMap.entries.firstOrNull { it.key.id == id }?.value?.first
-                ?: return@setOnCheckedStateChangeListener
-            prefs.preferredNotifProvider = provider
+        fun applyChipGroup(
+            chipMap: Map<com.google.android.material.chip.Chip, String>,
+            preferredProvider: String,
+            onSelect: (String) -> Unit,
+            chipGroup: com.google.android.material.chip.ChipGroup
+        ) {
+            chipMap.forEach { (chip, provider) ->
+                val active = providers[provider]?.active == true
+                chip.isEnabled = active
+                chip.alpha = if (active) 1f else 0.4f
+            }
+            val preferredChip = chipMap.entries.firstOrNull { it.value == preferredProvider }?.key
+            val firstAvailable = chipMap.entries.firstOrNull { it.key.isEnabled }?.key
+            (preferredChip?.takeIf { it.isEnabled } ?: firstAvailable)?.isChecked = true
+            chipGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+                val id = checkedIds.firstOrNull() ?: return@setOnCheckedStateChangeListener
+                val provider = chipMap.entries.firstOrNull { it.key.id == id }?.value
+                    ?: return@setOnCheckedStateChangeListener
+                onSelect(provider)
+            }
         }
+
+        applyChipGroup(
+            mapOf(
+                binding.chipChatGemini          to "gemini",
+                binding.chipChatMimo            to "mimo",
+                binding.chipChatClaude          to "claude",
+                binding.chipChatOpenai          to "openai",
+                binding.chipChatGroq            to "groq",
+                binding.chipChatDeepseek        to "deepseek",
+                binding.chipChatCustomAnthropic to "custom-anthropic",
+                binding.chipChatCustomOpenai    to "custom-openai"
+            ),
+            prefs.preferredChatProvider,
+            { prefs.preferredChatProvider = it },
+            binding.chipGroupChatProvider
+        )
+
+        applyChipGroup(
+            mapOf(
+                binding.chipNotifGemini          to "gemini",
+                binding.chipNotifMimo            to "mimo",
+                binding.chipNotifClaude          to "claude",
+                binding.chipNotifOpenai          to "openai",
+                binding.chipNotifGroq            to "groq",
+                binding.chipNotifDeepseek        to "deepseek",
+                binding.chipNotifCustomAnthropic to "custom-anthropic",
+                binding.chipNotifCustomOpenai    to "custom-openai"
+            ),
+            prefs.preferredNotifProvider,
+            { prefs.preferredNotifProvider = it },
+            binding.chipGroupNotifProvider
+        )
     }
 
     private fun updateAiKeysVisibility() {
@@ -522,15 +534,20 @@ class AiSettingsSheet : Fragment() {
 
     private fun updateNotifListenerStatus() {
         if (!prefs.notificationListenerAutoAdd) return
-        val granted = NotificationManagerCompat.getEnabledListenerPackages(requireContext())
-            .contains(requireContext().packageName)
-        val grantedColor = requireContext().getColor(R.color.chip_reminder_color)
-        val notGrantedColor = requireContext().getColor(R.color.chip_exam_color)
-        binding.tvNotifListenerStatus.text = if (granted)
-            getString(R.string.settings_ai_notify_access_granted)
-        else
-            getString(R.string.settings_ai_notify_access_denied)
-        binding.tvNotifListenerStatus.setTextColor(if (granted) grantedColor else notGrantedColor)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val granted = withContext(Dispatchers.IO) {
+                NotificationManagerCompat.getEnabledListenerPackages(requireContext())
+                    .contains(requireContext().packageName)
+            }
+            if (!isAdded) return@launch
+            val grantedColor = requireContext().getColor(R.color.chip_reminder_color)
+            val notGrantedColor = requireContext().getColor(R.color.chip_exam_color)
+            binding.tvNotifListenerStatus.text = if (granted)
+                getString(R.string.settings_ai_notify_access_granted)
+            else
+                getString(R.string.settings_ai_notify_access_denied)
+            binding.tvNotifListenerStatus.setTextColor(if (granted) grantedColor else notGrantedColor)
+        }
     }
 
     private fun updateDefaultRemindTimeSummary() {
