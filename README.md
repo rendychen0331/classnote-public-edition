@@ -1,5 +1,7 @@
 # ClassNote
 
+**繁體中文** | [简体中文](README.zh-CN.md) | [English](README.en.md)
+
 > [!NOTE]
 > README 更新速度比不上 App 更新速度，實際功能以 App 為準
 
