@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.rendy.classnote.BuildConfig
 import com.rendy.classnote.ClassNoteApplication
 import com.rendy.classnote.ui.ReminderAlarmActivity
 import kotlinx.coroutines.CoroutineScope
@@ -74,7 +75,7 @@ class ReminderActionReceiver : BroadcastReceiver() {
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent
             )
-            Log.d(TAG, "Snoozed for $snoozeMinutes min: $title")
+            if (BuildConfig.DEBUG) Log.d(TAG, "Snoozed for $snoozeMinutes min: $title")
         } catch (_: SecurityException) {
             Log.e(TAG, "Cannot schedule snooze: SCHEDULE_EXACT_ALARM not granted")
         }
@@ -95,7 +96,7 @@ class ReminderActionReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 app.reminderRepository.markCompleted(reminderId)
-                Log.d(TAG, "Reminder $reminderId marked complete")
+                if (BuildConfig.DEBUG) Log.d(TAG, "Reminder $reminderId marked complete")
             } catch (e: Exception) {
                 Log.e(TAG, "completeReminder failed", e)
             } finally {

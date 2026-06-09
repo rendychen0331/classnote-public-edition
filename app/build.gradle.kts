@@ -42,7 +42,8 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -102,7 +103,6 @@ dependencies {
     implementation(libs.androidx.viewpager2)
     implementation(project(":feature-api"))
     implementation(libs.play.services.auth)
-    implementation(libs.guava)
     implementation(libs.androidx.security.crypto)
     // shared libs for feature modules — must be in main app so DexClassLoader parent can resolve them
     implementation(libs.google.api.client.android)
