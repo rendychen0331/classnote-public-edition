@@ -20,7 +20,7 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.SET_NULL
         )
     ],
-    indices = [Index("courseId")]
+    indices = [Index("courseId"), Index("isCompleted")]
 )
 data class ReminderEntity(
     @PrimaryKey(autoGenerate = true)

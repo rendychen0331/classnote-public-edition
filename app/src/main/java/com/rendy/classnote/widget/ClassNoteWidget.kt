@@ -36,6 +36,8 @@ class ClassNoteWidget : AppWidgetProvider() {
         const val PREF_MONTH = "widget_month_"
 
         fun refreshAll(context: Context) {
+            // CRUD 觸發的刷新代表資料已變更，先失效快取確保重查（PERF-H1）
+            WidgetDataCache.invalidate()
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(ComponentName(context, ClassNoteWidget::class.java))
             for (id in ids) updateWidget(context, manager, id)
@@ -140,8 +142,8 @@ class ClassNoteWidget : AppWidgetProvider() {
                             populateOverview(context, views, db, widgetId)
                         } else {
                             val reminders = db.reminderDao().getActiveRemindersOnce()
-                            val now = System.currentTimeMillis()
-                            val notifications = db.reminderNotificationDao().getPendingNotifications(now)
+                            val nowMs = System.currentTimeMillis()
+                            val notifications = db.reminderNotificationDao().getPendingNotifications(nowMs)
                             // reminderId → 最早未觸發通知的日期（給沒有截止日期的提醒用）
                             val notifDateMap = notifications
                                 .groupBy { it.reminderId }
@@ -210,9 +212,18 @@ class ClassNoteWidget : AppWidgetProvider() {
                 views.setTextViewText(R.id.tvNextCourseName, "今日無課")
             }
 
+            // PERF-H1：本次刷新只查一次 reminders/notifications，寫入快取供 factory 複用
+            val now = System.nanoTime()
+            val snap = WidgetDataCache.get(now) ?: run {
+                val r = db.reminderDao().getActiveRemindersOnce()
+                val n = db.reminderNotificationDao().getAllPendingNotifications()
+                WidgetDataCache.Snapshot(r, n, now).also { WidgetDataCache.put(it) }
+            }
+            val allActiveReminders = snap.reminders
+
             // ── Linked reminders for next course ──────────────────────────
             val linked = if (nextCourse != null) {
-                db.reminderDao().getActiveRemindersOnce()
+                allActiveReminders
                     .filter { it.courseId == nextCourse.id }
                     .take(2)
             } else emptyList()
@@ -241,11 +252,10 @@ class ClassNoteWidget : AppWidgetProvider() {
             bindLinked(R.id.linkedReminder2, R.id.tvLinkedCat2, R.id.tvLinkedTitle2, linked.getOrNull(1))
 
             // ── Right panel: soonest upcoming reminder with notification ───
-            val allReminders = db.reminderDao().getActiveRemindersOnce()
-            val notifications = db.reminderNotificationDao().getAllPendingNotifications()
-                .sortedBy { it.triggerAt }
+            // 複用上面同一份快照，避免重複全表掃描（PERF-H1）
+            val notifications = snap.notifications.sortedBy { it.triggerAt }
             val soonestNotif = notifications.firstOrNull()
-            val soonestReminder = soonestNotif?.let { n -> allReminders.find { it.id == n.reminderId } }
+            val soonestReminder = soonestNotif?.let { n -> allActiveReminders.find { it.id == n.reminderId } }
 
             if (soonestReminder != null && soonestNotif != null) {
                 views.setViewVisibility(R.id.containerRightReminder, View.VISIBLE)
@@ -332,6 +342,8 @@ class ClassNoteWidget : AppWidgetProvider() {
                                 db.reminderDao().markCompleted(reminderId)
                             }
                         }
+                        // 資料已變更，讓下次刷新一定重查（PERF-H1）
+                        WidgetDataCache.invalidate()
                     } catch (e: Exception) {
                         Log.e("ClassNoteWidget", "completeReminder id=$reminderId failed", e)
                     }

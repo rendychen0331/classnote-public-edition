@@ -156,7 +156,7 @@ class LocalSyncSheet : Fragment() {
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
             LocalCalendarSyncWorker.WORK_NAME,
-            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+            ExistingPeriodicWorkPolicy.UPDATE,
             request
         )
     }

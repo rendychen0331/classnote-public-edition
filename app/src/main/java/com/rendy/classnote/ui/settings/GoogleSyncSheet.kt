@@ -319,7 +319,7 @@ class GoogleSyncSheet : Fragment() {
             prefs.autoBackupIntervalHours.toLong(), TimeUnit.HOURS
         ).setConstraints(constraints).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
-            "drive_auto_backup", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            "drive_auto_backup", ExistingPeriodicWorkPolicy.UPDATE, request
         )
     }
 
@@ -472,7 +472,7 @@ class GoogleSyncSheet : Fragment() {
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
-            "gmail_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            "gmail_auto_sync", ExistingPeriodicWorkPolicy.UPDATE, request
         )
     }
 
@@ -576,7 +576,7 @@ class GoogleSyncSheet : Fragment() {
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
-            "classroom_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            "classroom_auto_sync", ExistingPeriodicWorkPolicy.UPDATE, request
         )
     }
 
@@ -675,7 +675,7 @@ class GoogleSyncSheet : Fragment() {
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
-            "calendar_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            "calendar_auto_sync", ExistingPeriodicWorkPolicy.UPDATE, request
         )
     }
 
@@ -774,7 +774,7 @@ class GoogleSyncSheet : Fragment() {
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
-            "tasks_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            "tasks_auto_sync", ExistingPeriodicWorkPolicy.UPDATE, request
         )
     }
 
@@ -872,7 +872,7 @@ class GoogleSyncSheet : Fragment() {
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
-            "keep_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            "keep_auto_sync", ExistingPeriodicWorkPolicy.UPDATE, request
         )
     }
 
@@ -947,7 +947,9 @@ class GoogleSyncSheet : Fragment() {
         if (meta?.hasWeatherSettings == true) { items.add("天氣設定"); checked.add(true) }
 
         val checkedArr = checked.toBooleanArray()
-        val titleSuffix = if (!meta?.timestamp.isNullOrEmpty()) "\n${formatBackupTimestamp(meta!!.timestamp)}" else ""
+        // CLEAN-H3：!meta?.timestamp.isNullOrEmpty() 不會 smart-cast meta，原本 meta!! 可能 NPE。改用 ?.let。
+        val titleSuffix = meta?.timestamp?.takeIf { it.isNotEmpty() }
+            ?.let { "\n${formatBackupTimestamp(it)}" } ?: ""
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("選擇要還原的項目$titleSuffix")

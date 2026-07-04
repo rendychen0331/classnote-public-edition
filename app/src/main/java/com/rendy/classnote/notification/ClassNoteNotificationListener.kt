@@ -33,14 +33,19 @@ class ClassNoteNotificationListener : NotificationListenerService() {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val seenKeys = mutableSetOf<String>()
 
+    // PERF-C1：快取單一 AppPreferences 實例。每則通知都 new 一份會重跑金鑰遷移，並讓
+    // EncryptedSharedPreferences 的 MasterKey/AES 初始化每則付一次成本。改用單例只付一次。
+    private val prefs by lazy { AppPreferences(applicationContext) }
+
     private val handler = Handler(Looper.getMainLooper())
     private val pendingBatch = mutableListOf<NotificationInput>()
     private val processBatchRunnable = Runnable { flushBatch() }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        val prefs = AppPreferences(applicationContext)
-        if (!prefs.notificationListenerAutoAdd) return
+        // 只做便宜的同步過濾（讀明文 prefs），其餘（明文頻道寫入、加密金鑰讀取、去重、批次）
+        // 一律丟到 IO scope，避免在主執行緒做 JSON parse / AES 讀取造成通知欄卡頓（PERF-C1）。
         if (sbn.packageName == packageName) return
+        if (!prefs.notificationListenerAutoAdd) return
 
         val monitored = prefs.monitoredPackages
         if (monitored.isNotEmpty() && !monitored.contains(sbn.packageName)) return
@@ -74,20 +79,6 @@ class ClassNoteNotificationListener : NotificationListenerService() {
         val channelWhitelist = prefs.getMonitoredChannels()[sbn.packageName]
         if (!channelWhitelist.isNullOrEmpty() && !channelWhitelist.contains(channelName)) return
 
-        // 記錄看過的頻道名稱（供 UI 設定白名單），不受 AI key 或開關影響
-        prefs.addSeenChannel(sbn.packageName, channelName)
-
-        // 確認至少有一個啟用的 model 有 key
-        val hasAnyKey = with(prefs) {
-            (geminiEnabled && geminiApiKey.isNotBlank()) ||
-            (mimoEnabled   && mimoApiKey.isNotBlank())   ||
-            (claudeEnabled && claudeApiKey.isNotBlank()) ||
-            (openaiEnabled && openaiApiKey.isNotBlank()) ||
-            (groqEnabled      && groqApiKey.isNotBlank()) ||
-            (deepseekEnabled  && deepseekApiKey.isNotBlank())
-        }
-        if (!hasAnyKey) return
-
         val text = if (messagingStyle != null && messagingStyle.messages.isNotEmpty()) {
             messagingStyle.messages
                 .takeLast(3)
@@ -112,30 +103,50 @@ class ClassNoteNotificationListener : NotificationListenerService() {
             if (userBlacklist.any { combined.contains(it, ignoreCase = true) }) return
         }
 
-        val dedupeKey = "${sbn.packageName}|$title|${text.take(100)}"
-        val isNew = synchronized(seenKeys) {
-            if (seenKeys.contains(dedupeKey)) false
-            else {
-                seenKeys.add(dedupeKey)
-                if (seenKeys.size > 200) seenKeys.clear()
-                true
+        val pkg = sbn.packageName
+        // 重的部分移到 IO：頻道記錄寫入、加密金鑰檢查、去重、appLabel 解析、批次加入
+        scope.launch {
+            // 記錄看過的頻道名稱（JSON parse + 寫入），不受 AI key 或開關影響
+            prefs.addSeenChannel(pkg, channelName)
+
+            // 確認至少有一個啟用的 model 有 key（讀 EncryptedSharedPreferences）
+            val hasAnyKey = with(prefs) {
+                (geminiEnabled && geminiApiKey.isNotBlank()) ||
+                (mimoEnabled   && mimoApiKey.isNotBlank())   ||
+                (claudeEnabled && claudeApiKey.isNotBlank()) ||
+                (openaiEnabled && openaiApiKey.isNotBlank()) ||
+                (groqEnabled      && groqApiKey.isNotBlank()) ||
+                (deepseekEnabled  && deepseekApiKey.isNotBlank())
+            }
+            if (!hasAnyKey) return@launch
+
+            val dedupeKey = "$pkg|$title|${text.take(100)}"
+            val isNew = synchronized(seenKeys) {
+                if (seenKeys.contains(dedupeKey)) false
+                else {
+                    seenKeys.add(dedupeKey)
+                    if (seenKeys.size > 200) seenKeys.clear()
+                    true
+                }
+            }
+            if (!isNew) return@launch
+
+            val appLabel = try {
+                packageManager.getApplicationLabel(
+                    packageManager.getApplicationInfo(pkg, 0)
+                ).toString()
+            } catch (_: Exception) { pkg }
+
+            synchronized(pendingBatch) {
+                pendingBatch.add(NotificationInput(appLabel, title, text))
+            }
+
+            // debounce timer 必須在主執行緒操作 handler
+            handler.post {
+                handler.removeCallbacks(processBatchRunnable)
+                handler.postDelayed(processBatchRunnable, BATCH_DELAY_MS)
             }
         }
-        if (!isNew) return
-
-        val appLabel = try {
-            packageManager.getApplicationLabel(
-                packageManager.getApplicationInfo(sbn.packageName, 0)
-            ).toString()
-        } catch (_: Exception) { sbn.packageName }
-
-        synchronized(pendingBatch) {
-            pendingBatch.add(NotificationInput(appLabel, title, text))
-        }
-
-        // Reset debounce timer — flush 3 seconds after last notification arrives
-        handler.removeCallbacks(processBatchRunnable)
-        handler.postDelayed(processBatchRunnable, BATCH_DELAY_MS)
     }
 
     private fun flushBatch() {
@@ -151,7 +162,7 @@ class ClassNoteNotificationListener : NotificationListenerService() {
 
         scope.launch {
             try {
-                val prefs = AppPreferences(applicationContext)
+                // 使用快取的 prefs 欄位（PERF-C1）
                 val ai = FeatureManager.getAi(applicationContext)
                 if (ai == null) { NotificationHelper.cancelAiStatus(applicationContext); return@launch }
                 val (provider, apiKey) = resolveNotifProviderKey(prefs)
@@ -263,7 +274,7 @@ class ClassNoteNotificationListener : NotificationListenerService() {
     ) {
         val now = System.currentTimeMillis()
         val zone = ZoneId.systemDefault()
-        val prefs = AppPreferences(applicationContext)
+        // 使用快取的 prefs 欄位（PERF-C1）
         val triggerTimes: List<Long> = if (dueTime != null) {
             val (h, m) = dueTime.split(":").map { it.toInt() }
             val base = LocalDateTime.of(LocalDate.parse(dueDate), LocalTime.of(h, m))

@@ -49,8 +49,15 @@ class OverviewRemoteViewsFactory(
                     val todayStr = today.format(DateTimeFormatter.ISO_LOCAL_DATE)
                     val tomorrowStr = today.plusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE)
 
-                    val reminders = database.reminderDao().getActiveRemindersOnce()
-                    val notifications = database.reminderNotificationDao().getAllPendingNotifications()
+                    // PERF-H1：同一刷新內 provider 已查過就複用快照，否則查一次並寫入快取
+                    val now = System.nanoTime()
+                    val snap = WidgetDataCache.get(now) ?: run {
+                        val r = database.reminderDao().getActiveRemindersOnce()
+                        val n = database.reminderNotificationDao().getAllPendingNotifications()
+                        WidgetDataCache.Snapshot(r, n, now).also { WidgetDataCache.put(it) }
+                    }
+                    val reminders = snap.reminders
+                    val notifications = snap.notifications
                     val notifMap = notifications.groupBy { it.reminderId }
 
                     buildList {

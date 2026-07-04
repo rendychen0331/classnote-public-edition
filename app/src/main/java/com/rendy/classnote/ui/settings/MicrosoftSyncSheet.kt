@@ -285,7 +285,7 @@ class MicrosoftSyncSheet : Fragment() {
             Constraints.Builder().setRequiredNetworkType(networkType).build()
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
-            "onedrive_auto_backup", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            "onedrive_auto_backup", ExistingPeriodicWorkPolicy.UPDATE, request
         )
     }
 
@@ -355,7 +355,7 @@ class MicrosoftSyncSheet : Fragment() {
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
-            "mstodo_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            "mstodo_auto_sync", ExistingPeriodicWorkPolicy.UPDATE, request
         )
     }
 
@@ -425,7 +425,7 @@ class MicrosoftSyncSheet : Fragment() {
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
-            "outlook_calendar_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            "outlook_calendar_auto_sync", ExistingPeriodicWorkPolicy.UPDATE, request
         )
     }
 
@@ -496,7 +496,7 @@ class MicrosoftSyncSheet : Fragment() {
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
-            "teams_assignment_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            "teams_assignment_auto_sync", ExistingPeriodicWorkPolicy.UPDATE, request
         )
     }
 
@@ -566,7 +566,7 @@ class MicrosoftSyncSheet : Fragment() {
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         ).build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
-            "onenote_auto_sync", ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            "onenote_auto_sync", ExistingPeriodicWorkPolicy.UPDATE, request
         )
     }
 
@@ -622,7 +622,9 @@ class MicrosoftSyncSheet : Fragment() {
         if (meta?.hasWeatherSettings == true) { items.add("天氣設定"); checked.add(true) }
 
         val checkedArr = checked.toBooleanArray()
-        val titleSuffix = if (!meta?.timestamp.isNullOrEmpty()) "\n${formatBackupTimestamp(meta!!.timestamp)}" else ""
+        // CLEAN-H3：!meta?.timestamp.isNullOrEmpty() 不會 smart-cast meta，原本 meta!! 可能 NPE。改用 ?.let。
+        val titleSuffix = meta?.timestamp?.takeIf { it.isNotEmpty() }
+            ?.let { "\n${formatBackupTimestamp(it)}" } ?: ""
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("選擇要還原的項目$titleSuffix")

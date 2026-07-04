@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
         com.rendy.classnote.data.local.entity.ClassSessionSummaryEntity::class,
         com.rendy.classnote.data.local.entity.ErrorLogEntity::class
     ],
-    version = 15,
+    version = 16,
     exportSchema = false
 )
 abstract class ClassNoteDatabase : RoomDatabase() {
@@ -187,6 +187,17 @@ abstract class ClassNoteDatabase : RoomDatabase() {
             }
         }
 
+        // v15→v16：補上熱路徑查詢缺少的索引，消除全表掃描（開筆記、提醒清單、widget 刷新、同步去重）。
+        // 索引名稱必須與 Room 依 @Index 自動產生的名稱一致（index_<table>_<col...>），否則 schema 驗證會失敗。
+        val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_class_record_media_recordId ON class_record_media (recordId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_courses_semesterId_dayOfWeek ON courses (semesterId, dayOfWeek)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_reminders_isCompleted ON reminders (isCompleted)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_reminder_notifications_isFired_triggerAt ON reminder_notifications (isFired, triggerAt)")
+            }
+        }
+
         fun closeDatabase() {
             INSTANCE?.close()
             INSTANCE = null
@@ -200,7 +211,7 @@ abstract class ClassNoteDatabase : RoomDatabase() {
                     "classnote_database"
                 )
                     .addCallback(DatabaseCallback())
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16)
                     .build()
                 INSTANCE = instance
                 instance

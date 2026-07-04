@@ -1,13 +1,17 @@
 package com.rendy.classnote.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
  * 固定週課表的課程（週一～週五 × 第 1～7 節）
  * semesterId：學期識別，例如 "2024-1"，切換學期時覆蓋舊資料
  */
-@Entity(tableName = "courses")
+@Entity(
+    tableName = "courses",
+    indices = [Index("semesterId", "dayOfWeek")]
+)
 data class CourseEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

@@ -170,10 +170,17 @@ class AboutSheet : Fragment() {
 
     private fun scheduleAutoUpdate() {
         val hours = prefs.autoUpdateIntervalHours.toLong()
-        val request = PeriodicWorkRequestBuilder<AutoUpdateWorker>(hours, TimeUnit.HOURS).build()
+        // PERF-M1：加網路限制，避免離線 / 行動網路下白跑；
+        // PERF-H4：用 UPDATE 而非 CANCEL_AND_REENQUEUE，開頁重排不會把週期計時器歸零。
+        val constraints = androidx.work.Constraints.Builder()
+            .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+            .build()
+        val request = PeriodicWorkRequestBuilder<AutoUpdateWorker>(hours, TimeUnit.HOURS)
+            .setConstraints(constraints)
+            .build()
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
             AutoUpdateWorker.WORK_NAME,
-            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+            ExistingPeriodicWorkPolicy.UPDATE,
             request
         )
     }

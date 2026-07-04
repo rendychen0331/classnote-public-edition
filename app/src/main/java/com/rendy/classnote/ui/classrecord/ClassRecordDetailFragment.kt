@@ -1,6 +1,5 @@
 package com.rendy.classnote.ui.classrecord
 
-import android.graphics.BitmapFactory
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.text.Html
@@ -94,9 +93,12 @@ class ClassRecordDetailFragment : Fragment() {
                             marginEnd = (8 * resources.displayMetrics.density).toInt()
                         }
                         scaleType = ImageView.ScaleType.CENTER_CROP
-                        BitmapFactory.decodeFile(media.filePath)?.let { setImageBitmap(it) }
                     }
                     binding.layoutPhotos.addView(iv)
+                    // PERF-H3：在 IO 降採樣解碼，避免主執行緒整張 decode 相機相片
+                    com.rendy.classnote.util.ImageDecoder
+                        .decodeSampled(media.filePath, sizePx, sizePx)
+                        ?.let { iv.setImageBitmap(it) }
                 }
             }
 

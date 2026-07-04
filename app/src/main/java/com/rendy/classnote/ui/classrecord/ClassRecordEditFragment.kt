@@ -4,7 +4,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.media.MediaRecorder
 import android.net.Uri
@@ -334,11 +333,15 @@ class ClassRecordEditFragment : Fragment() {
             }
             scaleType = ImageView.ScaleType.CENTER_CROP
         }
-        BitmapFactory.decodeFile(path)?.let { iv.setImageBitmap(it) }
         removeAddPhotoButton()
         binding.layoutPhotos.addView(iv)
         binding.layoutPhotos.addView(makeAddPhotoButton())
         binding.scrollPhotos.visibility = View.VISIBLE
+        // PERF-H3：IO 降採樣解碼
+        viewLifecycleOwner.lifecycleScope.launch {
+            com.rendy.classnote.util.ImageDecoder.decodeSampled(path, sizePx, sizePx)
+                ?.let { iv.setImageBitmap(it) }
+        }
     }
 
     private fun removeAddPhotoButton() {
@@ -391,9 +394,13 @@ class ClassRecordEditFragment : Fragment() {
             scaleType = ImageView.ScaleType.CENTER_CROP
             setOnClickListener { openDrawingFragmentEdit(path) }
         }
-        BitmapFactory.decodeFile(path)?.let { iv.setImageBitmap(it) }
         binding.layoutDrawings.addView(iv)
         binding.scrollDrawings.visibility = View.VISIBLE
+        // PERF-H3：IO 降採樣解碼
+        viewLifecycleOwner.lifecycleScope.launch {
+            com.rendy.classnote.util.ImageDecoder.decodeSampled(path, sizePx, sizePx)
+                ?.let { iv.setImageBitmap(it) }
+        }
     }
 
     private fun openDrawingFragmentEdit(existingPath: String) {
@@ -426,7 +433,7 @@ class ClassRecordEditFragment : Fragment() {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setOutputFile(currentAudioFile!!.absolutePath)
+            setOutputFile(requireNotNull(currentAudioFile) { "audio file not initialized" }.absolutePath)
             prepare()
             start()
         }

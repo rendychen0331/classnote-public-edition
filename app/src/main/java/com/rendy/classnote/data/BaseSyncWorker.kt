@@ -24,7 +24,9 @@ abstract class BaseSyncWorker(
                 saveSummary(AppPreferences(applicationContext), r.imported, r.skipped)
                 Result.success()
             }
-            is SyncOutcome.AuthRequired -> Result.retry()
+            // PERF-H6：授權失效不會靠重試自癒，重試只會無限背景喚醒耗電。改回報 failure，
+            // 等使用者重新授權後由 UI 重新排程。只有暫時性 Error 才 retry。
+            is SyncOutcome.AuthRequired -> Result.failure()
             is SyncOutcome.Error        -> Result.retry()
             is SyncOutcome.NoPermission -> Result.failure()
         }

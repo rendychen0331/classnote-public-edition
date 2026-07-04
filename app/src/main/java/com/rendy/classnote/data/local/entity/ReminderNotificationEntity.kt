@@ -20,7 +20,7 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("reminderId")]
+    indices = [Index("reminderId"), Index("isFired", "triggerAt")]
 )
 data class ReminderNotificationEntity(
     @PrimaryKey(autoGenerate = true)

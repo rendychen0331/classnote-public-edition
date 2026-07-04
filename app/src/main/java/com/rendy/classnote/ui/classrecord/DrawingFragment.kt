@@ -1,7 +1,6 @@
 package com.rendy.classnote.ui.classrecord
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -119,7 +118,11 @@ class DrawingFragment : Fragment() {
     private fun loadExistingDrawing() {
         val path = args.existingPath
         if (path.isNotEmpty()) {
-            BitmapFactory.decodeFile(path)?.let { binding.drawingView.loadBitmap(it) }
+            // PERF-H3：手繪畫布需完整品質，全解析度但移出主執行緒解碼
+            viewLifecycleOwner.lifecycleScope.launch {
+                com.rendy.classnote.util.ImageDecoder.decodeFullOnIo(path)
+                    ?.let { binding.drawingView.loadBitmap(it) }
+            }
         }
     }
 
