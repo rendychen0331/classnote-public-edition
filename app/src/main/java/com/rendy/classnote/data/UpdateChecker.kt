@@ -2,6 +2,9 @@ package com.rendy.classnote.data
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.Signature
+import android.os.Build
 import android.os.Environment
 import android.util.Log
 import androidx.core.content.FileProvider
@@ -12,6 +15,7 @@ import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.MessageDigest
 
 object UpdateChecker {
 
@@ -20,6 +24,21 @@ object UpdateChecker {
     private const val PREFS_NAME = "update_checker"
     private const val KEY_LAST_CHECK = "last_check_ms"
     private const val CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L
+
+    // apkUrl 來自 GitHub API 回應。只允許 https + GitHub release 主機（見 SEC-H2）。
+    private val ALLOWED_APK_HOSTS = setOf(
+        "github.com",
+        "objects.githubusercontent.com",
+        "release-assets.githubusercontent.com"
+    )
+
+    private fun isAllowedApkUrl(rawUrl: String): Boolean = try {
+        val u = URL(rawUrl)
+        u.protocol.equals("https", ignoreCase = true) &&
+            ALLOWED_APK_HOSTS.any { h -> u.host.equals(h, true) || u.host.endsWith(".$h", true) }
+    } catch (e: Exception) {
+        false
+    }
 
     data class ReleaseInfo(val tagName: String, val apkUrl: String, val isNewer: Boolean)
 
@@ -86,6 +105,10 @@ object UpdateChecker {
         onProgress: (Int) -> Unit
     ): Boolean = withContext(Dispatchers.IO) {
         try {
+            if (!isAllowedApkUrl(apkUrl)) {
+                ErrorLogger.e(TAG, "拒絕不受信任的 APK 下載網址：$apkUrl")
+                return@withContext false
+            }
             val prefs = AppPreferences(context)
             val dir = apkDir(context)
             val filename = "classnote-$tagName.apk"
@@ -180,13 +203,80 @@ object UpdateChecker {
         return if (file.exists() && file.length() > 0) file else null
     }
 
+    /**
+     * 讀取某 APK 檔的簽章憑證 SHA-256 集合。null = 無法解析（視為不可信）。
+     */
+    private fun signingCertHashesOfApk(context: Context, apkPath: String): Set<String>? {
+        val pm = context.packageManager
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            PackageManager.GET_SIGNING_CERTIFICATES else @Suppress("DEPRECATION") PackageManager.GET_SIGNATURES
+        val info = pm.getPackageArchiveInfo(apkPath, flags) ?: return null
+        val signatures: Array<Signature> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val sig = info.signingInfo ?: return null
+            (sig.apkContentsSigners ?: return null)
+        } else {
+            @Suppress("DEPRECATION") (info.signatures ?: return null)
+        }
+        if (signatures.isEmpty()) return null
+        return signatures.map { sha256Hex(it.toByteArray()) }.toSet()
+    }
+
+    /** 讀取目前已安裝 App 自身的簽章憑證 SHA-256 集合。 */
+    private fun signingCertHashesOfInstalled(context: Context): Set<String>? {
+        val pm = context.packageManager
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val info = pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+                val sig = info.signingInfo ?: return null
+                (sig.apkContentsSigners ?: return null).map { sha256Hex(it.toByteArray()) }.toSet()
+            } else {
+                @Suppress("DEPRECATION")
+                val info = pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNATURES)
+                @Suppress("DEPRECATION")
+                (info.signatures ?: return null).map { sha256Hex(it.toByteArray()) }.toSet()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "read installed signature failed", e)
+            null
+        }
+    }
+
+    private fun sha256Hex(bytes: ByteArray): String =
+        MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+
+    /**
+     * 下載的 APK 必須與目前安裝的 App 同一簽章金鑰，才允許安裝（見 SEC-H2）。
+     * 系統安裝器本身也會擋不同簽章的「更新」，這是應用層縱深防禦：檔案被替換 / 網址被竄改時，
+     * 在喚起安裝器前就先拒絕，而非依賴使用者看安裝提示。
+     */
+    fun isApkSignatureTrusted(context: Context, apkFile: File): Boolean {
+        val installed = signingCertHashesOfInstalled(context)
+        val downloaded = signingCertHashesOfApk(context, apkFile.absolutePath)
+        if (installed.isNullOrEmpty() || downloaded.isNullOrEmpty()) {
+            Log.e(TAG, "signature verify failed: installed=${installed?.size} downloaded=${downloaded?.size}")
+            return false
+        }
+        return downloaded == installed
+    }
+
     fun triggerInstallFromFile(context: Context, apkFile: File) {
         try {
+            if (!isApkSignatureTrusted(context, apkFile)) {
+                ErrorLogger.e(TAG, "APK 簽章與已安裝版本不符，拒絕安裝：${apkFile.name}")
+                android.widget.Toast.makeText(
+                    context, "更新檔簽章驗證失敗，已阻止安裝", android.widget.Toast.LENGTH_LONG
+                ).show()
+                apkFile.delete()
+                val p = AppPreferences(context)
+                p.apkDownloadComplete = false
+                p.activeApkFileName = ""
+                return
+            }
             val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apkFile)
             context.startActivity(Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
                 setDataAndType(uri, "application/vnd.android.package-archive")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+                // 不設 EXTRA_NOT_UNKNOWN_SOURCE：簽章已在應用層驗過，保留系統原本的來源提示（SEC-H2）
             })
             // Reset prefs so UI shows "檢查更新" again.
             // Do NOT delete the file here — the system installer reads it asynchronously

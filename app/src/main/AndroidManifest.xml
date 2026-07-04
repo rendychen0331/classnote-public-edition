@@ -29,6 +29,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ClassNote"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:localeConfig="@xml/locales_config">
 
         <!-- 全螢幕鬧鐘介面 -->
@@ -99,15 +100,16 @@
         </receiver>
 
         <!-- AppWidget -->
+        <!-- exported=false: custom actions (SWITCH_TAB/PREV_MONTH/NEXT_MONTH/COMPLETE_REMINDER)
+             are delivered only via explicit-component PendingIntents from this app, so they must
+             NOT appear in the intent-filter (that would make them world-invocable and let any app
+             complete/cancel reminders). Only APPWIDGET_UPDATE stays; the framework delivers widget
+             broadcasts to the app's own receiver without needing export. -->
         <receiver
             android:name=".widget.ClassNoteWidget"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.rendy.classnote.SWITCH_TAB" />
-                <action android:name="com.rendy.classnote.PREV_MONTH" />
-                <action android:name="com.rendy.classnote.NEXT_MONTH" />
-                <action android:name="com.rendy.classnote.COMPLETE_REMINDER" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

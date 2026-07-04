@@ -409,4 +409,5 @@
     <string name="attach_camera">Camera</string>
     <string name="attach_gallery">Gallery</string>
     <string name="attach_audio">Audio</string>
+    <string name="ai_custom_endpoint_https_required">Endpoint URL must use https://</string>
 </resources>

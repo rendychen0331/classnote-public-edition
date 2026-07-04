@@ -16,22 +16,37 @@ class AppPreferences(context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
+    /**
+     * 加密儲存是否可用。init 失敗時為 false，UI 可據此提示使用者。
+     * 失敗時「絕不」靜默降級成明文寫入 SECURE_PREFS_NAME（見 SEC-M4）——改用只存在記憶體、
+     * 不落地的 fallback，避免 API key 以明文寫入磁碟被備份 / root 取走。
+     */
+    var isSecureStorageAvailable: Boolean = true
+        private set
+
     private val securePrefs: SharedPreferences by lazy {
-        try {
-            val masterKey = MasterKey.Builder(context.applicationContext)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build()
-            EncryptedSharedPreferences.create(
-                context.applicationContext,
-                SECURE_PREFS_NAME,
-                masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            )
-        } catch (e: Exception) {
-            Log.e("AppPreferences", "EncryptedSharedPreferences init failed, using fallback", e)
-            context.getSharedPreferences(SECURE_PREFS_NAME, Context.MODE_PRIVATE)
+        // keystore 初始化偶發性失敗常見，重試數次再判定失敗
+        var lastError: Exception? = null
+        repeat(3) {
+            try {
+                val masterKey = MasterKey.Builder(context.applicationContext)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build()
+                return@lazy EncryptedSharedPreferences.create(
+                    context.applicationContext,
+                    SECURE_PREFS_NAME,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                )
+            } catch (e: Exception) {
+                lastError = e
+            }
         }
+        Log.e("AppPreferences", "EncryptedSharedPreferences init failed after retries — refusing plaintext fallback", lastError)
+        ErrorLogger.e("AppPreferences", "加密儲存初始化失敗，API 金鑰將只存於記憶體不落地", lastError)
+        isSecureStorageAvailable = false
+        InMemorySharedPreferences()
     }
 
     init {
@@ -711,4 +726,49 @@ class AppPreferences(context: Context) {
             return if (parts.size == 3) Triple(parts[0], parts[1], parts[2]) else null
         }
     }
+}
+
+/**
+ * 只存在記憶體、不落地的 SharedPreferences，作為加密儲存失敗時的安全 fallback（SEC-M4）。
+ * 目的：keystore 壞掉時，API 金鑰仍可在本次 process 生命週期內使用，但「絕不」以明文寫入磁碟，
+ * 因此不會被系統備份 / root 讀取。process 結束即消失，符合「寧可不留也不明文落地」。
+ */
+private class InMemorySharedPreferences : SharedPreferences {
+    private val map = java.util.concurrent.ConcurrentHashMap<String, Any?>()
+
+    override fun getAll(): MutableMap<String, *> = HashMap(map)
+    override fun getString(key: String?, defValue: String?): String? = map[key] as? String ?: defValue
+    @Suppress("UNCHECKED_CAST")
+    override fun getStringSet(key: String?, defValues: MutableSet<String>?): MutableSet<String>? =
+        (map[key] as? Set<String>)?.toMutableSet() ?: defValues
+    override fun getInt(key: String?, defValue: Int): Int = map[key] as? Int ?: defValue
+    override fun getLong(key: String?, defValue: Long): Long = map[key] as? Long ?: defValue
+    override fun getFloat(key: String?, defValue: Float): Float = map[key] as? Float ?: defValue
+    override fun getBoolean(key: String?, defValue: Boolean): Boolean = map[key] as? Boolean ?: defValue
+    override fun contains(key: String?): Boolean = map.containsKey(key)
+
+    override fun registerOnSharedPreferenceChangeListener(l: SharedPreferences.OnSharedPreferenceChangeListener?) {}
+    override fun unregisterOnSharedPreferenceChangeListener(l: SharedPreferences.OnSharedPreferenceChangeListener?) {}
+
+    override fun edit(): SharedPreferences.Editor = object : SharedPreferences.Editor {
+        private val pending = HashMap<String, Any?>()
+        private var clearAll = false
+        override fun putString(key: String?, value: String?) = apply { if (key != null) pending[key] = value }
+        override fun putStringSet(key: String?, values: MutableSet<String>?) = apply { if (key != null) pending[key] = values }
+        override fun putInt(key: String?, value: Int) = apply { if (key != null) pending[key] = value }
+        override fun putLong(key: String?, value: Long) = apply { if (key != null) pending[key] = value }
+        override fun putFloat(key: String?, value: Float) = apply { if (key != null) pending[key] = value }
+        override fun putBoolean(key: String?, value: Boolean) = apply { if (key != null) pending[key] = value }
+        override fun remove(key: String?) = apply { if (key != null) pending[key] = REMOVE }
+        override fun clear() = apply { clearAll = true }
+        override fun commit(): Boolean { flush(); return true }
+        override fun apply() { flush() }
+        private fun flush() {
+            if (clearAll) map.clear()
+            pending.forEach { (k, v) -> if (v === REMOVE) map.remove(k) else map[k] = v }
+            pending.clear(); clearAll = false
+        }
+    }
+
+    companion object { private val REMOVE = Any() }
 }

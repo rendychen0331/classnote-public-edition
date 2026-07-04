@@ -266,7 +266,18 @@ class AiSettingsSheet : Fragment() {
             refreshProviderChips()
         }
         etEndpoint.setText(getEndpoint())
-        etEndpoint.doAfterTextChanged { saveEndpoint(it?.toString()?.trim() ?: "") }
+        etEndpoint.doAfterTextChanged {
+            val url = it?.toString()?.trim() ?: ""
+            // SEC-M1: 只接受 https endpoint，避免 API 金鑰 / 通知內容以明文送出。
+            // 非空且非 https 時擋下並提示，不寫入設定（明文設定會直接被系統 cleartext 政策拒連）。
+            if (url.isNotEmpty() && !url.startsWith("https://", ignoreCase = true)) {
+                etEndpoint.error = getString(R.string.ai_custom_endpoint_https_required)
+                saveEndpoint("")
+            } else {
+                etEndpoint.error = null
+                saveEndpoint(url)
+            }
+        }
         etModel.setText(getModel())
         etModel.doAfterTextChanged { saveModel(it?.toString()?.trim() ?: "") }
 

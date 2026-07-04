@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SEC-M1: 全面禁止明文（http）流量，避免通知內容 / 筆記 / API 金鑰以明文外洩。
+     不依賴 minSdk 35 的系統預設，明確在應用層鎖定。 -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
