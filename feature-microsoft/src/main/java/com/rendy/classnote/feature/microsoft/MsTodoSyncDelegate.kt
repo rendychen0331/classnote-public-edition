@@ -24,14 +24,14 @@ object MsTodoSyncDelegate {
             var imported = 0; var skipped = 0
 
             for (i in 0 until (lists?.length() ?: 0)) {
-                val list = lists!!.getJSONObject(i)
+                val list = lists?.getJSONObject(i) ?: continue
                 val listId = list.getString("id")
                 val listName = list.optString("displayName", "MS To Do")
                 val tasks = graphGet(token, "$GRAPH_BASE/me/todo/lists/$listId/tasks?\$top=100&\$filter=status ne 'completed'")
                     .optJSONArray("value")
 
                 for (j in 0 until (tasks?.length() ?: 0)) {
-                    val task = tasks!!.getJSONObject(j)
+                    val task = tasks?.getJSONObject(j) ?: continue
                     val taskId = task.getString("id")
                     val externalId = "mstodo:$taskId"
                     if (bridge.findByExternalId(externalId)) { skipped++; continue }

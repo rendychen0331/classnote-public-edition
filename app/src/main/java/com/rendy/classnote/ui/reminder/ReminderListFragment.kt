@@ -109,10 +109,11 @@ class ReminderListFragment : Fragment() {
     }
 
     private fun applyFilter() {
-        val filtered = if (selectedCategory == null) {
+        val cat = selectedCategory
+        val filtered = if (cat == null) {
             allReminders
         } else {
-            allReminders.filter { it.category == selectedCategory!!.name }
+            allReminders.filter { it.category == cat.name }
         }
         adapter.submitList(filtered)
         binding.tvEmpty.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE

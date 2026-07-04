@@ -37,7 +37,7 @@ object OutlookCalendarSyncDelegate {
             var imported = 0; var skipped = 0
 
             for (i in 0 until (events?.length() ?: 0)) {
-                val event = events!!.getJSONObject(i)
+                val event = events?.getJSONObject(i) ?: continue
                 val eventId = event.getString("id")
                 val externalId = "outlook:$eventId"
                 if (bridge.findByExternalId(externalId)) { skipped++; continue }

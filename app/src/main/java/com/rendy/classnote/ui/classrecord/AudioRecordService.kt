@@ -87,7 +87,7 @@ class AudioRecordService : Service() {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setOutputFile(currentAudioFile!!.absolutePath)
+            setOutputFile(requireNotNull(currentAudioFile) { "audio file not initialized" }.absolutePath)
             prepare()
             start()
         }

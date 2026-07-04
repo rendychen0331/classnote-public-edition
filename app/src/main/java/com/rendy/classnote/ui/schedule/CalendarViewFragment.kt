@@ -119,9 +119,9 @@ class CalendarViewFragment : Fragment() {
         try {
             val due = r.dueDate?.let { LocalDate.parse(it, dateFormatter) }
             val start = r.startDate?.let { LocalDate.parse(it, dateFormatter) } ?: due
-            if (start == null && due == null) return false
-            val effectiveStart = start ?: due!!
-            val effectiveEnd = due ?: start!!
+            // CLEAN-H3：不用 !!。兩者皆 null 直接 false，否則用 elvis 取彼此填補。
+            val effectiveStart = start ?: due ?: return false
+            val effectiveEnd = due ?: start ?: return false
             return !date.isBefore(effectiveStart) && !date.isAfter(effectiveEnd)
         } catch (_: Exception) {
             return false

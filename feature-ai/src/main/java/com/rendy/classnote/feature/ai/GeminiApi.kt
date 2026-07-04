@@ -48,8 +48,9 @@ internal object GeminiApi {
         } catch (e: Exception) {
             Log.e(TAG, "analyzeNotifications failed", e)
         }
-        if (!success) return@withContext List(inputs.size) { emptyList() }
-        try { parseBatchResponse(responseJson!!, inputs.size) } catch (e: Exception) {
+        val json = responseJson
+        if (!success || json == null) return@withContext List(inputs.size) { emptyList() }
+        try { parseBatchResponse(json, inputs.size) } catch (e: Exception) {
             Log.e(TAG, "parseBatchResponse failed", e)
             List(inputs.size) { emptyList() }
         }
