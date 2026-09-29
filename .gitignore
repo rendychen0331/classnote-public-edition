@@ -1,14 +1,17 @@
 *.iml
 .gradle
 /local.properties
+/legacy-android/local.properties
 /.idea
 .DS_Store
 /build
+/legacy-android/build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
-app/build/
+legacy-android/app/build/
+legacy-android/*/build/
 *.apk
 *.aab
 *.keystore
@@ -25,8 +28,13 @@ google-services.json
 
 # Microsoft Entra / MSAL 設定（含 client_id、signature hash，需自行申請）
 msal_config.json
-app/src/main/res/values/msal_auth_config.xml
+legacy-android/app/src/main/res/values/msal_auth_config.xml
+legacy-android/app/src/main/res/raw/msal_config.json
 
 # 執行期產生的檔案
 .playwright-mcp/
 logs/
+
+# Flutter 版是獨立 repo（rendychen0331/classnote-flutter）
+classnote-flutter-clone/
+classnote-flutter-migrate/

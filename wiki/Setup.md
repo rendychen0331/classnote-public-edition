@@ -10,6 +10,7 @@
 - Android SDK 34+（compileSdk / targetSdk）
 - minSdk 26（Android 8.0）
 - JDK 17（Android Studio 內建）
+- Android Studio 請開啟 `legacy-android/` 資料夾（原生版已搬到此處）
 
 ## 步驟
 
@@ -30,7 +31,7 @@ cd classnote-public-edition
 6. 前往 [Firebase Console](https://console.firebase.google.com/)
 7. 建立新專案（或使用現有專案），匯入 Google Cloud 專案
 8. 新增 Android App，Package name 填 `com.rendy.classnote`
-9. 下載 `google-services.json`，放到 `app/` 目錄
+9. 下載 `google-services.json`，放到 `legacy-android/app/` 目錄
 
 ### 3. 建立 MSAL 設定檔（Microsoft 登入，選用）
 
@@ -38,7 +39,7 @@ cd classnote-public-edition
 
 1. 前往 [Microsoft Entra（Azure AD）](https://portal.azure.com/) → App registrations → New registration
 2. Redirect URI 類型選 **Public client/native (mobile & desktop)**，填入 `msauth://com.rendy.classnote/你的Signature`
-3. 建立 `app/src/main/res/values/msal_auth_config.xml`：
+3. 建立 `legacy-android/app/src/main/res/values/msal_auth_config.xml`：
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -49,7 +50,7 @@ cd classnote-public-edition
 </resources>
 ```
 
-4. 建立 `app/src/main/assets/msal_config.json`：
+4. 建立 `legacy-android/app/src/main/assets/msal_config.json`：
 
 ```json
 {
@@ -89,6 +90,7 @@ AI 辨識、天氣、Gmail 同步等功能需要個別 API Key。
 在 Android Studio 中選擇 **Run 'app'**，或使用命令列：
 
 ```bash
+cd legacy-android
 ./gradlew assembleDebug
 adb install app/build/outputs/apk/debug/app-debug.apk
 ```

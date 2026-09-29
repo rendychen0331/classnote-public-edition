@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    # Native Android project lives in legacy-android/ (Flutter version is a separate repo)
+    defaults:
+      run:
+        working-directory: legacy-android
 
     steps:
       - uses: actions/checkout@v4
@@ -167,8 +171,8 @@ jobs:
         with:
           name: classnote-${{ github.run_number }}
           path: |
-            dist/classnote-*.apk
-            dist/feature-*.dex
+            legacy-android/dist/classnote-*.apk
+            legacy-android/dist/feature-*.dex
           retention-days: 30
 
       - name: Create GitHub Release
@@ -176,10 +180,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/classnote-*.apk
-            dist/feature-google.dex
-            dist/feature-microsoft.dex
-            dist/feature-ai.dex
-            dist/feature-weather.dex
-            dist/features.json
+            legacy-android/dist/classnote-*.apk
+            legacy-android/dist/feature-google.dex
+            legacy-android/dist/feature-microsoft.dex
+            legacy-android/dist/feature-ai.dex
+            legacy-android/dist/feature-weather.dex
+            legacy-android/dist/features.json
           generate_release_notes: true
