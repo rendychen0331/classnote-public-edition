@@ -128,26 +128,23 @@ class SyncBridgeImpl(override val context: Context) : SyncBridge {
 
     // ── Settings snapshots ────────────────────────────────────────────────
 
-    override fun getAiSettings(): Map<String, String> = buildMap {
-        put("geminiApiKey", prefs.geminiApiKey)
-        put("claudeApiKey", prefs.claudeApiKey)
-        put("openaiApiKey", prefs.openaiApiKey)
-        put("groqApiKey", prefs.groqApiKey)
-        put("deepseekApiKey", prefs.deepseekApiKey)
-        put("mimoApiKey", prefs.mimoApiKey)
-    }
+    // These snapshots are written into the cloud backup's meta JSON (Drive appDataFolder /
+    // OneDrive approot) as plain text. API keys are therefore NOT part of them: on the phone
+    // they live in EncryptedSharedPreferences behind a biometric gate, and a plaintext copy in
+    // the cloud would undo that. After a restore the keys are entered again. Older backups
+    // that still carry keys keep restoring them (apply* below accepts them), and they age out:
+    // only the newest 3 backups are kept.
+    override fun getAiSettings(): Map<String, String> = emptyMap()
 
     override fun getWeatherSettings(): Map<String, String> {
         val wp = WeatherPreferences(context)
         return buildMap {
-            put("cwaApiKey", prefs.cwaApiKey)
             put("savedLocations", org.json.JSONArray(wp.savedLocations).toString())
             put("notifLocation", wp.weatherNotifLocation)
             put("notifEnabled", wp.weatherNotifEnabled.toString())
             put("notifHour", wp.weatherNotifHour.toString())
             put("notifMinute", wp.weatherNotifMinute.toString())
             put("weatherProvider", wp.weatherProvider)
-            put("weatherApiComKey", prefs.weatherApiComKey)
         }
     }
 
